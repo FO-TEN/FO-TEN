@@ -4,8 +4,8 @@
 #   DB만 실행    docker compose up -d mysql          (BE·FE 는 IDE / npm run dev 로)
 #   DB+BE 실행   docker compose up -d mysql app      (FE 만 npm run dev 로)
 #
-# Docker 를 쓰지 않는 팀원은 docs/SETUP.md 의 "B. 로컬 MySQL 경로" 를 따른다.
-# 포트·DB명·계정을 아래와 동일하게 맞춰야 두 경로가 어긋나지 않는다.
+# Docker 를 쓰지 않는 팀원은 README 의 "Docker 를 쓰지 않는다면" 을 따른다.
+# 포트·DB명·계정은 .env 한 곳에서 오므로 두 경로가 어긋나지 않는다.
 
 services:
   mysql:

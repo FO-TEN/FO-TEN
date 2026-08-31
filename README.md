@@ -34,7 +34,6 @@ FO-TEN/
 │  └─ Dockerfile            # 멀티스테이지 (Node 20 빌드 → nginx 실행)
 ├─ db/init/                 # 스키마·시드 SQL — 팀 전체의 유일한 스키마 출처
 ├─ scripts/                 # 커밋 메시지·브랜치명 검증 스크립트
-├─ docs/SETUP.md            # 개발 환경 세팅 (Docker / 로컬 두 경로)
 ├─ docker-compose.yml       # MySQL + 백엔드 + 프론트
 └─ lefthook.yml             # Git 훅 (컨벤션 자동 검증)
 ```
@@ -63,7 +62,28 @@ npm install && npx lefthook install    # Git 훅 설치 (한 번만)
 docker compose up -d        # http://localhost:5173
 ```
 
-Docker 를 쓰지 않는 경로를 포함한 자세한 내용은 **[docs/SETUP.md](docs/SETUP.md)** 를 보세요.
+### Docker 를 쓰지 않는다면
+
+MySQL 8.4 · JDK 17 · Node 20 · **Tomcat 9** 를 직접 설치합니다. (Tomcat 10 이상은 `javax` → `jakarta` 전환 때문에 Spring 5 앱이 뜨지 않습니다)
+
+DB 는 컨테이너와 **같은 값**으로 맞춥니다. 값이 갈리면 "내 PC 에서만 되는" 문제가 생깁니다. 정확한 값은 [`.env.example`](.env.example) 에 있습니다.
+
+```sql
+CREATE DATABASE foten DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'foten'@'localhost' IDENTIFIED BY 'foten';
+GRANT ALL PRIVILEGES ON foten.* TO 'foten'@'localhost';
+FLUSH PRIVILEGES;
+SET GLOBAL time_zone = '+09:00';   -- 안 맞추면 D-day 계산이 하루씩 밀립니다
+```
+
+```bash
+mysql -u root -p foten < db/init/01-schema.sql
+cd FE && npm install && npm run dev      # http://localhost:5173
+```
+
+백엔드는 IDE 에서 Tomcat 9 를 8080 포트로 띄우고, VM 옵션에 `-Duser.timezone=Asia/Seoul` 을 넣습니다.
+
+> 세팅 상세와 문제 해결은 팀 채널에 공유된 세팅 문서를 보세요.
 
 ## Git Convention
 
