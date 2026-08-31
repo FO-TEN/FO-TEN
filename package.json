@@ -1,0 +1,11 @@
+{
+  "name": "foten",
+  "private": true,
+  "description": "FO:TEN 저장소 공통 개발 도구 (Git 훅 전용). 애플리케이션 의존성은 FE/package.json 에 둡니다.",
+  "scripts": {
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "lefthook": "^1.7.0"
+  }
+}
