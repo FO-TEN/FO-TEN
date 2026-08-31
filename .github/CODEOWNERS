@@ -1,0 +1,24 @@
+# 리뷰어 자동 지정.
+#
+# ⚠️ 아래 GitHub 아이디를 실제 값으로 바꿔야 동작합니다.
+#    아이디가 틀리면 조용히 무시되므로(에러가 안 납니다) 한 번 PR 을 열어
+#    리뷰어가 자동으로 붙는지 확인하세요.
+#
+#    아이디 확인: https://github.com/settings/profile 의 Username
+#    또는 저장소 Insights > People 에서 볼 수 있습니다.
+
+# 3명 모두 풀스택이라 경로로 나누는 의미가 크지 않아, 전체에 세 명을 지정합니다.
+# PR 을 연 본인은 자동으로 제외되므로 실제로는 나머지 두 명에게 리뷰 요청이 갑니다.
+# 병합 조건은 1명 승인입니다.
+*   @GITHUB_ID_수민 @GITHUB_ID_민주 @GITHUB_ID_현지
+
+# 담당을 나누고 싶어지면 아래처럼 경로별로 덮어쓸 수 있습니다.
+# 아래 규칙이 위 규칙보다 우선합니다(마지막에 일치한 규칙이 이깁니다).
+#
+# /BE/    @GITHUB_ID_수민
+# /FE/    @GITHUB_ID_현지
+# /db/    @GITHUB_ID_수민 @GITHUB_ID_민주
+#
+# 인프라·CI 는 세 명 환경에 모두 영향을 주므로 전원 리뷰를 유지하는 편이 좋습니다.
+# /.github/           @GITHUB_ID_수민 @GITHUB_ID_민주 @GITHUB_ID_현지
+# /docker-compose.yml @GITHUB_ID_수민 @GITHUB_ID_민주 @GITHUB_ID_현지

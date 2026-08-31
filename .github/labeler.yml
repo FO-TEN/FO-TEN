@@ -1,0 +1,31 @@
+# actions/labeler v5 형식. .github/workflows/labeler.yml 이 사용한다.
+# 여기 쓰인 라벨은 저장소에 미리 만들어져 있어야 합니다 (docs/SETUP.md 참고).
+
+BE:
+  - changed-files:
+      - any-glob-to-any-file: 'BE/**'
+
+FE:
+  - changed-files:
+      - any-glob-to-any-file: 'FE/**'
+
+db:
+  - changed-files:
+      - any-glob-to-any-file: 'db/**'
+
+infra:
+  - changed-files:
+      - any-glob-to-any-file:
+          - 'docker-compose.yml'
+          - '**/Dockerfile'
+          - '**/.dockerignore'
+          - '.github/**'
+          - 'lefthook.yml'
+          - 'scripts/**'
+          - 'FE/nginx/**'
+
+docs:
+  - changed-files:
+      - any-glob-to-any-file:
+          - '**/*.md'
+          - 'docs/**'

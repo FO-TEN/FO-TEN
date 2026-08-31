@@ -1,0 +1,79 @@
+name: Convention
+
+# 빌드와 분리해 둔다. 이름 규칙 위반은 30초 안에 알려주는 게 맞고,
+# 빌드가 5분 도는 동안 기다릴 이유가 없다.
+on:
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: convention-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  convention:
+    name: convention
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 브랜치의 커밋을 모두 확인해야 하므로 전체 히스토리를 받는다.
+          fetch-depth: 0
+
+      # 로컬 lefthook 훅과 같은 정규식을 쓴다.
+      # 규칙을 바꿀 때는 scripts/validate-git-branch.sh 를 고치면 여기도 따라온다.
+      - name: 브랜치명 검증
+        env:
+          BRANCH: ${{ github.head_ref }}
+        run: |
+          pattern=$(sed -n "s/^pattern='\(.*\)'$/\1/p" scripts/validate-git-branch.sh)
+          if [ -z "$pattern" ]; then
+            echo "::error::scripts/validate-git-branch.sh 에서 정규식을 읽지 못했습니다."
+            exit 1
+          fi
+          if ! printf '%s\n' "$BRANCH" | grep -Eq "$pattern"; then
+            echo "::error::브랜치명 '$BRANCH' 이 컨벤션에 맞지 않습니다."
+            echo "::error::예) be/feat/goal-simulation, fe/fix/34-exchange-rate, chore/docker-compose"
+            exit 1
+          fi
+          echo "브랜치명 OK: $BRANCH"
+
+      # squash merge 하면 PR 제목이 그대로 develop 의 커밋 메시지가 된다.
+      # 따라서 PR 제목도 커밋 컨벤션을 지켜야 한다.
+      - name: PR 제목 검증
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$TITLE" > /tmp/pr-title.txt
+          if ! sh ./scripts/validate-commit-message.sh /tmp/pr-title.txt; then
+            echo "::error::PR 제목이 커밋 컨벤션에 맞지 않습니다: $TITLE"
+            echo "::error::squash merge 시 이 제목이 develop 의 커밋 메시지가 됩니다."
+            exit 1
+          fi
+          echo "PR 제목 OK: $TITLE"
+
+      # 로컬 훅을 설치하지 않았거나 다른 도구로 커밋했더라도 여기서 걸린다.
+      # 저장소 기여자 목록에 실제로 작업한 사람만 남는지를 보장하는 마지막 지점이다.
+      - name: 커밋 작성자 검증
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: sh ./scripts/validate-commit-author.sh "$BASE..$HEAD"
+
+      - name: 커밋 메시지 검증
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list "$BASE".."$HEAD"); do
+            git log -1 --format=%B "$sha" > /tmp/msg.txt
+            if ! sh ./scripts/validate-commit-message.sh /tmp/msg.txt; then
+              echo "::error::$(git log -1 --format='%h %s' "$sha") — 커밋 메시지가 컨벤션에 맞지 않습니다."
+              status=1
+            fi
+          done
+          exit $status

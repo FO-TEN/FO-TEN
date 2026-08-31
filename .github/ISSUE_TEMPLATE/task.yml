@@ -1,0 +1,75 @@
+name: 논의가 필요한 작업
+description: 혼자 정하기 어렵거나, 여러 명이 얽히거나, 나중에 할 일을 남겨둘 때
+title: "[작업] "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > 모든 작업에 이슈를 만들지 않습니다. 바로 할 수 있는 일은 브랜치를 파고 PR 로 기록하세요.
+        >
+        > 이슈를 만드는 경우는 다음 정도입니다.
+        > - 방식을 정해야 해서 **다른 팀원 의견이 필요할 때**
+        > - **BE·FE 가 함께** 움직여야 해서 순서를 맞춰야 할 때
+        > - 지금 안 하지만 **잊으면 안 되는 일**을 남겨둘 때
+        > - **DB 스키마**를 바꿔야 해서 미리 알려야 할 때
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: 무엇을
+      description: 한 문단으로
+      placeholder: 대화 상태를 서버에 저장할지 클라이언트에 둘지 정해야 한다.
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: 왜 이슈로 올렸는지
+      description: 논의가 필요한 지점, 또는 미뤄둔 이유
+      placeholder: |
+        LLM 멀티턴 대화에서 이전 맥락을 어디에 들고 있을지에 따라 DB 스키마가 달라진다.
+        서버에 두면 새로고침에 강하지만 테이블이 하나 늘고, 클라이언트에 두면 간단하지만 시연 중 새로고침하면 대화가 날아간다.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: part
+    attributes:
+      label: 관련 파트
+      options:
+        - be (백엔드)
+        - fe (프론트엔드)
+        - be + fe (둘 다)
+        - 공통 (설정 · CI · 문서)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: 영향
+      options:
+        - label: DB 스키마 변경이 필요합니다 (`db/init/*.sql` 수정 대상)
+        - label: 다른 팀원 작업과 순서를 맞춰야 합니다
+        - label: 외부 API(LLM · 환율) 연동이 얽혀 있습니다
+
+  - type: textarea
+    id: options
+    attributes:
+      label: 선택지 / 하려는 것
+      description: 떠오르는 방법이 있으면 나열하세요. 정해지지 않았으면 비워둡니다
+      value: |
+        - [ ]
+        - [ ]
+    validations:
+      required: false
+
+  - type: textarea
+    id: refs
+    attributes:
+      label: 참고 자료
+      description: 기획서 페이지, API 문서, 관련 PR 등
+    validations:
+      required: false
