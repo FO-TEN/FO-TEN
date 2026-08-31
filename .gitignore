@@ -1,0 +1,122 @@
+# =========================================================
+# Environment / Secrets
+# =========================================================
+
+.env
+.env.*
+!.env.example
+
+secrets/*
+!secrets/README.md
+**/secrets/*
+!**/secrets/README.md
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*service-account*.json
+*serviceAccount*.json
+
+# =========================================================
+# 로컬 개발 도구 · 에디터 설정
+# =========================================================
+
+# .claude 는 팀이 공유하는 것만 커밋한다.
+#   커밋:  commands/  hooks/  rules/  settings.json
+#   무시:  개인 설정과 세션 흔적 (아래)
+.claude/settings.local.json
+.claude/*.local.json
+.claude/todos/
+.claude/shell-snapshots/
+.claude/statsig/
+.claude/projects/
+.claude/history.jsonl
+
+.mcp.json
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+.agents/
+.cursor/
+.cursorrules
+.windsurfrules
+.aider*
+.github/copilot-instructions.md
+
+# =========================================================
+# Backend (Spring Legacy + Gradle)
+# =========================================================
+
+BE/.gradle/
+BE/build/
+BE/**/build/
+BE/out/
+BE/bin/
+BE/target/
+
+# Gradle Wrapper 는 반드시 커밋한다 (없으면 CI 와 Docker 빌드가 죽는다)
+!BE/gradle/wrapper/gradle-wrapper.jar
+!BE/gradle/wrapper/gradle-wrapper.properties
+
+# 로컬 전용 Spring 설정 (비-Docker 경로에서 각자의 DB 계정이 들어간다)
+BE/src/main/resources/application-local.properties
+BE/src/main/resources/application-local.yml
+
+# =========================================================
+# Frontend (Vue 3 + Vite)
+# =========================================================
+
+node_modules/
+**/node_modules/
+**/dist/
+**/dist-ssr/
+**/coverage/
+.vite/
+*.local
+
+# =========================================================
+# IDE
+# =========================================================
+
+.idea/
+BE/.idea/
+FE/.idea/
+*.iml
+*.ipr
+*.iws
+
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json.example
+FE/.vscode/
+
+.settings/
+.project
+.classpath
+.factorypath
+
+# =========================================================
+# Logs
+# =========================================================
+
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# =========================================================
+# OS / 임시 파일
+# =========================================================
+
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+*.bak
