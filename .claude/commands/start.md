@@ -38,9 +38,10 @@ git switch -c <파트>/<접두어>/<영문-요약>
 be/feat/goal-simulation           이슈 없이 바로 작업 (기본)
 fe/fix/34-exchange-rate-display   이슈 #34 가 있는 경우
 chore/docker-compose              파트 구분이 없는 공통 작업
+docs/setup-guide                  저장소 전체 문서
 ```
 
-- `<파트>`: `be` (Spring · MyBatis · DB) 또는 `fe` (Vue · 화면). 파트 구분이 없는 공통 작업은 `chore/<요약>` 으로 파트 없이 만듭니다.
+- `<파트>`: `be` (Spring · MyBatis · DB) 또는 `fe` (Vue · 화면). 파트 구분이 없는 작업은 `chore/<요약>` 또는 `docs/<요약>` 으로 파트 없이 만듭니다.
 - `<접두어>`: `feat` `fix` `docs` `style` `refactor` `test` `chore` `design` `comment` `rename` `remove` `hotfix` `revert` 중 하나.
 - `<영문-요약>`: 소문자 하이픈 케이스, 2~4단어.
 

@@ -5,6 +5,7 @@
 #   be/feat/goal-simulation           이슈 없이 바로 작업하는 경우 (기본)
 #   be/fix/34-exchange-rate-display   이슈가 있는 경우 앞에 번호를 붙인다
 #   chore/docker-compose              파트 구분이 없는 공통 작업
+#   docs/setup-guide                  저장소 전체 문서
 
 set -eu
 
@@ -15,14 +16,15 @@ if [ -z "$branch" ] || [ "$branch" = 'develop' ] || [ "$branch" = 'main' ]; then
   exit 0
 fi
 
-pattern='^((fe|be)/(feat|fix|docs|style|refactor|test|chore|design|comment|rename|remove|hotfix|revert)|chore)/([0-9]+-)?[a-z0-9]+(-[a-z0-9]+)*$'
+pattern='^((fe|be)/(feat|fix|docs|style|refactor|test|chore|design|comment|rename|remove|hotfix|revert)|chore|docs)/([0-9]+-)?[a-z0-9]+(-[a-z0-9]+)*$'
 
 if ! printf '%s\n' "$branch" | grep -Eq "$pattern"; then
   {
     echo '브랜치명 형식이 맞지 않습니다.'
     echo
     echo '  [fe|be]/접두어/기능명            예) be/feat/goal-simulation'
-    echo '  chore/기능명                     예) chore/docker-compose      (공통 작업)'
+    echo '  chore/기능명                     예) chore/docker-compose      (설정 · CI · 빌드)'
+    echo '  docs/기능명                      예) docs/setup-guide         (저장소 전체 문서)'
     echo
     echo '  이슈가 있으면 기능명 앞에 번호를 붙입니다.'
     echo '    예) be/fix/34-exchange-rate-display, chore/7-github-actions'

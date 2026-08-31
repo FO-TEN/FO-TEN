@@ -90,7 +90,8 @@ Docker 를 쓰지 않는 경로를 포함한 자세한 내용은 **[docs/SETUP.m
 ```text
 be/feat/goal-simulation         # 기본. 이슈 없이 바로 작업
 fe/design/goal-card-spacing
-chore/docker-compose            # 파트 구분이 없는 공통 작업
+chore/docker-compose            # 파트 구분이 없는 공통 작업 (설정 · CI · 빌드)
+docs/setup-guide                # 저장소 전체 문서
 
 fe/fix/34-exchange-rate-display # 이슈가 있을 때만 앞에 번호를 붙임
 ```
@@ -146,7 +147,7 @@ chore: Docker Compose 구성 추가
 
 ### 규칙
 
-- 개발 파트는 `fe` 또는 `be` 를 씁니다. 파트 구분이 없는 공통 작업은 `chore` 로 시작합니다.
+- 개발 파트는 `fe` 또는 `be` 를 씁니다. 파트를 생략할 수 있는 접두어는 **`chore` 와 `docs` 둘뿐**입니다 — 설정·CI·빌드는 `chore`, 저장소 전체 문서는 `docs`.
 - 기능 PR 은 기능 브랜치에서 `develop` 으로 생성하고 **squash merge** 합니다.
 - 최소 1명의 리뷰어 승인 후 병합합니다.
 - `develop` 에서 `main` 으로 릴리스할 때는 **rebase merge** 합니다.

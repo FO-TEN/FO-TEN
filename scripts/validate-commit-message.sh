@@ -5,6 +5,7 @@
 #   [be]feat: 목표 시뮬레이션 API 추가
 #   [fe]fix: 환율 표시 소수점 오류 수정
 #   chore: Docker Compose 구성 추가        (파트 구분이 없는 공통 작업)
+#   docs: README 컨벤션 표 갱신            (저장소 전체 문서)
 
 set -eu
 
@@ -16,13 +17,15 @@ case "$subject" in
   'Merge '*|'Revert "'*) exit 0 ;;
 esac
 
-pattern='^(\[(fe|be)\](feat|fix|docs|style|refactor|test|chore|design|comment|rename|remove|hotfix|revert)|chore): .+$'
+pattern='^(\[(fe|be)\](feat|fix|docs|style|refactor|test|chore|design|comment|rename|remove|hotfix|revert)|chore|docs): .+$'
 
 if ! printf '%s\n' "$subject" | grep -Eq "$pattern"; then
   printf '%s\n' '커밋 메시지 형식이 맞지 않습니다.' >&2
   printf '%s\n' '' >&2
   printf '%s\n' '  [fe|be]접두어: 기능명     예) [be]feat: 목표 시뮬레이션 API 추가' >&2
   printf '%s\n' '  chore: 기능명             예) chore: Docker Compose 구성 추가' >&2
+  printf '%s
+' '  docs: 기능명              예) docs: 개발 환경 세팅 문서 보강' >&2
   printf '%s\n' '' >&2
   printf '%s
 ' '  접두어: feat fix docs style refactor test chore' >&2
