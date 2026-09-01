@@ -1,0 +1,76 @@
+name: 버그
+description: 동작하지 않거나 잘못 동작하는 것
+title: "[버그] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: symptom
+    attributes:
+      label: 증상
+      description: 무슨 일이 일어나는지 한 문단으로
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 재현 절차
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 동작
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: 실제 동작
+    validations:
+      required: true
+
+  - type: dropdown
+    id: env-run
+    attributes:
+      label: 실행 방식
+      description: 팀원마다 환경이 달라서, 이 항목이 원인 좁히기에 가장 중요합니다
+      options:
+        - Docker (docker compose up)
+        - 로컬 MySQL + IDE 실행
+        - 원격 공용 DB
+        - 배포 서버
+        - 모르겠음
+    validations:
+      required: true
+
+  - type: input
+    id: env-os
+    attributes:
+      label: OS / 브라우저
+      placeholder: Windows 11 / Chrome 130
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: 로그 / 에러 메시지
+      description: 스택 트레이스나 콘솔 로그를 그대로 붙여넣기
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: guess
+    attributes:
+      label: 추정 원인
+      description: 짚이는 곳이 있으면. 없으면 비워두세요
+    validations:
+      required: false

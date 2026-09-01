@@ -1,0 +1,35 @@
+# 설치 (저장소를 clone 한 뒤 각자 한 번씩 실행):
+#   npm install
+#   npx lefthook install
+#
+# 훅을 건너뛰어야 할 때는 LEFTHOOK=0 git commit ... 을 쓴다. 상시로 쓰지 않는다.
+
+pre-commit:
+  parallel: true
+  commands:
+    format-frontend:
+      root: FE/
+      glob: '*.{css,html,js,json,jsx,md,ts,tsx,vue,yaml,yml}'
+      # FE 에 prettier 가 아직 설치되지 않았을 때 커밋이 막히지 않게 존재 여부를 확인한다.
+      run: '[ -x node_modules/.bin/prettier ] && node_modules/.bin/prettier --write {staged_files} || echo "prettier 미설치 - 포맷을 건너뜁니다"'
+      stage_fixed: true
+    lint-frontend:
+      root: FE/
+      glob: '*.{js,ts,vue}'
+      run: '[ -x node_modules/.bin/eslint ] && node_modules/.bin/eslint --fix {staged_files} || echo "eslint 미설치 - 린트를 건너뜁니다"'
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    validate:
+      run: sh ./scripts/validate-commit-message.sh {1}
+
+pre-push:
+  parallel: true
+  commands:
+    validate-branch:
+      run: sh ./scripts/validate-git-branch.sh
+    # 커밋 author·committer 와 Co-authored-by 트레일러를 검사한다.
+    # GitHub 은 이 셋을 모두 읽어 기여자로 집계하므로, 올라가기 전에 막는다.
+    validate-author:
+      run: sh ./scripts/validate-commit-author.sh

@@ -1,0 +1,77 @@
+# FO:TEN 로컬 개발용 Compose
+#
+#   전체 실행    docker compose up -d
+#   DB만 실행    docker compose up -d mysql          (BE·FE 는 IDE / npm run dev 로)
+#   DB+BE 실행   docker compose up -d mysql app      (FE 만 npm run dev 로)
+#
+# Docker 를 쓰지 않는 팀원은 README 의 "Docker 를 쓰지 않는다면" 을 따른다.
+# 포트·DB명·계정은 .env 한 곳에서 오므로 두 경로가 어긋나지 않는다.
+
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: foten-mysql
+    env_file:
+      - .env
+    # 원화·본국통화 금액과 다국어 텍스트를 다루므로 utf8mb4 로 고정한다.
+    # 서버 시간대는 Asia/Seoul 로 맞춘다 — 앱이 LocalDateTime.now() 로 만든 값을
+    # MySQL NOW() 와 비교하는데, 기본값(UTC)이면 9시간 어긋난다.
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+    ports:
+      - '3306:3306'
+    volumes:
+      - mysql-data:/var/lib/mysql
+      # db/init/*.sql 이 팀 전체의 유일한 스키마 출처다.
+      # 주의: 이 마운트는 데이터 디렉터리가 완전히 빈 최초 기동에만 실행된다.
+      # 스키마를 바꾼 뒤에는 반드시 볼륨을 지우고 다시 띄운다:
+      #   docker compose down -v && docker compose up -d
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-p${MYSQL_ROOT_PASSWORD}']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: ./BE
+    container_name: foten-api
+    env_file:
+      - .env
+    environment:
+      # environment 가 env_file 보다 우선한다.
+      # .env 의 SPRING_PROFILES_ACTIVE 는 비-Docker(IDE) 실행용 값이므로 여기서 덮어쓴다.
+      # 이게 없으면 컨테이너가 localhost DB 를 보는 local 프로파일로 떠서 연결에 실패한다.
+      SPRING_PROFILES_ACTIVE: docker
+      # DB 와 같은 시간대여야 한다. 어긋나면 목표 D-day 계산과 환율 배치 시각이 하루씩 밀린다.
+      TZ: Asia/Seoul
+    volumes:
+      # LLM·환율 API 키 같은 민감정보는 이미지에 굽지 않고 마운트로만 넣는다.
+      # 이미지 레이어에 한 번 들어가면 영구히 남기 때문이다.
+      # 파일이 아니라 디렉터리를 마운트하는 이유: 파일 경로를 지정했는데 호스트에
+      # 그 파일이 없으면 Docker 가 같은 이름의 빈 디렉터리를 만들어 원인 찾기가 어려워진다.
+      - ./secrets:/etc/foten:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    ports:
+      - '8080:8080'
+
+  web:
+    build:
+      context: ./FE
+      args:
+        # 브라우저는 항상 상대경로 /api 로 보내고, 아래 nginx 가 app:8080 으로 넘긴다.
+        # 절대 URL 을 넣으면 CORS 설정이 필요해지고 배포 시 깨진다.
+        VITE_API_BASE_URL: /api
+    container_name: foten-web
+    depends_on:
+      - app
+    # 로컬 npm run dev 와 같은 포트를 쓴다 — 두 경로에서 접속 주소가 같아진다.
+    ports:
+      - '5173:80'
+
+volumes:
+  mysql-data:

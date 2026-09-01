@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: 브랜치 · 커밋 · PR 컨벤션
+    url: https://github.com/FO-TEN/FO-TEN/blob/develop/README.md#git-convention
+    about: 이슈 없이 바로 작업해도 됩니다. 브랜치명과 커밋 형식은 여기에 있습니다.
