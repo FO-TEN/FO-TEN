@@ -40,6 +40,7 @@
 
 <!-- 실제로 돌린 것만 체크합니다. 안 돌렸으면 비워두세요 -->
 
+- [ ] develop 브랜치의 최신 코드를 pull 받았나요?
 - [ ] `cd BE && ./gradlew build` 통과
 - [ ] `cd FE && npm run build` 통과
 - [ ] 로컬에서 동작 확인 (실행 방식: Docker / 로컬 MySQL / 원격 DB)

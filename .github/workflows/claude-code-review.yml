@@ -1,0 +1,88 @@
+name: Claude PR Review
+
+# PR 이 열리거나 갱신될 때마다 Claude 가 diff 를 검토하고, PR 본문 체크리스트를
+# 실제 상태(빌드 통과 여부·develop 최신화 여부)에 맞게 갱신한 뒤 결과를 코멘트로 남긴다.
+# BE/FE 가 아직 없는 시점의 PR에서 워크플로 자체가 실패하지 않도록,
+# ci.yml 처럼 존재 여부를 먼저 확인하고 없으면 건너뛴다.
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  claude-review:
+    name: claude-review
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # develop 최신 포함 여부를 git log 로 판단해야 하므로 전체 히스토리를 받는다.
+          fetch-depth: 0
+
+      # BE/FE 어느 쪽도 없으면 리뷰할 대상 자체가 없다. ci.yml 의 "존재 확인 후
+      # 없으면 건너뛴다" 방식을 그대로 따른다.
+      - name: 리뷰 대상 프로젝트 존재 확인
+        id: check
+        run: |
+          if [ -f BE/gradlew ] || [ -f FE/package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::BE/FE 프로젝트가 아직 없어 자동 리뷰를 건너뜁니다."
+          fi
+
+      - name: Claude Code Review
+        if: steps.check.outputs.exists == 'true'
+        # 감사된 커밋 SHA 로 고정하는 걸 권장한다. 우선 태그로 시작하고,
+        # 나중에 SHA 로 바꿀 때 이 주석도 같이 지운다.
+        uses: anthropics/claude-code-action@v1
+        env:
+          # gh CLI 로 PR 본문·코멘트를 갱신하려면 인증 토큰이 필요하다.
+          # 새로 등록할 시크릿이 아니라 Actions 가 잡마다 자동으로 주는 토큰이다.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            이 저장소는 FO:TEN 이다. 아래 순서대로 이번 PR을 검토한다.
+
+            중요한 제약 — Edit 도구는 **PR 본문(체크박스)을 고칠 때만** 쓴다.
+            저장소의 소스 코드나 다른 파일은 절대 수정하지 않는다. 이 워크플로의
+            목적은 리뷰와 PR 본문 체크리스트 갱신이지, 코드를 고치는 게 아니다.
+
+            1. `git log` 로 이 PR의 base 커밋이 origin/develop 의 최신 커밋을
+               포함하고 있는지 확인한다. 포함하고 있으면 PR 본문 체크리스트의
+               "develop 브랜치의 최신 코드를 pull 받았나요?" 항목을 `[x]` 로,
+               아니면 `[ ]` 로 유지한다. `gh pr view <번호> --json body` 로 현재
+               본문을 읽고, 필요하면 `gh pr edit <번호> --body-file <임시파일>` 로
+               갱신한다.
+            2. 이번 PR의 diff(`git diff origin/develop...HEAD`)를 분석해서, 변경된
+               코드와 직접 관련된 테스트만 골라 `cd BE && ./gradlew test --tests "..."`
+               형태로 실행한다. `BE/gradlew` 가 없으면 이 단계는 건너뛰고 그 사실을
+               코멘트에 명시한다.
+            3. `cd BE && ./gradlew clean build` 를 전체로 한 번 더 실행한다. 실패가
+               있으면 그게 이번 diff 때문인지, 아니면 로컬 인프라 문제(예: Docker
+               MySQL 미기동, 시크릿 파일 없음)처럼 diff 와 무관한 환경 이슈인지
+               반드시 구분해서 설명한다. 구분이 안 서면 "확인 필요"라고 솔직히
+               남긴다.
+            4. 위 결과에 따라 PR 본문 체크리스트의 "`cd BE && ./gradlew build` 통과"
+               항목도 실제 상태에 맞게 `[x]` 또는 `[ ]` 로 수정한다.
+            5. PR 에 코멘트를 남긴다. 형식은 다음을 따른다.
+               - 제목: "🤖 AI 리뷰"
+               - 실행한 명령을 코드블록으로 보여주고, 각 명령 옆에 통과/실패 결과를 붙인다
+               - 실패가 있으면 원인 분석(코드 문제 vs 환경 문제)을 짧게 덧붙인다
+               - 같은 PR에 커밋이 추가로 쌓여도 코멘트가 계속 늘어나지 않도록, 이
+                 저장소의 schema-guard.yml 이 쓰는 것과 같은 방식으로 처리한다:
+                 `<!-- claude-pr-review -->` 마커가 포함된 기존 코멘트를
+                 `gh api repos/{owner}/{repo}/issues/{번호}/comments` 로 찾아서
+                 있으면 `gh api ... -X PATCH` 로 그 코멘트를 수정하고, 없으면
+                 새로 작성한다. 코멘트 본문 맨 위에 반드시 이 마커를 그대로 넣는다.
+          claude_args: |
+            --max-turns 20
+            --allowedTools "Bash,Edit"
