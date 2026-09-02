@@ -13,6 +13,8 @@ java {
 
 // 소스에 한글 주석이 섞여 있으므로, OS 기본 인코딩(Windows 는 CP949)에
 // 의존하지 않게 컴파일러 인코딩을 명시적으로 고정한다.
+
+
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
 }
