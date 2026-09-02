@@ -1,4 +1,4 @@
-package com.foten.saving.controller;
+package com.foten.goal.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 별도 작업에서 이 컨트롤러 아래에 추가한다.
  */
 @RestController
-public class SavingController {
+public class GoalController {
 
     @GetMapping("/api/health")
     public ResponseEntity<String> health() {
