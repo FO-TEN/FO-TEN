@@ -172,11 +172,27 @@ chore: Docker Compose 구성 추가
 ### 규칙
 
 - 개발 파트는 `fe` 또는 `be` 를 씁니다. 파트를 생략할 수 있는 접두어는 **`chore` 와 `docs` 둘뿐**입니다 — 설정·CI·빌드는 `chore`, 저장소 전체 문서는 `docs`.
-- 기능 PR 은 기능 브랜치에서 `develop` 으로 생성하고 **squash merge** 합니다.
+- 기능 PR 은 기능 브랜치에서 `develop` 으로 생성하고 **squash merge** 합니다. PR 하나가 `develop` 의 커밋 하나가 됩니다.
 - 최소 1명의 리뷰어 승인 후 병합합니다.
-- `develop` 에서 `main` 으로 릴리스할 때는 **rebase merge** 합니다.
+- `develop` 에서 `main` 으로 릴리스할 때는 **merge 커밋**으로 병합합니다. 어떤 커밋이 배포에 들어갔는지가 히스토리에 남아야 하기 때문입니다.
+- 두 방식은 ruleset 으로 강제됩니다. PR 화면에는 그 브랜치에서 쓸 수 있는 병합 버튼 하나만 보입니다.
 - 이미 push 한 브랜치는 **rebase 하지 않습니다.** `develop` 을 따라잡을 때는 merge 를 씁니다 (리뷰 코멘트 위치가 어긋나는 것을 막기 위함).
 - **DB 스키마를 바꾸면 `db/init/01-schema.sql` 을 함께 수정**하고, PR 본문에 팀원 재적용 방법을 적습니다.
+
+### 브랜치 보호
+
+`develop` 과 `main` 은 ruleset 으로 보호됩니다. 직접 push · 강제 push · 브랜치 삭제가 모두 막혀 있고, 예외 권한을 가진 사람은 없습니다.
+
+| | `develop` | `main` |
+| --- | --- | --- |
+| 병합 방식 | squash 만 | merge 커밋만 |
+| 필수 상태 체크 | `backend` `frontend` `convention` | `backend` `frontend` |
+| 리뷰 | 1명 승인 | 1명 승인 + CODEOWNERS 리뷰 |
+| 최신 base 요구 | 없음 | 있음 — 병합 전 `develop` 을 당겨와 CI 를 다시 통과해야 합니다 |
+
+두 브랜치 모두 **승인을 받은 뒤 커밋을 추가로 push 하면 기존 승인이 무효**가 되고, 마지막 push 는 본인이 아닌 다른 사람의 승인이 필요합니다.
+
+`schema-guard` 와 `labeler` 는 필수 체크에 넣지 않습니다. 두 잡은 특정 경로가 바뀐 PR 에서만 돌기 때문에, 필수로 지정하면 잡이 실행되지 않은 PR 이 영원히 대기 상태로 남습니다.
 
 ### 자동 검증
 
