@@ -1,0 +1,15 @@
+# 이 파일을 application-local.properties 로 복사한 뒤 필요하면 값을 바꾼다.
+#   cp application-local.properties.example application-local.properties
+# application-local.properties 는 .gitignore 대상이라 커밋되지 않는다 (각자 로컬 DB 계정이 다를 수 있음).
+#
+# 로컬 IDE 실행용. Docker 를 쓰지 않는 로컬 MySQL 을 기본값으로 둔다.
+# 값은 환경변수(DB_URL 등)가 있으면 그 값을 우선 쓰고, 없으면 :뒤의 기본값을 쓴다.
+db.url=${DB_URL:jdbc:mysql://localhost:3306/foten?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
+db.username=${DB_USERNAME:foten}
+db.password=${DB_PASSWORD:foten}
+
+exchange.rate.cron=${EXCHANGE_RATE_CRON:0 0 12 * * *}
+
+llm.api-key=${LLM_API_KEY:}
+llm.model=${LLM_MODEL:}
+exim.api-key=${EXIM_API_KEY:}
