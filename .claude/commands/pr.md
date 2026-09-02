@@ -113,6 +113,6 @@ gh pr create --base develop --title "<제목>" --body-file <임시파일>
 ### 6) 하지 말 것 — 중요
 
 - PR 본문에 `🤖 Generated with Claude Code`, `Co-Authored-By: Claude` 등 **AI 도구 서명을 절대 넣지 않습니다.**
-- `gh pr merge` — 머지는 리뷰 승인 후 사람이 합니다. (기능 PR은 squash merge, develop → main 릴리스는 rebase merge)
+- `gh pr merge` — 머지는 리뷰 승인 후 사람이 합니다. (기능 PR은 squash merge, develop → main 릴리스는 merge 커밋 — ruleset 이 브랜치별로 나머지 버튼을 막아둡니다)
 - 테스트를 돌리지 않고 통과 체크박스를 채우기.
 - 본문을 "작업 완료" 한 줄로 때우기.
