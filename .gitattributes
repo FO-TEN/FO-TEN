@@ -1,0 +1,11 @@
+# Windows 에서 core.autocrlf=true(Git for Windows 기본값)면 체크아웃 시 텍스트 파일이
+# CRLF 로 바뀐다. BE/gradlew 처럼 셔뱅(#!/bin/sh)으로 직접 실행되는 스크립트는 그
+# 순간 "not found" 로 죽는다 (Docker 빌드가 Linux 컨테이너 안에서 ./gradlew 를
+# 직접 실행하기 때문). 팀원의 core.autocrlf 설정과 무관하게 항상 LF 로 고정한다.
+* text=auto eol=lf
+
+# Windows 배치 파일만 예외 — CRLF 가 아니면 cmd.exe 가 깨진 것으로 본다.
+*.bat text eol=crlf
+
+# 바이너리는 변환 대상에서 제외한다.
+*.jar binary
