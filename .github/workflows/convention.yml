@@ -25,7 +25,10 @@ jobs:
 
       # 로컬 lefthook 훅과 같은 정규식을 쓴다.
       # 규칙을 바꿀 때는 scripts/validate-git-branch.sh 를 고치면 여기도 따라온다.
+      # develop -> main 릴리스 PR 의 head_ref 는 'develop' 이라 브랜치 컨벤션 정규식에
+      # 맞지 않는다. 로컬 훅(scripts/validate-git-branch.sh)에는 이미 같은 예외가 있다.
       - name: 브랜치명 검증
+        if: github.head_ref != 'develop' && github.head_ref != 'main'
         env:
           BRANCH: ${{ github.head_ref }}
         run: |
