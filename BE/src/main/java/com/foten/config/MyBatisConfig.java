@@ -38,8 +38,11 @@ public class MyBatisConfig {
         return factoryBean;
     }
 
+    // BeanDefinitionRegistryPostProcessor 를 반환하는 @Bean 메서드는 static 이어야 한다.
+    // 그렇지 않으면 Spring 이 CGLIB 프록시로 감싸기 전에 이 클래스를 먼저 인스턴스화해버려서
+    // "Cannot enhance @Configuration bean definition" 경고가 뜬다.
     @Bean
-    public MapperScannerConfigurer mapperScannerConfigurer() {
+    public static MapperScannerConfigurer mapperScannerConfigurer() {
         MapperScannerConfigurer configurer = new MapperScannerConfigurer();
         configurer.setBasePackage("com.foten.*.mapper");
         configurer.setSqlSessionFactoryBeanName("sqlSessionFactory");

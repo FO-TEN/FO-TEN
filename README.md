@@ -81,7 +81,11 @@ mysql -u root -p foten < db/init/01-schema.sql
 cd FE && npm install && npm run dev      # http://localhost:5173
 ```
 
-백엔드는 IDE 에서 Tomcat 9 를 8080 포트로 띄우고, VM 옵션에 `-Duser.timezone=Asia/Seoul` 을 넣습니다.
+백엔드는 `BE/src/main/resources/application-local.properties.example` 을 같은 이름에서 `.example` 만 뗀 파일로 복사한 뒤(이 파일은 개인별 설정이라 `.gitignore` 대상입니다), IDE 에서 Tomcat 9 를 8080 포트로 띄우고 VM 옵션에 `-Duser.timezone=Asia/Seoul` 을 넣습니다.
+
+```bash
+cp BE/src/main/resources/application-local.properties.example BE/src/main/resources/application-local.properties
+```
 
 > 세팅 상세와 문제 해결은 팀 채널에 공유된 세팅 문서를 보세요.
 
