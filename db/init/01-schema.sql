@@ -72,24 +72,26 @@ CREATE TABLE financial_info (
 -- ============================================================
 -- goal — 귀국 목표 (복수 목표 제외 범위이므로 회원당 1건)
 --
--- required_monthly_saving 은 "목표 달성 필요 저축액" 의 고정 스냅샷이다.
+-- target_baseline_amount 은 "목표기준액" — 목표 달성에 필요한 월 저축액의 고정 스냅샷이다.
 --   계산: (target_amount − 스냅샷 시점의 현재자산) / 남은개월수
 --   재계산 시점: target_amount 또는 stay_info.expected_return_date 가 바뀔 때만.
 --   financial_info.current_savings 가 매달 갱신된다고 해서 이 값을 같이 재계산하지 않는다 —
 --   월별 채점 기준이 매달 흔들리면 미달성이 잘게 쪼개져 흡수되어 "성적 나쁨" 신호가
 --   사라지는 문제가 확인되었다 (팀 시뮬레이션으로 검증됨).
+--   달성률(achievementRate)의 분모는 반드시 이 값이다 — monthly_required_saving 을 쓰면
+--   채점 기준 자체가 매달 흔들려 무의미해진다.
 --
--- planned_monthly_saving 은 사용자가 직접 입력·수정하는 "계획 저축액" 이다.
---   메인 목표 달성률 계산의 기준이 되는 값이며, required_monthly_saving 과는 별개로
---   사용자가 원할 때 언제든 수정 가능하다.
+-- monthly_required_saving 은 "필요저축액" — 유동값이며 사용자 입력이 아니다.
+--   매달 배치로 재계산되어 이 컬럼에 갱신되고, goal 도메인 BE는 저장된 값을 SELECT 만 한다.
+--   (구 planned_monthly_saving, "계획 저축액" 개념은 팀 논의로 폐지되어 이 컬럼을 재활용한다.)
 -- ============================================================
 CREATE TABLE goal (
     goal_id                    BIGINT        NOT NULL AUTO_INCREMENT,
     member_id                  BIGINT        NOT NULL,
     target_amount               DECIMAL(14,0) NOT NULL,   -- 목표 금액 (본국 통화 기준)
     target_currency              VARCHAR(3)    NOT NULL,   -- 예: VND, NPR
-    required_monthly_saving       DECIMAL(12,0) NOT NULL,  -- 목표 달성 필요 저축액 (고정 스냅샷, KRW)
-    planned_monthly_saving          DECIMAL(12,0) NOT NULL DEFAULT 0,  -- 계획 저축액 (사용자 입력, KRW)
+    target_baseline_amount        DECIMAL(12,0) NOT NULL,  -- 목표기준액 (고정 스냅샷, KRW)
+    monthly_required_saving         DECIMAL(12,0) NOT NULL DEFAULT 0,  -- 필요저축액 (유동, 배치 계산값, KRW)
     created_at                        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP
                                                      ON UPDATE CURRENT_TIMESTAMP,
