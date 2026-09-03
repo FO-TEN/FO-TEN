@@ -60,7 +60,10 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
         BigDecimal actualCumulativeSavings =
                 calcActualCumulativeSavings(memberId, goal.getCreatedAt(), elapsedMonths);
-        BigDecimal cumulativeShortfall = cumulativeTarget.subtract(actualCumulativeSavings);
+        // KRW는 소수점 없는 정수 단위(스키마 전체가 DECIMAL(n,0))인데, 평균 계산 과정에서
+        // SQL 나눗셈으로 늘어난 스케일이 그대로 남아있어 명시적으로 0자리로 맞춘다.
+        BigDecimal cumulativeShortfall =
+                cumulativeTarget.subtract(actualCumulativeSavings).setScale(0, RoundingMode.HALF_UP);
         BigDecimal achievementRate = calcAchievementRate(actualCumulativeSavings, cumulativeTarget);
 
         return new GoalDiagnosisResponse(
