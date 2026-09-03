@@ -1,18 +1,28 @@
 package com.foten.goal.controller;
 
+import com.foten.goal.dto.GoalDiagnosisResponse;
+import com.foten.goal.service.GoalDiagnosisService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * 골격(빌드 + 서버 기동) 확인용 헬스체크. 목표진단 도메인의 실제 계산 로직은
- * 별도 작업에서 이 컨트롤러 아래에 추가한다.
- */
 @RestController
+@RequiredArgsConstructor
 public class GoalController {
+
+    // 로그인이 없어서 seed data 1번 user로 고정 (ai/ChatController와 동일 패턴)
+    private static final long TEMP_MEMBER_ID = 1L;
+
+    private final GoalDiagnosisService goalDiagnosisService;
 
     @GetMapping("/api/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
+    }
+
+    @GetMapping("/api/goals/current/diagnosis")
+    public ResponseEntity<GoalDiagnosisResponse> diagnosis() {
+        return ResponseEntity.ok(goalDiagnosisService.diagnose(TEMP_MEMBER_ID));
     }
 }
