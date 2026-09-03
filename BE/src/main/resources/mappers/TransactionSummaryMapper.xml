@@ -4,17 +4,30 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.foten.goal.mapper.TransactionSummaryMapper">
 
-    <select id="findCumulativeNetSavings" resultType="java.math.BigDecimal">
-        SELECT COALESCE(SUM(
-            CASE
-                WHEN transaction_type IN ('SALARY', 'OTHER_IN') THEN amount
-                WHEN transaction_type IN ('EXPENSE', 'REMITTANCE', 'OTHER_OUT') THEN -amount
-                ELSE 0
-            END
-        ), 0)
+    <select id="findCumulativeSavingsPayment" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
         FROM transaction_history
         WHERE member_id = #{memberId}
+          AND transaction_type = 'SAVINGS_PAYMENT'
           AND transaction_at &gt;= #{since}
+    </select>
+
+    <select id="findBalanceAsOf" resultType="java.math.BigDecimal">
+        SELECT balance_after
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_at &lt;= #{asOf}
+        ORDER BY transaction_at DESC
+        LIMIT 1
+    </select>
+
+    <select id="findAverageMonthlyExpense" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0) / #{months}
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_type = 'EXPENSE'
+          AND transaction_at &gt;= #{windowStart}
+          AND transaction_at &lt; #{windowEnd}
     </select>
 
 </mapper>

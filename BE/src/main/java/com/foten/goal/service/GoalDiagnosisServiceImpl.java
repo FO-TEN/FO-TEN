@@ -15,6 +15,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Period;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -57,8 +58,7 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
 
         int elapsedMonths = calcElapsedMonths(goal.getCreatedAt());
         BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
-        BigDecimal actualCumulativeSavings =
-                transactionSummaryMapper.findCumulativeNetSavings(memberId, goal.getCreatedAt());
+        BigDecimal actualCumulativeSavings = calcActualCumulativeSavings(memberId, goal.getCreatedAt());
         BigDecimal cumulativeShortfall = cumulativeTarget.subtract(actualCumulativeSavings);
         BigDecimal achievementRate = calcAchievementRate(actualCumulativeSavings, cumulativeTarget);
 
@@ -77,6 +77,26 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         Period period = Period.between(goalCreatedAt.toLocalDate(), LocalDate.now());
         int totalMonths = period.getYears() * 12 + period.getMonths();
         return Math.max(totalMonths, 1);
+    }
+
+    // 누적저축실적(PDF 최종안) = 적금 실제 납입액 누계 + 직전월말 현금성 저축액
+    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt) {
+        BigDecimal cumulativeSavingsPayment =
+                transactionSummaryMapper.findCumulativeSavingsPayment(memberId, goalCreatedAt);
+
+        YearMonth currentMonth = YearMonth.now();
+        LocalDateTime endOfPreviousMonth = currentMonth.minusMonths(1).atEndOfMonth().atTime(LocalTime.MAX);
+        BigDecimal balanceAsOfLastMonth =
+                transactionSummaryMapper.findBalanceAsOf(memberId, endOfPreviousMonth).orElse(BigDecimal.ZERO);
+
+        LocalDateTime avgWindowEnd = currentMonth.atDay(1).atStartOfDay();
+        LocalDateTime avgWindowStart = currentMonth.minusMonths(HISTORY_MONTHS).atDay(1).atStartOfDay();
+        BigDecimal averageMonthlyExpense = transactionSummaryMapper.findAverageMonthlyExpense(
+                memberId, avgWindowStart, avgWindowEnd, HISTORY_MONTHS);
+
+        BigDecimal cashSavings = balanceAsOfLastMonth.subtract(averageMonthlyExpense).max(BigDecimal.ZERO);
+
+        return cumulativeSavingsPayment.add(cashSavings);
     }
 
     // 실제누적저축액 / (목표기준액 x 경과개월) x 100. 분모가 0 이하인 비정상 케이스만 방어.
