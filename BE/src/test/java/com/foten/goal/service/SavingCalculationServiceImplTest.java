@@ -54,6 +54,8 @@ class SavingCalculationServiceImplTest {
                 900_000, List.of(식비()), 2_500_000, 800_000, 300_000, 300_000);
 
         assertEquals("여유있음", result.judgeResult());
+        // additionalNeeded = 900,000 - 1,010,000 = -110,000 (여유있음 만큼 음수)
+        assertEquals(-110_000, result.additionalNeeded());
     }
 
     @Test
@@ -64,6 +66,8 @@ class SavingCalculationServiceImplTest {
         assertEquals("노력하면 가능", result.judgeResult());
         assertEquals("식비", result.topSavingCategory());
         assertEquals(47500, result.topSavingAmount());
+        // additionalNeeded = 1,030,000 - 1,010,000 = 20,000
+        assertEquals(20_000, result.additionalNeeded());
     }
 
     @Test
@@ -72,6 +76,8 @@ class SavingCalculationServiceImplTest {
                 1_100_000, List.of(식비()), 2_500_000, 800_000, 300_000, 300_000);
 
         assertEquals("불가능", result.judgeResult());
+        // additionalNeeded = 1,100,000 - 1,010,000 = 90,000
+        assertEquals(90_000, result.additionalNeeded());
     }
     @Test
     void calcExpectedRemaining_경과일이_7일_미만이면_이번달_데이터_대신_6개월_전체평균을_쓴다() {

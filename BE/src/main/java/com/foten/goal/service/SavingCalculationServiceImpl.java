@@ -39,8 +39,10 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
             judgeResult = "여유있음";
         }
 
+        int additionalNeeded = targetBaselineAmount - currentExpectedSaving;
+
         return new SavingCalculationOutput(
-                currentExpectedSaving, maxExpectedSaving, topCategory, topAmount, judgeResult);
+                currentExpectedSaving, maxExpectedSaving, topCategory, topAmount, judgeResult, additionalNeeded);
     }
 
     // 함수 1: 남은 예상 변동비 (현재예상저축액 구성요소)
