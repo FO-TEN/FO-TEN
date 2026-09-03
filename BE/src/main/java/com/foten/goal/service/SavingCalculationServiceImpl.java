@@ -4,7 +4,9 @@ import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.SavingCalculationOutput;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Service;
 
+@Service
 public class SavingCalculationServiceImpl implements SavingCalculationService {
 
     @Override
