@@ -113,7 +113,7 @@ class GoalDiagnosisServiceImplTest {
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), any()))
                 .thenReturn(BigDecimal.ZERO);
         when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any())).thenReturn(Optional.empty());
-        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(6)))
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
                 .thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(new SavingCalculationOutput(1_010_000, 1_057_500, null, 0, "여유있음", -10_000));
@@ -143,7 +143,7 @@ class GoalDiagnosisServiceImplTest {
                 .thenReturn(BigDecimal.valueOf(500_000));
         when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any()))
                 .thenReturn(Optional.of(BigDecimal.valueOf(2_000_000)));
-        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(6)))
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
                 .thenReturn(BigDecimal.valueOf(400_000));
 
         GoalDiagnosisResponse response = service.diagnose(MEMBER_ID);
@@ -171,7 +171,7 @@ class GoalDiagnosisServiceImplTest {
         // 직전월말 잔액(100,000) < 평균지출(400,000) → 현금성저축액은 음수가 아니라 0
         when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any()))
                 .thenReturn(Optional.of(BigDecimal.valueOf(100_000)));
-        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(6)))
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(1)))
                 .thenReturn(BigDecimal.valueOf(400_000));
 
         GoalDiagnosisResponse response = service.diagnose(MEMBER_ID);
@@ -195,7 +195,7 @@ class GoalDiagnosisServiceImplTest {
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), eq(goalCreatedAt)))
                 .thenReturn(BigDecimal.ZERO);
         when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any())).thenReturn(Optional.empty());
-        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(6)))
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(1)))
                 .thenReturn(BigDecimal.ZERO);
 
         GoalDiagnosisResponse response = service.diagnose(MEMBER_ID);
@@ -212,7 +212,7 @@ class GoalDiagnosisServiceImplTest {
         when(spendingMapper.findCurrentTotalSpent(MEMBER_ID)).thenReturn(BigDecimal.valueOf(300_000));
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), any())).thenReturn(BigDecimal.ZERO);
         when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any())).thenReturn(Optional.empty());
-        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(6)))
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
                 .thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
                 .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0));

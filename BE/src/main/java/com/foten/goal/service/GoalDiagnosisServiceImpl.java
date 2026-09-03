@@ -58,7 +58,8 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
 
         int elapsedMonths = calcElapsedMonths(goal.getCreatedAt());
         BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
-        BigDecimal actualCumulativeSavings = calcActualCumulativeSavings(memberId, goal.getCreatedAt());
+        BigDecimal actualCumulativeSavings =
+                calcActualCumulativeSavings(memberId, goal.getCreatedAt(), elapsedMonths);
         BigDecimal cumulativeShortfall = cumulativeTarget.subtract(actualCumulativeSavings);
         BigDecimal achievementRate = calcAchievementRate(actualCumulativeSavings, cumulativeTarget);
 
@@ -80,7 +81,7 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     }
 
     // 누적저축실적(PDF 최종안) = 적금 실제 납입액 누계 + 직전월말 현금성 저축액
-    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt) {
+    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt, int elapsedMonths) {
         BigDecimal cumulativeSavingsPayment =
                 transactionSummaryMapper.findCumulativeSavingsPayment(memberId, goalCreatedAt);
 
@@ -89,10 +90,13 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         BigDecimal balanceAsOfLastMonth =
                 transactionSummaryMapper.findBalanceAsOf(memberId, endOfPreviousMonth).orElse(BigDecimal.ZERO);
 
+        // 목표 생성 후 아직 6개월이 안 지났으면, 데이터가 없는 달까지 분모에 넣어 평균을
+        // 왜곡시키지 않도록 실제 경과개월만큼만으로 나눈다.
+        int avgMonths = Math.min(HISTORY_MONTHS, elapsedMonths);
         LocalDateTime avgWindowEnd = currentMonth.atDay(1).atStartOfDay();
-        LocalDateTime avgWindowStart = currentMonth.minusMonths(HISTORY_MONTHS).atDay(1).atStartOfDay();
+        LocalDateTime avgWindowStart = currentMonth.minusMonths(avgMonths).atDay(1).atStartOfDay();
         BigDecimal averageMonthlyExpense = transactionSummaryMapper.findAverageMonthlyExpense(
-                memberId, avgWindowStart, avgWindowEnd, HISTORY_MONTHS);
+                memberId, avgWindowStart, avgWindowEnd, avgMonths);
 
         BigDecimal cashSavings = balanceAsOfLastMonth.subtract(averageMonthlyExpense).max(BigDecimal.ZERO);
 
