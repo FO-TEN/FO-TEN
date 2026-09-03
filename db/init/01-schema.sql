@@ -15,7 +15,7 @@ SET time_zone = '+09:00';
 
 -- 이 파일은 몇 번이든 다시 실행해도 안전하다 (Workbench 등 비-Docker 경로용).
 -- FK 참조의 역순으로 지운다 — 자식 테이블부터 지워야 부모 테이블 DROP 이 막히지 않는다.
-DROP TABLE IF EXISTS product, exchange_rate, consumption, goal, financial_info, stay_info, member;
+DROP TABLE IF EXISTS product, exchange_rate, transaction_history, goal, financial_info, stay_info, member;
 
 -- ============================================================
 -- member — 회원 (시드 계정 3개, 회원가입 없음)
@@ -52,9 +52,9 @@ CREATE TABLE stay_info (
 -- 월 순저축(M), 예상자산(A) 계산의 입력값
 --
 -- monthly_living_cost 는 3a/3b 계산식의 "고정비" 로 쓰이는 단일 스칼라값이다.
--- consumption 테이블에도 expense_type='FIXED' 로 고정비 항목별 상세 내역이 쌓이지만,
--- 그건 소비내역 화면 표시/카테고리 조회용이고, 3a/3b 계산의 고정비 기준값은
--- 항상 이 컬럼(monthly_living_cost) 이다. 두 값을 계산 로직에서 섞어 쓰지 않는다.
+-- transaction_history 에도 transaction_type='EXPENSE' AND expense_type='FIXED' 로 고정비
+-- 항목별 상세 내역이 쌓이지만, 그건 소비내역 화면 표시/카테고리 조회용이고, 3a/3b 계산의
+-- 고정비 기준값은 항상 이 컬럼(monthly_living_cost) 이다. 두 값을 계산 로직에서 섞어 쓰지 않는다.
 -- ============================================================
 CREATE TABLE financial_info (
     member_id              BIGINT         NOT NULL,
@@ -100,21 +100,43 @@ CREATE TABLE goal (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
--- consumption — 소비 내역 (목데이터 시드)
--- 고정비·변동비 분류, 추가 저축 여력 산정의 원천 데이터
+-- transaction_history — 거래 내역 (급여·소비·해외송금·예적금 납입 등 모든 자금 이동)
+-- 기존 consumption 테이블을 대체한다. 소비 건은 transaction_type='EXPENSE' 로 쌓이고
+-- category·expense_type 로 분류한다 (고정비·변동비, 추가 저축 여력 산정의 원천 데이터).
+--
+-- amount 는 항상 양수로 저장하고, 입금/출금은 direction (IN/OUT) 으로만 구분한다.
+-- balance_after 는 거래 직후 입출금통장 잔액 — 월말 잔액·실제 현금성 저축액 계산에 쓴다.
+--
+-- 무결성 규칙 (CHECK 로 강제, MySQL 8.0.16+):
+--   transaction_type='EXPENSE'           → category, expense_type 필수
+--   transaction_type IN (SAVINGS_PAYMENT,
+--     DEPOSIT_PAYMENT, MATURITY_RECEIPT)  → product_subscription_id 필수
 -- ============================================================
-CREATE TABLE consumption (
-    consumption_id     BIGINT        NOT NULL AUTO_INCREMENT,
-    member_id           BIGINT        NOT NULL,
-    consumption_date     DATE          NOT NULL,
-    category              VARCHAR(30)   NOT NULL,           -- 식비, 교통, 통신, 쇼핑, 기타
-    amount                 DECIMAL(12,0) NOT NULL,
-    expense_type            VARCHAR(10)   NOT NULL,          -- FIXED(고정비) / VARIABLE(변동비)
-    memo                     VARCHAR(100)  NULL,
-    PRIMARY KEY (consumption_id),
-    KEY idx_consumption_member_date (member_id, consumption_date),
-    CONSTRAINT fk_consumption_member FOREIGN KEY (member_id)
-        REFERENCES member (member_id)
+CREATE TABLE transaction_history (
+    transaction_id            BIGINT        NOT NULL AUTO_INCREMENT,
+    member_id                 BIGINT        NOT NULL,
+    transaction_at            DATETIME      NOT NULL,             -- 실제 거래 발생 시각 (소비·급여·예적금 납입 등)
+    transaction_type          VARCHAR(30)   NOT NULL,            -- SALARY / EXPENSE / REMITTANCE / SAVINGS_PAYMENT / DEPOSIT_PAYMENT / MATURITY_RECEIPT / OTHER_IN / OTHER_OUT
+    direction                 VARCHAR(3)    NOT NULL,            -- IN(입금) / OUT(출금)
+    amount                    DECIMAL(12,0) NOT NULL,            -- 거래 금액 (항상 양수, 입출금은 direction 으로 구분)
+    balance_after             DECIMAL(12,0) NOT NULL,            -- 거래 직후 입출금통장 잔액
+    category                  VARCHAR(30)   NULL,                -- 소비 카테고리 (EXPENSE 일 때만): 식비, 교통, 통신, 쇼핑, 기타
+    expense_type              VARCHAR(10)   NULL,                -- FIXED(고정비) / VARIABLE(변동비) (EXPENSE 일 때만)
+    product_subscription_id   BIGINT        NULL,                -- 연결된 예·적금 가입 ID (SAVINGS_PAYMENT / DEPOSIT_PAYMENT / MATURITY_RECEIPT 일 때)
+    memo                      VARCHAR(100)  NULL,                -- 거래 관련 메모 (기존 consumption.memo 역할 포함)
+    created_at                DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,  -- DB 레코드 생성 시각
+    PRIMARY KEY (transaction_id),
+    KEY idx_transaction_history_member_at (member_id, transaction_at),
+    CONSTRAINT fk_transaction_history_member FOREIGN KEY (member_id)
+        REFERENCES member (member_id),
+    CONSTRAINT chk_transaction_history_expense_fields CHECK (
+        transaction_type <> 'EXPENSE'
+        OR (category IS NOT NULL AND expense_type IS NOT NULL)
+    ),
+    CONSTRAINT chk_transaction_history_product_subscription CHECK (
+        transaction_type NOT IN ('SAVINGS_PAYMENT', 'DEPOSIT_PAYMENT', 'MATURITY_RECEIPT')
+        OR product_subscription_id IS NOT NULL
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================
