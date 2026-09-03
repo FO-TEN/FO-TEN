@@ -73,40 +73,9 @@ SELECT member_id, 75000000, 'KHR', 690000, 700000
 FROM member WHERE login_id = 'sok01';
 
 -- ============================================================
--- consumption — 회원당 최근 2개월 내 소비 내역 (오늘 기준 상대 날짜)
--- 자연키가 없는 테이블이라 재적용 시 중복이 쌓이지 않도록, 이 세 계정의 기존
--- 내역을 지우고 다시 넣는다.
+-- transaction_history — 거래 내역 시드는 추후 작업 대상 (이번 변경에서는 넣지 않는다).
+-- 기존 consumption 시드는 테이블 삭제와 함께 제거했다.
 -- ============================================================
-DELETE consumption FROM consumption
-    JOIN member ON member.member_id = consumption.member_id
-WHERE member.login_id IN ('nguyen01', 'rai01', 'sok01');
-
-INSERT INTO consumption (member_id, consumption_date, category, amount, expense_type, memo)
-SELECT m.member_id, v.consumption_date, v.category, v.amount, v.expense_type, v.memo
-FROM (
-    SELECT 'nguyen01' AS login_id, DATE_SUB(CURDATE(), INTERVAL 25 DAY) AS consumption_date, '통신' AS category, 45000 AS amount, 'FIXED' AS expense_type, '휴대폰 요금' AS memo
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 55 DAY), '통신', 45000, 'FIXED', '휴대폰 요금'
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 3  DAY), '식비', 12000, 'VARIABLE', '편의점'
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 10 DAY), '식비', 8500,  'VARIABLE', '점심'
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 12 DAY), '교통', 50000, 'VARIABLE', '교통카드 충전'
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 20 DAY), '쇼핑', 35000, 'VARIABLE', '생활용품'
-    UNION ALL SELECT 'nguyen01', DATE_SUB(CURDATE(), INTERVAL 30 DAY), '기타', 15000, 'VARIABLE', '경조사'
-
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 20 DAY), '통신', 50000, 'FIXED', '휴대폰 요금'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 50 DAY), '통신', 50000, 'FIXED', '휴대폰 요금'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 5  DAY), '식비', 25000, 'VARIABLE', '외식'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 14 DAY), '식비', 18000, 'VARIABLE', '장보기'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 8  DAY), '교통', 40000, 'VARIABLE', '교통카드 충전'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 18 DAY), '쇼핑', 60000, 'VARIABLE', '의류'
-    UNION ALL SELECT 'rai01', DATE_SUB(CURDATE(), INTERVAL 25 DAY), '기타', 30000, 'VARIABLE', '경조사'
-
-    UNION ALL SELECT 'sok01', DATE_SUB(CURDATE(), INTERVAL 10 DAY), '통신', 40000, 'FIXED', '휴대폰 요금'
-    UNION ALL SELECT 'sok01', DATE_SUB(CURDATE(), INTERVAL 4  DAY), '식비', 9000,  'VARIABLE', '편의점'
-    UNION ALL SELECT 'sok01', DATE_SUB(CURDATE(), INTERVAL 12 DAY), '식비', 7500,  'VARIABLE', '점심'
-    UNION ALL SELECT 'sok01', DATE_SUB(CURDATE(), INTERVAL 15 DAY), '교통', 30000, 'VARIABLE', '교통카드 충전'
-    UNION ALL SELECT 'sok01', DATE_SUB(CURDATE(), INTERVAL 20 DAY), '기타', 10000, 'VARIABLE', '생활용품'
-) v
-JOIN member m ON m.login_id = v.login_id;
 
 -- ============================================================
 -- exchange_rate — goal.target_currency 에 쓰인 통화(VND, NPR, KHR)의 최근 3일치.
@@ -125,7 +94,7 @@ INSERT IGNORE INTO exchange_rate (base_date, currency_code, rate) VALUES
 
 -- ============================================================
 -- product — 외국인근로자 우대 예·적금. 실제 판매 중인 상품 조건을 반영한다
--- (consumption 과 달리 상품추천 기능의 핵심 데이터라 목데이터로 지어내지 않는다).
+-- (급여·소비 등 거래 내역과 달리 상품추천 기능의 핵심 데이터라 목데이터로 지어내지 않는다).
 -- 자연키가 없는 테이블이라 재적용 시 중복을 막기 위해 먼저 지우고 다시 넣는다.
 -- ============================================================
 DELETE FROM product WHERE bank_name = 'KB국민은행' AND product_name = 'KB Global Star 적금';
