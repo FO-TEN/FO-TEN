@@ -12,20 +12,17 @@ public class GoalCalculationServiceImpl implements GoalCalculationService {
     public GoalCalculationOutput calculate(GoalCalculationInput input) {
         int remainingMonths = calcRemainingMonths(input);
 
-        // 남은 개월수가 0 이하면 나눗셈 자체가 불가능하므로 달성 불가로 처리
-        boolean achievable = remainingMonths > 0;
+        BigDecimal targetBaselineAmount = input.targetAmountKrw()
+                .subtract(input.currentSavings())
+                .divide(BigDecimal.valueOf(remainingMonths), RoundingMode.HALF_UP);
 
-        BigDecimal requiredMonthlySaving = achievable
-                ? input.targetAmountKrw()
-                  .subtract(input.currentSavings())
-                  .divide(BigDecimal.valueOf(remainingMonths), RoundingMode.HALF_UP)
-                : BigDecimal.ZERO;
-
-        return new GoalCalculationOutput(requiredMonthlySaving, remainingMonths, achievable);
+        return new GoalCalculationOutput(targetBaselineAmount, remainingMonths);
     }
 
     private int calcRemainingMonths(GoalCalculationInput input) {
         Period period = Period.between(input.calculationDate(), input.expectedReturnDate());
-        return period.getYears() * 12 + period.getMonths();
+        int totalMonths = period.getYears() * 12 + period.getMonths();
+        int remainingMonths = totalMonths - 2; // 가입월, 해제월은 계산에서 제외
+        return Math.max(remainingMonths, 1); // 0개월 개념을 쓰지 않음 — 최소 1개월
     }
 }
