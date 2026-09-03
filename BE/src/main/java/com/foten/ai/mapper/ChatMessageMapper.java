@@ -11,4 +11,9 @@ public interface ChatMessageMapper {
     void insert(ChatMessageVO message);
 
     void deleteByMemberId(@Param("memberId") long memberId);
+
+    List<ChatMessageVO> findBefore(@Param("memberId") long memberId,
+                                   @Param("before") Long before,
+                                   @Param("size") int size
+    );
 }

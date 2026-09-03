@@ -10,6 +10,8 @@ public interface ChatMemory {
     // lastN : 짝수->질문 & 응답 한 쌍으로 가져오기 위함
     List<ChatMessageVO> get(long memberId, int lastN);
 
+    List<ChatMessageVO> getPage(long memberId, Long before, int size);
+
     void addUserMessage(long memberId, String contentKo, String contentLocal, String languageCode);
 
     void addAssistantMessage(long memberId, String contentKo, String contentLocal, String languageCode);

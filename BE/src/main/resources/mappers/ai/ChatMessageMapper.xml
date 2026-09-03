@@ -23,4 +23,16 @@
         DELETE FROM chat_message WHERE member_id = #{memberId}
     </delete>
 
+    <select id="findBefore" resultType="com.foten.ai.domain.ChatMessageVO">
+        SELECT chat_message_id, member_id, message_role,
+        content_ko, content_local, language_code, created_at
+        FROM chat_message
+        WHERE member_id = #{memberId}
+        <if test="before != null">
+            AND chat_message_id &lt; #{before}
+        </if>
+        ORDER BY chat_message_id DESC
+        LIMIT #{size}
+    </select>
+
 </mapper>
