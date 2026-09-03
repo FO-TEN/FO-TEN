@@ -9,7 +9,7 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
 
     @Override
     public SavingCalculationOutput diagnose(
-            int targetBaselineAmount,
+            int monthlyRequiredSaving,
             List<CategorySpendingInput> categories,
             int income,
             int remittance,
@@ -26,9 +26,9 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
         int topAmount = 0;
 
         // 3단계 분기
-        if (targetBaselineAmount > maxExpectedSaving) {
+        if (monthlyRequiredSaving > maxExpectedSaving) {
             judgeResult = "불가능";
-        } else if (targetBaselineAmount > currentExpectedSaving) {
+        } else if (monthlyRequiredSaving > currentExpectedSaving) {
             judgeResult = "노력하면 가능";
             var top = pickTopCategory(categories);
             if (top != null) {
@@ -39,7 +39,7 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
             judgeResult = "여유있음";
         }
 
-        int additionalNeeded = targetBaselineAmount - currentExpectedSaving;
+        int additionalNeeded = monthlyRequiredSaving - currentExpectedSaving;
 
         return new SavingCalculationOutput(
                 currentExpectedSaving, maxExpectedSaving, topCategory, topAmount, judgeResult, additionalNeeded);

@@ -5,9 +5,9 @@ import com.foten.goal.domain.SavingCalculationOutput;
 import java.util.List;
 
 public interface SavingCalculationService {
- // 목표기준액과 현재예상저축액/최대예상저축액을 비교해 3구간으로 판정
+ // 필요저축액과 현재예상저축액/최대예상저축액을 비교해 3구간으로 판정
     SavingCalculationOutput diagnose(
-            int targetBaselineAmount,   // 목표기준액 (goal.target_baseline_amount)
+            int monthlyRequiredSaving,   // 필요저축액 (goal.monthly_required_saving)
             List<CategorySpendingInput> categories,
             int income,
             int remittance,
