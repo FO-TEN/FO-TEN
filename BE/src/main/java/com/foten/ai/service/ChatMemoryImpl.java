@@ -29,6 +29,11 @@ public class ChatMemoryImpl implements ChatMemory{
     }
 
     @Override
+    public List<ChatMessageVO> getPage(long memberId, Long before, int size) {
+        return chatMessageMapper.findBefore(memberId, before, size);
+    }
+
+    @Override
     public void addUserMessage(long memberId, String contentKo, String contentLocal, String languageCode) {
         chatMessageMapper.insert(ChatMessageVO.builder()
                     .memberId(memberId)
