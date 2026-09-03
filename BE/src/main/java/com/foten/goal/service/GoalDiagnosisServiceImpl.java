@@ -126,7 +126,7 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         Map<String, Map<String, BigDecimal>> spendingByCategory = rows.stream()
                 .collect(Collectors.groupingBy(
                         CategoryMonthlySpending::getCategory,
-                        Collectors.toMap(CategoryMonthlySpending::getYearMonth, CategoryMonthlySpending::getAmount)));
+                        Collectors.toMap(CategoryMonthlySpending::getSpendingMonth, CategoryMonthlySpending::getAmount)));
 
         List<CategorySpendingInput> categories = new ArrayList<>();
         for (Map.Entry<String, Map<String, BigDecimal>> entry : spendingByCategory.entrySet()) {

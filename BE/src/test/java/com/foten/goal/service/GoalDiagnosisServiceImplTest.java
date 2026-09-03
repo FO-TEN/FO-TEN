@@ -220,12 +220,12 @@ class GoalDiagnosisServiceImplTest {
         YearMonth currentMonth = YearMonth.now();
         List<CategoryMonthlySpending> rows = List.of(
                 CategoryMonthlySpending.builder()
-                        .category("식비").yearMonth(currentMonth.toString()).amount(BigDecimal.valueOf(90_000)).build(),
+                        .category("식비").spendingMonth(currentMonth.toString()).amount(BigDecimal.valueOf(90_000)).build(),
                 CategoryMonthlySpending.builder()
-                        .category("식비").yearMonth(currentMonth.minusMonths(1).toString())
+                        .category("식비").spendingMonth(currentMonth.minusMonths(1).toString())
                         .amount(BigDecimal.valueOf(100_000)).build(),
                 CategoryMonthlySpending.builder()
-                        .category("식비").yearMonth(currentMonth.minusMonths(3).toString())
+                        .category("식비").spendingMonth(currentMonth.minusMonths(3).toString())
                         .amount(BigDecimal.valueOf(80_000)).build());
         when(spendingMapper.findCategoryMonthlySpending(MEMBER_ID, 7)).thenReturn(rows);
 

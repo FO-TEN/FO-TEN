@@ -6,7 +6,7 @@
 
     <select id="findCategoryMonthlySpending" resultType="com.foten.goal.domain.CategoryMonthlySpending">
         SELECT category,
-               DATE_FORMAT(transaction_at, '%Y-%m') AS year_month,
+               DATE_FORMAT(transaction_at, '%Y-%m') AS spending_month,
                SUM(amount) AS amount
         FROM transaction_history
         WHERE member_id = #{memberId}
@@ -14,7 +14,7 @@
           AND expense_type = 'VARIABLE'
           AND transaction_at &gt;= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL (#{monthsBack} - 1) MONTH)
         GROUP BY category, DATE_FORMAT(transaction_at, '%Y-%m')
-        ORDER BY category, year_month
+        ORDER BY category, spending_month
     </select>
 
     <select id="findCurrentTotalSpent" resultType="java.math.BigDecimal">

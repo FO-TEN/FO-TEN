@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class CategoryMonthlySpending {
     private String category;
-    private String yearMonth;     // "yyyy-MM"
+    private String spendingMonth;     // "yyyy-MM". DB 컬럼 별칭은 spending_month — year_month는 MySQL 예약어라 못 씀
     private BigDecimal amount;
 }
