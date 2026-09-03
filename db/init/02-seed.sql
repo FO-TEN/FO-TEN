@@ -56,19 +56,19 @@ FROM member WHERE login_id = 'sok01';
 
 -- ============================================================
 -- goal
---   nguyen01: 필요 저축액 1,200,000 <= 계획 저축액 1,300,000            → 순조
---   rai01   : 필요 저축액 3,500,000 >> 계획 저축액 1,000,000            → 뒤처짐
---   sok01   : 필요 저축액   690,000 <= 계획 저축액   700,000 (막 시작)  → 순조
+--   nguyen01: 목표기준액 1,200,000 <= 필요저축액 1,300,000            → 순조
+--   rai01   : 목표기준액 3,500,000 >> 필요저축액 1,000,000            → 뒤처짐
+--   sok01   : 목표기준액   690,000 <= 필요저축액   700,000 (막 시작)  → 순조
 -- ============================================================
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, required_monthly_saving, planned_monthly_saving)
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
 SELECT member_id, 420000000, 'VND', 1200000, 1300000
 FROM member WHERE login_id = 'nguyen01';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, required_monthly_saving, planned_monthly_saving)
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
 SELECT member_id, 3000000, 'NPR', 3500000, 1000000
 FROM member WHERE login_id = 'rai01';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, required_monthly_saving, planned_monthly_saving)
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
 SELECT member_id, 75000000, 'KHR', 690000, 700000
 FROM member WHERE login_id = 'sok01';
 
