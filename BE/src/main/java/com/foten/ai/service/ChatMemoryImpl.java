@@ -43,7 +43,7 @@ public class ChatMemoryImpl implements ChatMemory{
     public void addAssistantMessage(long memberId, String contentKo, String contentLocal, String languageCode) {
         chatMessageMapper.insert(ChatMessageVO.builder()
                 .memberId(memberId)
-                .messageRole(ROLE_USER)
+                .messageRole(ROLE_ASSISTANT)
                 .contentKo(contentKo)
                 .contentLocal(contentLocal)
                 .languageCode(languageCode)
