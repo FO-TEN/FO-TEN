@@ -13,3 +13,4 @@ exchange.rate.cron=${EXCHANGE_RATE_CRON:0 0 12 * * *}
 llm.api-key=${LLM_API_KEY:}
 llm.model=${LLM_MODEL:}
 exim.api-key=${EXIM_API_KEY:}
+llm.base-url=${LLM_BASE_URL:https://api.openai.com/v1}
