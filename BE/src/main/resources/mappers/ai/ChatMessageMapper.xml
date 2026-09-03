@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.ai.mapper.ChatMessageMapper">
+
+    <select id="findRecent" resultType="com.foten.ai.domain.ChatMessageVO">
+        SELECT chat_message_id, member_id, message_role,
+               content_ko, content_local, language_code, created_at
+        FROM chat_message
+        WHERE member_id = #{memberId}
+        ORDER BY chat_message_id DESC
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insert" parameterType="com.foten.ai.domain.ChatMessageVO"
+            useGeneratedKeys="true" keyProperty="chatMessageId">
+        INSERT INTO chat_message (member_id, message_role, content_ko, content_local, language_code)
+        VALUES (#{memberId}, #{messageRole}, #{contentKo}, #{contentLocal}, #{languageCode})
+    </insert>
+
+    <delete id="deleteByMemberId">
+        DELETE FROM chat_message WHERE member_id = #{memberId}
+    </delete>
+
+</mapper>
