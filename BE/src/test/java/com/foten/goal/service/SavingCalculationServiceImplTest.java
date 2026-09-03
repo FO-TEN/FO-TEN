@@ -73,4 +73,27 @@ class SavingCalculationServiceImplTest {
 
         assertEquals("불가능", result.judgeResult());
     }
+    @Test
+    void calcExpectedRemaining_경과일이_7일_미만이면_이번달_데이터_대신_6개월_전체평균을_쓴다() {
+        CategorySpendingInput c = new CategorySpendingInput(
+                "식비", 15000, 3, 30,
+                List.of(100000, 95000, 80000, 120000, 90000, 85000),
+                List.of(30, 30, 30, 30, 30, 30));
+
+        int result = service.calcExpectedRemaining(c);
+
+        assertEquals(85500, result);
+    }
+
+    @Test
+    void calcExpectedRemaining_0개월차_회원은_6개월_이력이_없어_NaN_대신_0을_반환한다() {
+        CategorySpendingInput c = new CategorySpendingInput(
+                "식비", 0, 2, 30,
+                List.of(),
+                List.of());
+
+        int result = service.calcExpectedRemaining(c);
+
+        assertEquals(0, result);
+    }
 }

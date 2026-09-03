@@ -9,7 +9,7 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
 
     @Override
     public SavingCalculationOutput diagnose(
-            int requiredMonthlySaving,
+            int targetBaselineAmount,
             List<CategorySpendingInput> categories,
             int income,
             int remittance,
@@ -26,9 +26,9 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
         int topAmount = 0;
 
         // 3단계 분기
-        if (requiredMonthlySaving > maxExpectedSaving) {
+        if (targetBaselineAmount > maxExpectedSaving) {
             judgeResult = "불가능";
-        } else if (requiredMonthlySaving > currentExpectedSaving) {
+        } else if (targetBaselineAmount > currentExpectedSaving) {
             judgeResult = "노력하면 가능";
             var top = pickTopCategory(categories);
             if (top != null) {
@@ -45,10 +45,15 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
 
     // 함수 1: 남은 예상 변동비 (현재예상저축액 구성요소)
     int calcExpectedRemaining(CategorySpendingInput c) {
-        if (c.elapsedDays() < 1) {
+        if (c.elapsedDays() < 7) {
             // 월초 방어: 최근 6개월 전체 평균 일평균으로 대체
             int totalSpent = c.last6MonthsSpending().stream().mapToInt(Integer::intValue).sum();
             int totalDaysAll = c.last6MonthsDays().stream().mapToInt(Integer::intValue).sum();
+            if (totalDaysAll == 0) {
+                // 0개월차(온보딩 직후, 6개월 이력 자체가 없음): 대체할 이력 데이터가 없음
+                // TODO: 온보딩 예상지출 입력값 필드가 CategorySpendingInput에 추가되면 그 값으로 교체.
+                return 0;
+            }
             double dailyAvg = (double) totalSpent / totalDaysAll;
             return (int) Math.round(dailyAvg * (c.totalDays() - c.elapsedDays()));
         }
