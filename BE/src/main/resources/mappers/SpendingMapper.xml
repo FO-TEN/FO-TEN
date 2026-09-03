@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.goal.mapper.SpendingMapper">
+
+    <select id="findCategoryMonthlySpending" resultType="com.foten.goal.domain.CategoryMonthlySpending">
+        SELECT category,
+               DATE_FORMAT(transaction_at, '%Y-%m') AS year_month,
+               SUM(amount) AS amount
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_type = 'EXPENSE'
+          AND expense_type = 'VARIABLE'
+          AND transaction_at &gt;= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL (#{monthsBack} - 1) MONTH)
+        GROUP BY category, DATE_FORMAT(transaction_at, '%Y-%m')
+        ORDER BY category, year_month
+    </select>
+
+    <select id="findCurrentTotalSpent" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_type = 'EXPENSE'
+          AND expense_type = 'VARIABLE'
+          AND transaction_at &gt;= DATE_FORMAT(CURDATE(), '%Y-%m-01')
+    </select>
+
+</mapper>
