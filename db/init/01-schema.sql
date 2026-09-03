@@ -15,7 +15,7 @@ SET time_zone = '+09:00';
 
 -- 이 파일은 몇 번이든 다시 실행해도 안전하다 (Workbench 등 비-Docker 경로용).
 -- FK 참조의 역순으로 지운다 — 자식 테이블부터 지워야 부모 테이블 DROP 이 막히지 않는다.
-DROP TABLE IF EXISTS product, exchange_rate, transaction_history, goal, financial_info, stay_info, member;
+DROP TABLE IF EXISTS chat_message, product, exchange_rate, transaction_history, goal, financial_info, stay_info, member;
 
 -- ============================================================
 -- member — 회원 (시드 계정 3개, 회원가입 없음)
@@ -165,4 +165,36 @@ CREATE TABLE product (
     foreigner_only                BOOLEAN       NOT NULL DEFAULT FALSE,
     description                     VARCHAR(200)  NULL,
     PRIMARY KEY (product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- chat_message — AI 상담 대화 기록
+--
+-- 대화는 지우지 않는다. 회원당 대화방 하나로 처음부터 끝까지 이어지고,
+-- 화면에서는 날짜 구분선만 들어간다 (카카오톡과 같은 형태).
+--
+-- 언어 컬럼이 두 개인 이유는 응답 번역 토글 때문이다. 이미 화면에 뜬 답변에서
+-- 토글을 눌러도 그 자리에서 언어가 바뀌어야 하므로 두 버전을 같이 저장한다.
+--   USER      행: content_ko = NULL,  content_local = 사용자가 입력한 원문
+--   ASSISTANT 행: content_ko = 한국어, content_local = 사용자 언어 (ko 회원은 NULL)
+--
+-- language_code 를 행마다 남기는 것은 회원이 나중에 언어 설정을 바꿔도 과거 기록을
+-- 올바로 해석하기 위해서다. member.language_code 만 보면 예전 베트남어 답변이
+-- 네팔어로 잘못 표시된다.
+--
+-- 정렬 키는 created_at 이 아니라 chat_message_id 다. 같은 초에 들어온 질문·답변의
+-- 순서가 뒤집히면 대화가 뒤죽박죽 복원된다.
+-- ============================================================
+CREATE TABLE chat_message (
+    chat_message_id BIGINT       NOT NULL AUTO_INCREMENT,
+    member_id       BIGINT       NOT NULL,
+    message_role    VARCHAR(10)  NOT NULL,   -- USER / ASSISTANT
+    content_ko      TEXT         NULL,       -- 한국어      (USER 행은 NULL)
+    content_local   TEXT         NULL,       -- 사용자 언어 (ko 회원은 NULL)
+    language_code   VARCHAR(10)  NULL,       -- content_local 의 언어
+    created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chat_message_id),
+    KEY idx_chat_message_member (member_id, chat_message_id),
+    CONSTRAINT fk_chat_message_member FOREIGN KEY (member_id)
+        REFERENCES member (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
