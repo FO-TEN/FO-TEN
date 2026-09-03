@@ -10,8 +10,12 @@ import com.foten.goal.dto.GoalDiagnosisResponse;
 import com.foten.goal.mapper.FinancialInfoMapper;
 import com.foten.goal.mapper.GoalMapper;
 import com.foten.goal.mapper.SpendingMapper;
+import com.foten.goal.mapper.TransactionSummaryMapper;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +29,12 @@ import org.springframework.stereotype.Service;
 public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
 
     private static final int HISTORY_MONTHS = 6;
+    private static final int PERCENTAGE_SCALE = 1;
 
     private final GoalMapper goalMapper;
     private final FinancialInfoMapper financialInfoMapper;
     private final SpendingMapper spendingMapper;
+    private final TransactionSummaryMapper transactionSummaryMapper;
     private final SavingCalculationService savingCalculationService;
 
     @Override
@@ -49,14 +55,39 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
                 financialInfo.getMonthlyLivingCost().intValue(),
                 currentTotalSpent);
 
+        int elapsedMonths = calcElapsedMonths(goal.getCreatedAt());
+        BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
+        BigDecimal actualCumulativeSavings =
+                transactionSummaryMapper.findCumulativeNetSavings(memberId, goal.getCreatedAt());
+        BigDecimal cumulativeShortfall = cumulativeTarget.subtract(actualCumulativeSavings);
+        BigDecimal achievementRate = calcAchievementRate(actualCumulativeSavings, cumulativeTarget);
+
         return new GoalDiagnosisResponse(
                 goal.getTargetBaselineAmount(),
                 goal.getMonthlyRequiredSaving(),
                 BigDecimal.valueOf(result.additionalNeeded()),
-                null, // cumulativeShortfall — 실제누적저축액 계산 로직 미구현
-                null, // achievementRate — 위와 동일 이유
+                cumulativeShortfall,
+                achievementRate,
                 null, // catchUpMode — 담당자 미정
                 result.judgeResult());
+    }
+
+    // goal 생성 시점(목표기준액 스냅샷 시점)부터 오늘까지 경과한 개월 수. 최소 1개월.
+    private int calcElapsedMonths(LocalDateTime goalCreatedAt) {
+        Period period = Period.between(goalCreatedAt.toLocalDate(), LocalDate.now());
+        int totalMonths = period.getYears() * 12 + period.getMonths();
+        return Math.max(totalMonths, 1);
+    }
+
+    // 실제누적저축액 / (목표기준액 x 경과개월) x 100. 분모가 0 이하인 비정상 케이스만 방어.
+    private BigDecimal calcAchievementRate(BigDecimal actualCumulativeSavings, BigDecimal cumulativeTarget) {
+        if (cumulativeTarget.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return actualCumulativeSavings
+                .divide(cumulativeTarget, PERCENTAGE_SCALE + 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100))
+                .setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
     }
 
     // transaction_history 집계 로우(카테고리 x 월)를 카테고리별 CategorySpendingInput 으로 조립

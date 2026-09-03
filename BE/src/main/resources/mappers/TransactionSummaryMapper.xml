@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.goal.mapper.TransactionSummaryMapper">
+
+    <select id="findCumulativeNetSavings" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(
+            CASE
+                WHEN transaction_type IN ('SALARY', 'OTHER_IN') THEN amount
+                WHEN transaction_type IN ('EXPENSE', 'REMITTANCE', 'OTHER_OUT') THEN -amount
+                ELSE 0
+            END
+        ), 0)
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_at &gt;= #{since}
+    </select>
+
+</mapper>
