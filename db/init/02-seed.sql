@@ -79,18 +79,19 @@ FROM member WHERE login_id = 'sok01';
 
 -- ============================================================
 -- exchange_rate — goal.target_currency 에 쓰인 통화(VND, NPR, KHR)의 최근 3일치.
--- 실제 수출입은행 고시값이 아니라 그럴듯한 근사치(로컬 개발용 목데이터)다.
+-- 1 KRW 당 해당 통화 금액이다 (ExchangeRate-API 응답 방향 그대로).
+-- 실제 고시값이 아니라 그럴듯한 근사치(로컬 개발용 목데이터)다.
 -- ============================================================
 INSERT IGNORE INTO exchange_rate (base_date, currency_code, rate) VALUES
-    (CURDATE(),                          'VND', 0.0540),
-    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'VND', 0.0539),
-    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'VND', 0.0541),
-    (CURDATE(),                          'NPR', 10.0500),
-    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'NPR', 10.0300),
-    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'NPR', 10.0800),
-    (CURDATE(),                          'KHR', 0.3300),
-    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'KHR', 0.3295),
-    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'KHR', 0.3310);
+    (CURDATE(),                          'VND', 19.150858),
+    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'VND', 19.186400),
+    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'VND', 19.115200),
+    (CURDATE(),                          'NPR',  0.111528),
+    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'NPR',  0.111750),
+    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'NPR',  0.111196),
+    (CURDATE(),                          'KHR',  2.973684),
+    (DATE_SUB(CURDATE(), INTERVAL 1 DAY),'KHR',  2.982500),
+    (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'KHR',  2.960100);
 
 -- ============================================================
 -- product — 외국인근로자 우대 예·적금. 실제 판매 중인 상품 조건을 반영한다

@@ -148,7 +148,7 @@ CREATE TABLE exchange_rate (
     exchange_rate_id    BIGINT         NOT NULL AUTO_INCREMENT,
     base_date             DATE           NOT NULL,          -- 고시 기준일
     currency_code           VARCHAR(3)     NOT NULL,          -- VND, NPR 등
-    rate                      DECIMAL(15,4)  NOT NULL,          -- KRW 대비 환율
+    rate                      DECIMAL(18,6)  NOT NULL,          -- 1 KRW 당 해당 통화 금액 (예: VND 19.150858)
     fetched_at                 DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (exchange_rate_id),
     UNIQUE KEY uk_exchange_rate_date_currency (base_date, currency_code)

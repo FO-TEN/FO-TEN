@@ -55,7 +55,7 @@ FO-TEN/
 ```bash
 git clone https://github.com/FO-TEN/FO-TEN.git
 cd FO-TEN
-cp .env.example .env        # LLM_API_KEY, EXIM_API_KEY 를 채웁니다
+cp .env.example .env        # LLM_API_KEY 를 채웁니다
 
 npm install && npx lefthook install    # Git 훅 설치 (한 번만)
 
