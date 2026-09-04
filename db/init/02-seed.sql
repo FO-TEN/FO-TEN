@@ -94,12 +94,11 @@ INSERT IGNORE INTO exchange_rate (base_date, currency_code, rate) VALUES
     (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'KHR',  2.960100);
 
 -- ============================================================
--- product — 외국인근로자 우대 예·적금. 실제 판매 중인 상품 조건을 반영한다
--- (급여·소비 등 거래 내역과 달리 상품추천 기능의 핵심 데이터라 목데이터로 지어내지 않는다).
--- 자연키가 없는 테이블이라 재적용 시 중복을 막기 위해 먼저 지우고 다시 넣는다.
+-- product / product_rate / rate_condition / product_preferential_rate — 추후 시드
+--   상품 리스트가 아직 확정되지 않아 비워 둔다. 급여·소비 등과 달리 상품추천의 핵심
+--   데이터라 목데이터로 지어내지 않는다. 이 테이블들이 비어 있어도 다른 시드는 영향 없다
+--   (참조하는 시드 행이 없음). 상품 확정 후 여기에 INSERT 를 채운다.
+--
+-- 추천 도메인의 나머지 시드(savings_roadmap / roadmap_segment / product_subscription /
+--   monthly_saving_plan / asset_snapshot 데모 이력)도 상품 확정 이후 별도 작업.
 -- ============================================================
-DELETE FROM product WHERE bank_name = 'KB국민은행' AND product_name = 'KB Global Star 적금';
-
-INSERT INTO product (bank_name, product_name, product_type, interest_rate, term_months, foreigner_only, description)
-VALUES ('KB국민은행', 'KB Global Star 적금', 'SAVINGS', 2.00, 12, TRUE,
-        '외국인 전용 자유적립식. 기본금리 연 2.0%, 조건 충족 시 최대 연 5.5%');
