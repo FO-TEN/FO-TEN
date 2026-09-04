@@ -30,7 +30,7 @@ public class ChatService {
         ChatContext ctx = ChatContext.of(memberId, null, message);
         ctx.messages().add(LlmMessage.system(SystemPrompt.BASE));
 
-        return AdvisorChain.of(advisors, c-> llmClient.call(c.messages())).next(ctx);
+        return AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
     }
 
     private String runToolLoop(ChatContext ctx) {
