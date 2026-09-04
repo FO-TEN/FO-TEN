@@ -1,8 +1,11 @@
 package com.foten.exchange.service;
 
 import com.foten.common.ExternalApiException;
+import com.foten.common.ResourceNotFoundException;
 import com.foten.exchange.client.ExchangeRateClient;
 import com.foten.exchange.domain.ExchangeRateVO;
+import com.foten.exchange.dto.ExchangeRateResponse;
+import com.foten.exchange.dto.KrwConversionResponse;
 import com.foten.exchange.dto.RefreshResult;
 import com.foten.exchange.mapper.ExchangeRateMapper;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +14,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -76,6 +80,33 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
         return exchangeRateMapper.countByBaseDate(baseDate) > 0;
     }
 
+    @Override
+    public ExchangeRateResponse findLatest(String currencyCode) {
+        ExchangeRateVO rate = loadLatest(currencyCode);
+        return new ExchangeRateResponse(
+                rate.getCurrencyCode(),
+                rate.getRate(),
+                rate.getBaseDate(),
+                isStale(rate)
+        );
+    }
+
+    @Override
+    public KrwConversionResponse toKrw(String currencyCode, BigDecimal foreignAmount) {
+        ExchangeRateVO rate = loadLatest(currencyCode);
+
+        BigDecimal krwAmount = foreignAmount.divide(rate.getRate(), 0, RoundingMode.HALF_UP);
+
+        return new KrwConversionResponse(
+                rate.getCurrencyCode(),
+                foreignAmount,
+                krwAmount,
+                rate.getRate(),
+                rate.getBaseDate(),
+                isStale(rate)
+        );
+    }
+
     private Map<String, BigDecimal> fetchWithRetry() {
         ExternalApiException lastFailure = null;
 
@@ -100,5 +131,25 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
             Thread.currentThread().interrupt();
             throw new ExternalApiException("환율 재시도가 중단되었습니다.", e);
         }
+    }
+
+    private ExchangeRateVO loadLatest(String currencyCode) {
+        String normalized = currencyCode == null ? "" : currencyCode.trim().toUpperCase();
+
+        ExchangeRateVO rate = exchangeRateMapper.findLatest(normalized)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "환율 정보가 없습니다. currencyCode=" + normalized
+                ));
+
+        if(rate.getRate() == null || rate.getRate().compareTo(BigDecimal.ZERO) <= 0) {
+            throw new ResourceNotFoundException("환율 값이 올바르지 않습니다. currencyCode=" + normalized);
+        }
+
+        return rate;
+    }
+
+    // 오늘 기준의 환율이 아닐 경우 화면/챗봇이 기준일을 안내
+    private boolean isStale(ExchangeRateVO rate) {
+        return rate.getBaseDate().isBefore(LocalDate.now());
     }
 }
