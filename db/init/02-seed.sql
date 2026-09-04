@@ -94,11 +94,10 @@ INSERT IGNORE INTO exchange_rate (base_date, currency_code, rate) VALUES
     (DATE_SUB(CURDATE(), INTERVAL 2 DAY),'KHR',  2.960100);
 
 -- ============================================================
--- product / product_rate / rate_condition / product_preferential_rate — 추후 시드
---   상품 리스트가 아직 확정되지 않아 비워 둔다. 급여·소비 등과 달리 상품추천의 핵심
---   데이터라 목데이터로 지어내지 않는다. 이 테이블들이 비어 있어도 다른 시드는 영향 없다
---   (참조하는 시드 행이 없음). 상품 확정 후 여기에 INSERT 를 채운다.
+-- product / product_rate / rate_condition / product_preferential_rate
+--   상품이 확정되어 db/init/04-seed-product.sql 로 옮겨 채웠다 (여기 비워둔 이유는 동일:
+--   급여·소비 등과 달리 상품추천의 핵심 데이터라 목데이터로 지어내지 않았었다는 것).
 --
 -- 추천 도메인의 나머지 시드(savings_roadmap / roadmap_segment / product_subscription /
---   monthly_saving_plan / asset_snapshot 데모 이력)도 상품 확정 이후 별도 작업.
+--   monthly_saving_plan / asset_snapshot 데모 이력)는 아직 별도 작업으로 남아있다.
 -- ============================================================
