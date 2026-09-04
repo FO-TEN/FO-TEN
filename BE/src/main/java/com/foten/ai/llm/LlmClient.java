@@ -89,10 +89,28 @@ public class LlmClient {
     }
 
     private String readContent(String body) {
-        try {
-            return objectMapper.readValue(body, LlmChatResponse.class).firstContent();
+        return readResponse(body).firstContent();
+    }
+
+    public LlmChatResponse.Choice callWithTools(List<LlmMessage> messages, List<LlmTool> tools) {
+        HttpResponse<String> response = send(LlmChatRequest.withTools(model, messages, tools));
+
+        if (response.statusCode() != 200) {
+            log.error("LLM 호출 실패: status={}", response.statusCode());
+            throw new ExternalApiException("LLM 응답을 받지 못했습니다.");
         }
-        catch (JsonProcessingException e) {
+
+        LlmChatResponse.Choice choice = readResponse(response.body()).firstChoice();
+        if (choice == null || choice.message() == null) {
+            throw new ExternalApiException("LLM 응답이 비어 있습니다.");
+        }
+        return choice;
+    }
+
+    private LlmChatResponse readResponse(String body) {
+        try {
+            return objectMapper.readValue(body, LlmChatResponse.class);
+        } catch (JsonProcessingException e) {
             throw new ExternalApiException("LLM 응답을 해석하지 못했습니다.", e);
         }
     }
