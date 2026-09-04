@@ -14,3 +14,5 @@ exchange.rate.base-url=${EXCHANGE_RATE_BASE_URL:https://open.er-api.com/v6/lates
 llm.api-key=${LLM_API_KEY:}
 llm.model=${LLM_MODEL:}
 llm.base-url=${LLM_BASE_URL:https://api.openai.com/v1}
+
+notify.slack.webhook-url=${SLACK_WEBHOOK_URL:}

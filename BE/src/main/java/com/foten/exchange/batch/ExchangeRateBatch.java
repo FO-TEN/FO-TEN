@@ -1,5 +1,6 @@
 package com.foten.exchange.batch;
 
+import com.foten.common.notify.SlackNotifier;
 import com.foten.exchange.dto.RefreshResult;
 import com.foten.exchange.service.ExchangeRateService;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,8 @@ public class ExchangeRateBatch {
     private static final long STARTUP_DELAY_MS = 15_000L;
     private static final long NEVER_AGAIN_MS = 365L * 24 * 60 * 60 * 1000;
     private final ExchangeRateService exchangeRateService;
+
+    private final SlackNotifier slackNotifier;
 
     @Scheduled(cron = "${exchange.rate.cron}")
     public void collectDaily() {
@@ -40,15 +43,18 @@ public class ExchangeRateBatch {
         }
         catch (Exception e) {
             log.error("[{}] 환율 갱신 실패: {}", label, e.getMessage(), e);
+            slackNotifier.alert(label + " 환율 갱신 실패 - " + e.getMessage());
         }
     }
 
     private void report(String label, RefreshResult result) {
         if (result.allFailed()) {
             log.error("[{}] 환율을 하나도 저장하지 못했습니다. 실패 {}", label, result.failed());
+            slackNotifier.alert(label + " 환율을 하나도 저장하지 못했습니다. 통화 " + result.failed());
         }
         else if (result.hasFailure()) {
             log.warn("[{}] 환율 일부 실패. 저장 {} / 실패 {}", label, result.saved(), result.failed());
+            slackNotifier.alert(label + " 환율을 일부 저장하지 못했습니다. 통화 " + result.failed());
         }
         else {
             log.info("[{}] 환율 {}종 저장 (기준일 {})", label, result.saved().size(), result.baseDate());
