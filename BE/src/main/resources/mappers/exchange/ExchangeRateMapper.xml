@@ -26,4 +26,10 @@
         LIMIT 1
     </select>
 
+    <select id="countByBaseDate" resultType="int">
+        SELECT COUNT(*)
+        FROM exchange_rate
+        WHERE base_date = #{baseDate}
+    </select>
+
 </mapper>

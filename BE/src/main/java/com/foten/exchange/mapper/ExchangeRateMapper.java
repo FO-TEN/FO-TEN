@@ -2,6 +2,7 @@ package com.foten.exchange.mapper;
 
 import com.foten.exchange.domain.ExchangeRateVO;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,6 @@ public interface ExchangeRateMapper {
     void upsert(ExchangeRateVO exchangeRate);
 
     Optional<ExchangeRateVO> findLatest(String currencyCode);
+
+    int countByBaseDate(LocalDate baseDate);
 }
