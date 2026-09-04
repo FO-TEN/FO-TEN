@@ -124,7 +124,7 @@ class GoalDiagnosisServiceImplTest {
         assertEquals(BigDecimal.valueOf(1_200_000), response.monthlyRequired());
         assertEquals(BigDecimal.valueOf(-10_000), response.additionalNeeded());
         assertEquals("여유있음", response.judgeResult());
-        assertNull(response.catchUpMode());
+        assertNull(response.deficitChoice());
     }
 
     @Test
