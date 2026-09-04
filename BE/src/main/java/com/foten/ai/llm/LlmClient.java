@@ -59,6 +59,28 @@ public class LlmClient {
         return content;
     }
 
+    public <T> T callForEntity(List<LlmMessage> messages, Class<T> entityType) {
+        HttpResponse<String> response = send(LlmChatRequest.withSchema(model, messages, entityType));
+
+        if (response.statusCode() != 200) {
+            log.error("LLM 호출 실패: status={}", response.statusCode());
+            throw new ExternalApiException("LLM 응답을 받지 못했습니다.");
+        }
+
+        String content = readResponse(response.body()).firstContent();
+        if (content == null || content.isBlank()) {
+            throw new ExternalApiException("LLM 응답이 비어 있습니다.");
+        }
+
+        try {
+            return objectMapper.readValue(content, entityType);
+        }
+        catch (JsonProcessingException e) {
+            log.error("구조화 응답 해석 실패: type={}", entityType.getSimpleName());
+            throw new ExternalApiException("LLM 응답을 해석하지 못했습니다.", e);
+        }
+    }
+
     private HttpResponse<String> send(LlmChatRequest body) {
         HttpRequest request;
 
