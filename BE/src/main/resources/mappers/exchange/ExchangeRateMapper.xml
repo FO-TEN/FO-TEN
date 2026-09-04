@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.exchange.mapper.ExchangeRateMapper">
+
+    <select id="findTargetCurrencies" resultType="string">
+        SELECT DISTINCT target_currency
+        FROM goal
+        WHERE target_currency IS NOT NULL
+    </select>
+
+    <!-- 배치가 하루 여러 번 돌아도 같은 날짜·통화는 한 행으로 유지된다.
+         uk_exchange_rate_date_currency 가 충돌을 잡아준다. -->
+    <insert id="upsert">
+        INSERT INTO exchange_rate (base_date, currency_code, rate)
+        VALUES (#{baseDate}, #{currencyCode}, #{rate}) AS newrow
+        ON DUPLICATE KEY UPDATE rate = newrow.rate, fetched_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <select id="findLatest" resultType="com.foten.exchange.domain.ExchangeRateVO">
+        SELECT exchange_rate_id, base_date, currency_code, rate, fetched_at
+        FROM exchange_rate
+        WHERE currency_code = #{currencyCode}
+        ORDER BY base_date DESC
+        LIMIT 1
+    </select>
+
+    <select id="countByBaseDate" resultType="int">
+        SELECT COUNT(*)
+        FROM exchange_rate
+        WHERE base_date = #{baseDate}
+    </select>
+
+</mapper>
