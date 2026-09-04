@@ -3,10 +3,12 @@ package com.foten.ai.service;
 import com.foten.ai.advisor.Advisor;
 import com.foten.ai.advisor.AdvisorChain;
 import com.foten.ai.advisor.ChatContext;
+import com.foten.ai.dto.ChatReply;
 import com.foten.ai.llm.LlmChatResponse;
 import com.foten.ai.llm.LlmClient;
 import com.foten.ai.llm.LlmMessage;
 import com.foten.ai.llm.LlmToolCall;
+import com.foten.ai.mapper.MemberLanguageMapper;
 import com.foten.ai.prompt.SystemPrompt;
 import com.foten.ai.tool.ToolContext;
 import com.foten.ai.tool.ToolRegistry;
@@ -25,12 +27,23 @@ public class ChatService {
     private final LlmClient llmClient;
     private final ToolRegistry toolRegistry;
     private final List<Advisor> advisors;
+    private final MemberLanguageMapper memberLanguageMapper;
+    private final Translator translator;
+    private final ChatMemory chatMemory;
 
-    public String reply(long memberId, String message) {
-        ChatContext ctx = ChatContext.of(memberId, null, message);
+    public ChatReply reply(long memberId, String message) {
+        String languageCode = memberLanguageMapper.findLanguageCode(memberId);
+
+        ChatContext ctx = ChatContext.of(memberId, languageCode, message);
         ctx.messages().add(LlmMessage.system(SystemPrompt.BASE));
 
-        return AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
+        String contentKo = AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
+        String contentLocal = translator.translate(contentKo, languageCode);
+
+        chatMemory.addUserMessage(memberId, null, message, languageCode);
+        chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode);
+
+        return new ChatReply(contentKo, contentLocal);
     }
 
     private String runToolLoop(ChatContext ctx) {
