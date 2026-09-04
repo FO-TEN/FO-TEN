@@ -58,12 +58,14 @@ public class GoalTools implements ToolProvider{
         }
     }
 
+    // 이번 달이 아니라 목표를 세운 뒤 누적이다. "밀린 금액" 만으로는 이번 달 얘기로 읽힌다.
     private void appendShortfall(StringBuilder sb, GoalDiagnosisResponse r) {
         if (isPositive(r.cumulativeShortfall())) {
-            sb.append("지금까지 밀린 금액: ").append(money(r.cumulativeShortfall())).append("원").append("\n");
+            sb.append("계획보다 덜 모인 금액 (누적): ")
+                    .append(money(r.cumulativeShortfall())).append("원").append("\n");
         }
         else {
-            sb.append("지금까지 밀린 금액: 없음\n");
+            sb.append("계획보다 덜 모인 금액 (누적): 없음\n");
         }
     }
 

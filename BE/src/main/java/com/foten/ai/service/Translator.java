@@ -49,7 +49,7 @@ public class Translator {
     private final LlmClient llmClient;
 
     private record Translated(
-            @Describe("번역문. 금액·숫자·날짜는 원문의 값을 그대로 두고 표기만 그 언어의 관습을 따릅니다.")
+            @Describe("번역문. 금액의 값은 그대로 두되, 천 단위 구분 기호는 그 언어의 관습을 따릅니다.")
             String local) {
     }
 
@@ -83,16 +83,18 @@ public class Translator {
                 && languageCode != null && !KOREAN.equals(languageCode);
     }
 
-    // 시스템 프롬프트: 네팔어·벵골어에서 고유 숫자(७२,०३५)가 나와 아래 숫자 대조가 매번 어긋남
+    // 2번이 없으면 표기가 매번 흔들리고, 3번이 없으면 네팔어·벵골어에서 고유 숫자(७२,०३५)가 나와
+    // 아래 숫자 대조가 항상 어긋난다.
     private String instruction(String languageName) {
         return """
                 당신은 번역가입니다. 주어진 한국어 문장을 %s로 옮깁니다.
 
                 1. 금액·숫자·날짜의 값을 바꾸지 않습니다. 반올림하거나 단위를 바꾸지 않습니다.
-                2. 숫자는 아라비아 숫자(0123456789)로 씁니다. 그 언어 고유의 숫자 문자를 쓰지 않습니다.
-                3. 원문에 없는 내용을 덧붙이지 않습니다.
-                4. 짧고 쉬운 문장을 씁니다. 읽는 사람은 한국에서 일하는 이주노동자입니다.
-                """.formatted(languageName);
+                2. 천 단위 구분 기호는 %s의 관습을 따릅니다. 자릿수는 그대로 두고 기호만 바꿉니다.
+                3. 숫자는 아라비아 숫자(0123456789)로 씁니다. 그 언어 고유의 숫자 문자를 쓰지 않습니다.
+                4. 원문에 없는 내용을 덧붙이지 않습니다.
+                5. 짧고 쉬운 문장을 씁니다. 읽는 사람은 한국에서 일하는 이주노동자입니다.
+                """.formatted(languageName, languageName);
     }
 
     // 금액이 잘못 번역되면 번역을 버린다.
