@@ -10,6 +10,7 @@ import com.foten.goal.mapper.StayInfoMapper;
 import com.foten.goal.service.GoalCalculationService;
 import com.foten.member.dto.OnboardingRequest;
 import com.foten.member.dto.OnboardingResponse;
+import com.foten.member.dto.OnboardingStatusResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -80,6 +81,15 @@ public class OnboardingServiceImpl implements OnboardingService{
                 calculated.remainingMonths(),
                 converted.rate(),
                 converted.baseDate()
+        );
+    }
+
+    @Override
+    public OnboardingStatusResponse getStatus(long memberId) {
+        return OnboardingStatusResponse.of(
+                stayInfoMapper.selectByMemberId(memberId).isPresent(),
+                financialInfoMapper.selectByMemberId(memberId).isPresent(),
+                goalMapper.selectByMemberId(memberId).isPresent()
         );
     }
 
