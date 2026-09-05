@@ -107,6 +107,23 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
         );
     }
 
+    @Override
+    public KrwConversionResponse toForeign(String currencyCode, BigDecimal krwAmount) {
+        ExchangeRateVO rate = loadLatest(currencyCode);
+
+        BigDecimal foreignAmount = krwAmount.multiply(rate.getRate())
+                .setScale(0, RoundingMode.HALF_UP);
+
+        return new KrwConversionResponse(
+                rate.getCurrencyCode(),
+                foreignAmount,
+                krwAmount,
+                rate.getRate(),
+                rate.getBaseDate(),
+                isStale(rate)
+        );
+    }
+
     private Map<String, BigDecimal> fetchWithRetry() {
         ExternalApiException lastFailure = null;
 

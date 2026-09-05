@@ -16,42 +16,107 @@ import java.util.List;
 public class ExchangeTools implements ToolProvider{
 
     private static final DecimalFormat MONEY = new DecimalFormat("#,###");
+    private static final String KRW_AMOUNT = "krwAmount";
+    private static final String FOREIGN_AMOUNT = "foreignAmount";
 
     private final GoalMapper goalMapper;
     private final ExchangeRateService exchangeRateService;
 
     @Override
     public List<ToolSpec> tools() {
-        return List.of(ToolSpec.noArgs(
-                "getGoalAmountInKrw",
-                """
-                회원의 목표 금액을 한국 원화로 환산해 알려줍니다.
-                목표 금액은 본국 통화로 저장돼 있어 원화로 얼마인지 따로 계산해야 합니다.
-                사용자가 목표 금액·환율·"한국 돈으로 얼마"를 물을 때 사용합니다.
-                """,
-                (arguments, context) -> describe(context.memberId())));
+        return List.of(
+                ToolSpec.noArgs(
+                        "getGoalAmountInKrw",
+                        """
+                        회원의 목표 금액을 한국 원화로 환산해 알려줍니다.
+                        목표 금액은 본국 통화로 저장돼 있어 원화로 얼마인지 따로 계산해야 합니다.
+                        사용자가 목표 금액·환율·"한국 돈으로 얼마"를 물을 때 사용합니다.
+                        """,
+                        (arguments, context) -> describeGoal(context.memberId())
+                ),
+
+                ToolSpec.oneNumber(
+                        "convertToLocalCurrency",
+                        """
+                        원화 금액을 회원의 본국 통화로 바꿔 알려줍니다.
+                        사용자가 "100만원이면 우리 돈으로 얼마야?" 처럼 물을 때 사용합니다.
+                        """,
+                        KRW_AMOUNT,
+                        "바꿀 원화 금액. 사용자가 말한 숫자를 그대로 넣습니다.",
+                        (arguments, context) -> describeToForeign(context.memberId(), arguments)
+                ),
+
+                ToolSpec.oneNumber(
+                        "convertToKrw",
+                        """
+                        본국 통화 금액을 한국 원화로 바꿔 알려줍니다.
+                        사용자가 "50만동은 한국 돈으로 얼마야?" 처럼 물을 때 사용합니다.
+                        """,
+                        FOREIGN_AMOUNT,
+                        "바꿀 본국 통화 금액. 사용자가 말한 숫자를 그대로 넣습니다.",
+                        (arguments, context) -> describeToKrw(context.memberId(), arguments)
+                )
+        );
     }
 
-    private String describe(long memberId) {
+    private String describeGoal(long memberId) {
         Goal goal = goalMapper.selectByMemberId(memberId).orElse(null);
 
         if(goal == null || goal.getTargetAmount() == null || goal.getTargetCurrency() == null) {
             return "목표 금액이 아직 등록되지 않았습니다.";
         }
 
-        KrwConversionResponse converted = exchangeRateService.toKrw(goal.getTargetCurrency(), goal.getTargetAmount());
+        KrwConversionResponse converted =
+                exchangeRateService.toKrw(goal.getTargetCurrency(), goal.getTargetAmount());
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("[목표 금액 환산]\n");
+        StringBuilder sb = new StringBuilder("[목표 금액 환산]\n");
         sb.append("목표 금액: ").append(money(converted.foreignAmount()))
                 .append(" ").append(converted.currencyCode()).append("\n");
         sb.append("한국 원화로: ").append(money(converted.krwAmount())).append("원").append("\n");
-        sb.append("적용 환율: 1원 = ").append(converted.rate())
-                .append(" ").append(converted.currencyCode()).append("\n");
 
-        appendBaseDate(sb, converted);
+        appendRateAndDate(sb, converted);
 
         sb.append("위 금액들을 직접 계산하지 마세요. 필요한 값은 이미 위에 있습니다.");
+        return sb.toString();
+    }
+
+    private String describeToForeign(long memberId, String arguments) {
+        BigDecimal krwAmount = ToolArguments.number(arguments, KRW_AMOUNT);
+        String currencyCode = targetCurrency(memberId);
+
+        if(krwAmount == null || currencyCode == null) {
+            return cannotConvert(krwAmount, currencyCode);
+        }
+
+        KrwConversionResponse converted = exchangeRateService.toForeign(currencyCode, krwAmount);
+
+        StringBuilder sb = new StringBuilder("[금액 환산]\n");
+        sb.append("바꾼 금액: ").append(money(converted.krwAmount())).append("원").append("\n");
+        sb.append("결과: ").append(money(converted.foreignAmount()))
+                .append(" ").append(converted.currencyCode()).append("\n");
+
+        appendRateAndDate(sb, converted);
+        appendEcho(sb, money(converted.krwAmount()) + "원");
+        return sb.toString();
+    }
+
+    private String describeToKrw(long memberId, String arguments) {
+        BigDecimal foreignAmount = ToolArguments.number(arguments, FOREIGN_AMOUNT);
+        String currencyCode = targetCurrency(memberId);
+
+        if(foreignAmount == null || currencyCode == null) {
+            return cannotConvert(foreignAmount, currencyCode);
+        }
+
+        KrwConversionResponse converted = exchangeRateService.toKrw(currencyCode, foreignAmount);
+
+        StringBuilder sb = new StringBuilder("[금액 환산]\n");
+        sb.append("바꾼 금액: ").append(money(converted.foreignAmount()))
+                .append(" ").append(converted.currencyCode()).append("\n");
+        sb.append("결과: ").append(money(converted.krwAmount())).append("원").append("\n");
+
+        appendRateAndDate(sb, converted);
+        appendEcho(sb, money(converted.foreignAmount()) + " " + converted.currencyCode());
         return sb.toString();
     }
 
@@ -66,5 +131,35 @@ public class ExchangeTools implements ToolProvider{
 
     private String money(BigDecimal value) {
         return value == null ? "0" : MONEY.format(value);
+    }
+
+    private String targetCurrency(long memberId) {
+        return goalMapper.selectByMemberId(memberId)
+                .map(Goal::getTargetCurrency)
+                .orElse(null);
+    }
+
+    private String cannotConvert(BigDecimal amount, String currencyCode) {
+        if(currencyCode == null) {
+            return "목표 통화가 아직 등록되지 않아 환산할 수 없습니다.";
+        }
+        return "바꿀 금액을 알아듣지 못했습니다. 금액을 다시 말해달라고 물어보세요.";
+    }
+
+    private void appendRateAndDate(StringBuilder sb, KrwConversionResponse converted) {
+        sb.append("적용 환율: 1원 = ").append(converted.rate())
+                .append(" ").append(converted.currencyCode()).append("\n");
+        sb.append("환율 기준일: ").append(converted.baseDate());
+
+        // 오늘 기준 환율이 아니면 그 사실을 사용자에게 고지한다.
+        if (converted.stale()) {
+            sb.append(" (오늘 환율이 아직 들어오지 않아 이 날짜 기준으로 계산했습니다. 답변에 기준일을 반드시 밝히세요.)");
+        }
+        sb.append("\n");
+    }
+
+    private void appendEcho(StringBuilder sb, String amount) {
+        sb.append("답변에 \"").append(amount).append("\" 을(를) 반드시 밝히세요.\n");
+        sb.append("위 금액들을 직접 계산하지 마세요. 필요한 값은 이미 위에 있습니다.");
     }
 }
