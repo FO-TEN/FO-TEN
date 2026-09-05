@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.ai.mapper.MemberProfileMapper">
+    <select id="findProfile" resultType="com.foten.ai.domain.MemberProfile">
+        SELECT m.name,
+               m.nationality,
+               s.expected_return_date,
+               g.target_currency
+        FROM member m
+                 LEFT JOIN stay_info s ON s.member_id = m.member_id
+                 LEFT JOIN goal g ON g.member_id = m.member_id
+        WHERE m.member_id = #{memberId}
+    </select>
+
+</mapper>
