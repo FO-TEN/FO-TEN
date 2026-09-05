@@ -205,6 +205,13 @@ public class Translator {
      * 표기만 그 언어 관습으로 바꾼다 — 834,650 → 834.650 (베트남어), 75.2 → 75,2.
      */
     private String localize(String token, String languageCode) {
+        // 09 처럼 0 으로 시작하면 자릿수를 맞춘 표기다(날짜·시각).
+        // 숫자로 읽으면 앞의 0이 사라지므로 원문 그대로 둔다.
+        // charAt(1) 을 보는 것은 0.5 같은 소수를 거르기 위해서다 - 그건 진짜 값이다.
+        if (token.length() > 1 && token.charAt(0) == '0' && Character.isDigit(token.charAt(1))) {
+            return token;
+        }
+
         BigDecimal value;
         try {
             value = new BigDecimal(token.replaceAll("[,\\s]", ""));
