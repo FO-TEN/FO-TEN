@@ -78,6 +78,43 @@ public class Translator {
         }
     }
 
+    /**
+     * 선택지 라벨 여러 개를 한 번에 옮긴다. 칩마다 호출하면 응답이 그만큼 느려진다.
+     *
+     * @return 번역문 목록. 한국어 회원이면 null 로 채운 같은 크기의 목록(옮길 게 없다).
+     *         번역이 필요한데 실패하면 null — 호출부가 칩을 아예 띄우지 않게 한다.
+     *         못 읽는 칩은 도움이 아니라 방해이고, 아무거나 누르게 만든다.
+     */
+    public List<String> translateLines(List<String> koreanLines, String languageCode) {
+        if (koreanLines.isEmpty()) {
+            return List.of();
+        }
+        if (languageCode == null || KOREAN.equals(languageCode)) {
+            return nulls(koreanLines.size());
+        }
+
+        String translated = translate(String.join("\n", koreanLines), languageCode);
+        if (translated == null) {
+            return null;
+        }
+
+        // 줄 수가 다르면 어느 줄이 어느 칩인지 알 수 없다. 반쯤 맞춰 붙이는 건 추측이다.
+        List<String> lines = List.of(translated.split("\n", -1));
+        if (lines.size() != koreanLines.size()) {
+            log.warn("선택지 번역의 줄 수가 다릅니다. 칩을 띄우지 않습니다. languageCode={}", languageCode);
+            return null;
+        }
+        return lines;
+    }
+
+    private List<String> nulls(int size) {
+        List<String> result = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
+            result.add(null);
+        }
+        return result;
+    }
+
     private boolean needsTranslation(String korean, String languageCode) {
         return korean != null && !korean.isBlank()
                 && languageCode != null && !KOREAN.equals(languageCode);

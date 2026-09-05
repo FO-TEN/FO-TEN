@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Slf4j
 @Service
@@ -46,7 +47,7 @@ public class ChatService {
         chatMemory.addUserMessage(memberId, null, message, languageCode);
         chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode);
 
-        return new ChatReply(contentKo, contentLocal, suggestions(ctx, contentKo));
+        return new ChatReply(contentKo, contentLocal, suggestions(ctx, contentKo, languageCode));
     }
 
     private String runToolLoop(ChatContext ctx) {
@@ -79,9 +80,26 @@ public class ChatService {
 
     // 선택지는 대화 이력에 남기지 않는다.
     // 누른 칩만 대화로 들어와 기록된다.
-    private List<Suggestion> suggestions(ChatContext ctx, String contentKo) {
-        return suggestionProviders.stream()
+    private List<Suggestion> suggestions(ChatContext ctx, String contentKo, String languageCode) {
+
+        List<Suggestion> chips = suggestionProviders.stream()
                 .flatMap(provider -> provider.suggest(ctx, contentKo).stream())
+                .toList();
+
+        if (chips.isEmpty()) {
+            return chips;
+        }
+
+        List<String> labels = translator.translateLines(
+                chips.stream().map(Suggestion::labelKo).toList(), languageCode);
+
+        // 번역 실패한 경우: 못 읽는 칩은 아예 띄우지 않는다.
+        if (labels == null) {
+            return List.of();
+        }
+
+        return IntStream.range(0, chips.size())
+                .mapToObj(i -> chips.get(i).withLocalLabel(labels.get(i)))
                 .toList();
     }
 }
