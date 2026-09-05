@@ -15,4 +15,16 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <insert id="upsert" parameterType="com.foten.goal.domain.FinancialInfo">
+        INSERT INTO financial_info
+        (member_id, monthly_income, monthly_living_cost, monthly_remittance, current_savings)
+        VALUES
+            (#{memberId}, #{monthlyIncome}, #{monthlyLivingCost},
+             #{monthlyRemittance}, #{currentSavings}) AS newrow
+        ON DUPLICATE KEY UPDATE
+                             monthly_income = newrow.monthly_income,
+                             monthly_living_cost = newrow.monthly_living_cost,
+                             monthly_remittance = newrow.monthly_remittance,
+                             current_savings = newrow.current_savings
+    </insert>
 </mapper>

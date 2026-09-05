@@ -14,4 +14,11 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <insert id="upsert" parameterType="com.foten.goal.domain.StayInfo">
+        INSERT INTO stay_info (member_id, entry_date, expected_return_date)
+        VALUES (#{memberId}, #{entryDate}, #{expectedReturnDate}) AS newrow
+        ON DUPLICATE KEY UPDATE
+                             entry_date = newrow.entry_date,
+                             expected_return_date = newrow.expected_return_date
+    </insert>
 </mapper>

@@ -8,4 +8,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface StayInfoMapper {
     Optional<StayInfo> selectByMemberId(@Param("memberId") Long memberId);
+
+    void upsert(StayInfo stayInfo);
 }

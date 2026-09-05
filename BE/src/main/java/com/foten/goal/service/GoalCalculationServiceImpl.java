@@ -2,10 +2,13 @@ package com.foten.goal.service;
 
 import com.foten.goal.domain.GoalCalculationInput;
 import com.foten.goal.domain.GoalCalculationOutput;
+import org.springframework.stereotype.Service;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Period;
 
+@Service
 public class GoalCalculationServiceImpl implements GoalCalculationService {
 
     @Override
