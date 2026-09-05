@@ -1,6 +1,7 @@
 package com.foten.spending.service;
 
 import com.foten.spending.domain.MonthlySpending;
+import com.foten.spending.domain.SpendingCategory;
 import com.foten.spending.domain.SpendingLine;
 import com.foten.spending.mapper.SpendingSummaryMapper;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,6 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
 
     private static final String FIXED = "FIXED";
     private static final String VARIABLE = "VARIABLE";
-    private static final List<String> CATEGORIES = List.of("식비", "교통", "통신", "쇼핑", "기타");
     private final SpendingSummaryMapper spendingSummaryMapper;
 
     @Override
@@ -52,7 +52,7 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
         }
 
         Map<String, BigDecimal> ordered = new LinkedHashMap<>();
-        for (String category : CATEGORIES) {
+        for (String category : SpendingCategory.ALL) {
             put(ordered, category, amounts.get(category));
         }
         amounts.forEach((category, amount) -> put(ordered, category, amount));

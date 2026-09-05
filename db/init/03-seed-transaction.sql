@@ -53,6 +53,11 @@ WHERE m.login_id IN ('nguyen01', 'rai01', 'sok01');
 --
 -- 이 행의 balance_after 가 그 달의 월말 잔액이 된다. 누적저축실적 계산이
 -- "직전월말 잔액"(findBalanceAsOf)을 읽어가므로 이 값만 정확하면 된다.
+--
+-- 주의: findBalanceAsOf 는 그 달의 마지막 거래 한 행만 집어 balance_after 를 읽는다
+--   (ORDER BY transaction_at DESC LIMIT 1). 지출 행은 balance_after 가 0 이므로,
+--   26일보다 뒤에 지출 행을 추가하면 월말 잔액이 0 으로 잡혀 달성률과 누적부족액이
+--   무너진다. 날짜를 손댈 때는 26일 이전까지만 쓴다.
 -- ============================================================
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
