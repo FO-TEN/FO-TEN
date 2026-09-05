@@ -58,8 +58,8 @@ public class Translator {
             String local) {
     }
 
-    // 숫자를 뽑아낸 문장과, 뽑아낸 숫자들
-    private record Template(String text, List<String> tokens) {
+    // 숫자를 뽑아낸 문장과, 뽑아낸 숫자들. 테스트에서 부를 수 있게 패키지 전용이다.
+    record Template(String text, List<String> tokens) {
     }
 
     public String translate(String korean, String languageCode) {
@@ -146,7 +146,7 @@ public class Translator {
     }
 
     // 이번 달에는 834,650원 → 이번 달에는 {0}원
-    private Template templatize(String korean) {
+    Template templatize(String korean) {
         Matcher matcher = NUMBER.matcher(korean);
         StringBuilder text = new StringBuilder();
         List<String> tokens = new ArrayList<>();
@@ -170,7 +170,7 @@ public class Translator {
      * 하나라도 어긋나면 어디에 무엇을 넣을지 알 수 없으므로 번역을 버린다.
      * 어순은 언어마다 달라도 되지만, 자리표시자의 개수와 번호는 같아야 한다.
      */
-    private String restored(String local, Template template, String languageCode) {
+    String restored(String local, Template template, String languageCode) {
         if (local == null || local.isBlank()) {
             return null;
         }
@@ -204,7 +204,7 @@ public class Translator {
      * 원문이 한국어이므로 `,` 는 자릿수 구분, `.` 은 소수점으로 읽는다.
      * 표기만 그 언어 관습으로 바꾼다 — 834,650 → 834.650 (베트남어), 75.2 → 75,2.
      */
-    private String localize(String token, String languageCode) {
+    String localize(String token, String languageCode) {
         // 09 처럼 0 으로 시작하면 자릿수를 맞춘 표기다(날짜·시각).
         // 숫자로 읽으면 앞의 0이 사라지므로 원문 그대로 둔다.
         // charAt(1) 을 보는 것은 0.5 같은 소수를 거르기 위해서다 - 그건 진짜 값이다.
