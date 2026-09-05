@@ -22,12 +22,7 @@ public class ChatMemoryAdvisor implements Advisor {
         }
         ctx.messages().add(LlmMessage.user(ctx.userMessage()));
 
-        String reply = chain.next(ctx);
-
-        // contextKo는 번역 후 채운다.
-        chatMemory.addUserMessage(ctx.memberId(), null, ctx.userMessage(), ctx.languageCode());
-        chatMemory.addAssistantMessage(ctx.memberId(), reply, null, ctx.languageCode());
-        return reply;
+        return chain.next(ctx);
     }
 
     // context에는 한 언어만 삽입

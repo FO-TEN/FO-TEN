@@ -28,8 +28,7 @@ public class ChatController {
             return ResponseEntity.badRequest().build();
         }
 
-        String content = chatService.reply(TEMP_MEMBER_ID, request.message());
-        return ResponseEntity.ok(new ChatReply(content));
+        return ResponseEntity.ok(chatService.reply(TEMP_MEMBER_ID, request.message()));
     }
 
     @GetMapping("/api/chat/messages")
