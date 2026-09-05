@@ -8,7 +8,7 @@ public record ChatMessageResponse (
         long chatMessageId,
         String messageRole,
         String contentKo,
-        String ContentLocal,
+        String contentLocal,
         String languageCode,
         LocalDateTime createdAt
 ){
