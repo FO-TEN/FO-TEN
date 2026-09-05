@@ -13,4 +13,5 @@ public interface ExchangeRateService {
 
     ExchangeRateResponse findLatest(String currencyCode);
     KrwConversionResponse toKrw(String currencyCode, BigDecimal foreignAmount);
+    KrwConversionResponse toForeign(String currencyCode, BigDecimal krwAmount);
 }
