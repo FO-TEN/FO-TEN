@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.MonthlySavingPlanMapper">
+
+    <select id="selectFirst" resultType="com.foten.product.domain.MonthlySavingPlanVO">
+        SELECT monthly_saving_plan_id,
+               savings_roadmap_id,
+               segment_id,
+               plan_month,
+               cycle_no,
+               deficit_choice,
+               monthly_saving_amount,
+               recommended_cash_saving,
+               current_accumulated_fund,
+               cumulative_saving_performance,
+               baseline_snapshot,
+               required_snapshot,
+               projected_total_interest,
+               created_at
+        FROM monthly_saving_plan
+        WHERE savings_roadmap_id = #{savingsRoadmapId}
+          AND cycle_no = 1
+    </select>
+
+</mapper>

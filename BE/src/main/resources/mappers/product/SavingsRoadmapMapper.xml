@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.SavingsRoadmapMapper">
+
+    <select id="selectByMemberId" resultType="com.foten.product.domain.SavingsRoadmapVO">
+        SELECT savings_roadmap_id,
+               member_id,
+               start_date,
+               end_date,
+               total_months,
+               created_at
+        FROM savings_roadmap
+        WHERE member_id = #{memberId}
+    </select>
+
+</mapper>
