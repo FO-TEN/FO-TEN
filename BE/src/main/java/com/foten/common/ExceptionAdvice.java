@@ -28,4 +28,12 @@ public class ExceptionAdvice {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("message", e.getMessage()));
     }
+
+    @ExceptionHandler(RoadmapStateConflictException.class)
+    public ResponseEntity<Map<String, String>> handleRoadmapStateConflict(RoadmapStateConflictException e) {
+        log.warn("로드맵 상태 충돌: {} - {}", e.getErrorCode(), e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("errorCode", e.getErrorCode(), "message", e.getMessage()));
+    }
 }
