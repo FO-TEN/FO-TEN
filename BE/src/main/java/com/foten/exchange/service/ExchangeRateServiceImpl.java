@@ -124,6 +124,23 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
         );
     }
 
+    @Override
+    public void ensureRate(String currencyCode) {
+        String normalized = normalize(currencyCode);
+
+        if(exchangeRateMapper.findLatest(normalized).isPresent()) {
+            return;
+        }
+
+        Map<String, BigDecimal> rates = exchangeRateClient.fetchRates();
+
+        if(!save(normalized, rates.get(normalized), LocalDate.now())) {
+            log.warn("환율 즉시 수집 실패. 통화={}", normalized);
+            throw new ExternalApiException("환율을 가져오지 못했습니다. 잠시 후 다시 시도해 주세요.");
+        }
+        log.info("{} 환율을 즉시 수집했습니다.", normalized);
+    }
+
     private Map<String, BigDecimal> fetchWithRetry() {
         ExternalApiException lastFailure = null;
 
@@ -151,7 +168,7 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
     }
 
     private ExchangeRateVO loadLatest(String currencyCode) {
-        String normalized = currencyCode == null ? "" : currencyCode.trim().toUpperCase();
+        String normalized = normalize(currencyCode);
 
         ExchangeRateVO rate = exchangeRateMapper.findLatest(normalized)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -168,5 +185,9 @@ public class ExchangeRateServiceImpl implements ExchangeRateService{
     // 오늘 기준의 환율이 아닐 경우 화면/챗봇이 기준일을 안내
     private boolean isStale(ExchangeRateVO rate) {
         return rate.getBaseDate().isBefore(LocalDate.now());
+    }
+
+    private String normalize(String currencyCode) {
+        return currencyCode == null ? "" : currencyCode.trim().toUpperCase();
     }
 }
