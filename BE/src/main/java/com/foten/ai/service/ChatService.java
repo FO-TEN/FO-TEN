@@ -4,12 +4,14 @@ import com.foten.ai.advisor.Advisor;
 import com.foten.ai.advisor.AdvisorChain;
 import com.foten.ai.advisor.ChatContext;
 import com.foten.ai.dto.ChatReply;
+import com.foten.ai.dto.Suggestion;
 import com.foten.ai.llm.LlmChatResponse;
 import com.foten.ai.llm.LlmClient;
 import com.foten.ai.llm.LlmMessage;
 import com.foten.ai.llm.LlmToolCall;
 import com.foten.ai.mapper.MemberLanguageMapper;
 import com.foten.ai.prompt.SystemPrompt;
+import com.foten.ai.suggestion.SuggestionProvider;
 import com.foten.ai.tool.ToolContext;
 import com.foten.ai.tool.ToolRegistry;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class ChatService {
     private final MemberLanguageMapper memberLanguageMapper;
     private final Translator translator;
     private final ChatMemory chatMemory;
+    private final List<SuggestionProvider> suggestionProviders;
 
     public ChatReply reply(long memberId, String message) {
         String languageCode = memberLanguageMapper.findLanguageCode(memberId);
@@ -43,7 +46,7 @@ public class ChatService {
         chatMemory.addUserMessage(memberId, null, message, languageCode);
         chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode);
 
-        return new ChatReply(contentKo, contentLocal);
+        return new ChatReply(contentKo, contentLocal, suggestions(ctx, contentKo));
     }
 
     private String runToolLoop(ChatContext ctx) {
@@ -60,6 +63,7 @@ public class ChatService {
             ctx.messages().add(LlmMessage.assistantToolCalls(toolCalls));
 
             for(LlmToolCall call : toolCalls) {
+                ctx.calledTools().add(call.function().name());
                 String result = toolRegistry.execute(
                         call.function().name(),
                         call.function().arguments(),
@@ -71,5 +75,13 @@ public class ChatService {
 
         log.warn("툴 왕복 상한({}) 도달 - 루프를 종료한다.", MAX_TOOL_ROUNDS);
         return "죄송해요, 지금은 답변을 정리하지 못했어요. 다시 물어봐 주시겠어요?";
+    }
+
+    // 선택지는 대화 이력에 남기지 않는다.
+    // 누른 칩만 대화로 들어와 기록된다.
+    private List<Suggestion> suggestions(ChatContext ctx, String contentKo) {
+        return suggestionProviders.stream()
+                .flatMap(provider -> provider.suggest(ctx, contentKo).stream())
+                .toList();
     }
 }

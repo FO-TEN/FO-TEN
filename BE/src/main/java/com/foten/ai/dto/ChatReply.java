@@ -1,4 +1,6 @@
 package com.foten.ai.dto;
 
-public record ChatReply(String contentKo, String contentLocal) {
+import java.util.List;
+
+public record ChatReply(String contentKo, String contentLocal, List<Suggestion> suggestions) {
 }
