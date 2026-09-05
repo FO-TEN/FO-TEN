@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.spending.mapper.SpendingSummaryMapper">
+
+    <select id="findByMonth" resultType="com.foten.spending.domain.SpendingLine">
+        SELECT category,
+               expense_type,
+               SUM(amount) AS amount
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_type = 'EXPENSE'
+          AND transaction_at &gt;= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH)
+          AND transaction_at &lt; DATE_ADD(
+                DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH),
+                INTERVAL 1 MONTH)
+          AND transaction_at &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+        GROUP BY category, expense_type
+    </select>
+
+</mapper>
