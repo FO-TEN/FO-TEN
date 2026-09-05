@@ -3,12 +3,14 @@ package com.foten.config;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.foten.member.support.LoginMemberArgumentResolver;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -47,5 +49,12 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.setLocation(ActiveProfile.propertiesFile());
         configurer.setIgnoreUnresolvablePlaceholders(false);
         return configurer;
+    }
+
+    // @LoginMember 파라미터를 세션 값으로 채운다. 세션이 없으면 UnauthorizedException 이라 401 이 된다.
+    // 이 클래스의 @ComponentScan 은 @Controller 만 잡으므로 빈으로 만들지 않고 직접 넣는다.
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new LoginMemberArgumentResolver());
     }
 }
