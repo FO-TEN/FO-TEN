@@ -19,12 +19,17 @@ public class ChatController {
     private static final int DEFAULT_PAGE_SIZE = 30;
     private static final int MAX_PAGE_SIZE = 50;
 
+    // LLM 은 글자 수만큼 돈이 나간다. 상담 질문이 이보다 길 이유가 없다.
+    // 막지 않으면 붙여넣은 본문이 그대로 LLM 으로 가고, chat_message 에 남아 다음 턴마다 딸려 간다.
+    private static final int MAX_MESSAGE_LENGTH = 500;
+
     private final ChatService chatService;
     private final ChatMemory chatMemory;
 
     @PostMapping("/api/chat")
     public ResponseEntity<ChatReply> chat(@RequestBody ChatRequest request) {
-        if(request == null || request.message() == null || request.message().isBlank()) {
+        if(request == null || request.message() == null || request.message().isBlank()
+                || request.message().length() > MAX_MESSAGE_LENGTH) {
             return ResponseEntity.badRequest().build();
         }
 
