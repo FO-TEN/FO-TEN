@@ -46,6 +46,7 @@
   "onboarding.entry": "පැමිණි දිනය",
   "onboarding.return": "වීසා අවසන් වන දිනය",
   "onboarding.return_hint": "විදේශික ලියාපදිංචි කාඩ්පතේ පිටුපස ඇත",
+  "onboarding.locked": "ඔබ දැනටමත් ඉතිරි කිරීම ආරම්භ කර ඇති නිසා ඉලක්කය වෙනස් කළ නොහැක.",
   "onboarding.return_err": "අවසන් වන දිනය පැමිණි දිනයට පසු විය යුතුයි",
   "onboarding.days_left": "ගෙදර යාමට දින {n}",
   "onboarding.income": "මාසික වැටුප",

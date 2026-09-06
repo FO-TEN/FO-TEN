@@ -46,6 +46,7 @@
   "onboarding.entry": "入境日期",
   "onboarding.return": "签证到期日",
   "onboarding.return_hint": "写在外国人登录证背面",
+  "onboarding.locked": "您已开始储蓄，无法更改目标。",
   "onboarding.return_err": "到期日必须晚于入境日期",
   "onboarding.days_left": "距离回国还有 {n} 天",
   "onboarding.income": "月薪",

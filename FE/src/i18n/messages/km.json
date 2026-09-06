@@ -46,6 +46,7 @@
   "onboarding.entry": "ថ្ងៃចូលប្រទេស",
   "onboarding.return": "ថ្ងៃផុតកំណត់ស្នាក់នៅ",
   "onboarding.return_hint": "សរសេរនៅខាងក្រោយប័ណ្ណចុះឈ្មោះជនបរទេស",
+  "onboarding.locked": "អ្នកបានចាប់ផ្តើមសន្សំហើយ ដូច្នេះមិនអាចប្តូរគោលដៅបានទេ។",
   "onboarding.return_err": "ថ្ងៃផុតកំណត់ត្រូវនៅក្រោយថ្ងៃចូលប្រទេស",
   "onboarding.days_left": "នៅសល់ {n} ថ្ងៃទៀតត្រឡប់ទៅផ្ទះ",
   "onboarding.income": "ប្រាក់ខែ",

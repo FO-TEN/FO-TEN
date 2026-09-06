@@ -29,7 +29,11 @@ const step = computed(() => Number(route.params.step))
 const fromMe = computed(() => route.query.from === 'me')
 const t = (k, v) => locale.t(k, v)
 
-const error = ref('')
+// 우리 문구는 키로, 서버가 준 문구는 글자로 들고 있는다.
+// 번역해서 넣어두면 언어를 바꿔도 잡은 시점의 언어에 굳는다.
+const errorKey = ref('')
+const errorText = ref('')
+const error = computed(() => (errorKey.value ? t(errorKey.value) : errorText.value))
 const loading = ref(false)
 
 onMounted(async () => {
@@ -91,8 +95,23 @@ const canNext = computed(() =>
 // 수정으로 들어왔으면 그 자리에서 저장한다. 처음 가입이면 3단계까지 걸어간 뒤 저장.
 const isSave = computed(() => fromMe.value || step.value === 3)
 
+// 로드맵이 시작되면 목표를 못 바꾼다. 서버 message 에는 내부 문구와 회원 번호가
+// 들어 있어 그대로 뿌리면 안 되고, 한국어뿐이라 번역도 안 탄다. 코드를 보고 우리 문구를 쓴다.
+function setSaveError(e) {
+  if (e?.response?.data?.errorCode === 'ROADMAP_ALREADY_EXISTS') {
+    errorKey.value = 'onboarding.locked'
+    return
+  }
+  errorText.value = errorMessage(e)
+}
+
+function clearError() {
+  errorKey.value = ''
+  errorText.value = ''
+}
+
 async function next() {
-  error.value = ''
+  clearError()
   if (!isSave.value) {
     router.push({ name: 'onboarding', params: { step: step.value + 1 }, query: route.query })
     return
@@ -104,7 +123,7 @@ async function next() {
     ob.reset()
     router.replace(fromMe.value ? { name: 'me' } : { name: 'home' })
   } catch (e) {
-    error.value = errorMessage(e)
+    setSaveError(e)
   } finally {
     loading.value = false
   }

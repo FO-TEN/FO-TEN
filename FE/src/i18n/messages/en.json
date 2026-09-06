@@ -46,6 +46,7 @@
   "onboarding.entry": "Entry date",
   "onboarding.return": "Visa expiry date",
   "onboarding.return_hint": "It's on the back of your Alien Registration Card",
+  "onboarding.locked": "You've already started saving, so your goal can't be changed.",
   "onboarding.return_err": "Expiry date must be after the entry date",
   "onboarding.days_left": "{n} days until you return home",
   "onboarding.income": "Monthly salary",

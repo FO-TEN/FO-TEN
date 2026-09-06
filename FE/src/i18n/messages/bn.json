@@ -46,6 +46,7 @@
   "onboarding.entry": "প্রবেশের তারিখ",
   "onboarding.return": "ভিসা শেষের তারিখ",
   "onboarding.return_hint": "এলিয়েন রেজিস্ট্রেশন কার্ডের পেছনে লেখা আছে",
+  "onboarding.locked": "আপনি ইতিমধ্যে সঞ্চয় শুরু করেছেন, তাই লক্ষ্য পরিবর্তন করা যাবে না।",
   "onboarding.return_err": "শেষের তারিখ প্রবেশের তারিখের পরে হতে হবে",
   "onboarding.days_left": "দেশে ফিরতে {n} দিন",
   "onboarding.income": "মাসিক বেতন",

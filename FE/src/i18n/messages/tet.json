@@ -46,6 +46,7 @@
   "onboarding.entry": "Data tama",
   "onboarding.return": "Data vizu hotu",
   "onboarding.return_hint": "Iha kotuk kartaun rejistu estranjeiru",
+  "onboarding.locked": "Ita komesa ona poupansa, tan ne bele muda objetivu.",
   "onboarding.return_err": "Data hotu tenke depois de data tama",
   "onboarding.days_left": "Loron {n} to'o fila ba uma",
   "onboarding.income": "Saláriu mensál",

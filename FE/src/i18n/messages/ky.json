@@ -46,6 +46,7 @@
   "onboarding.entry": "Кирген күн",
   "onboarding.return": "Виза бүтүү күнү",
   "onboarding.return_hint": "Чет элдик жаран күбөлүгүнүн арт жагында жазылган",
+  "onboarding.locked": "Сиз топтоону баштадыңыз, ошондуктан максатты өзгөртүү мүмкүн эмес.",
   "onboarding.return_err": "Бүтүү күнү кирген күндөн кийин болушу керек",
   "onboarding.days_left": "Мекенге кайтууга {n} күн",
   "onboarding.income": "Айлык маяна",

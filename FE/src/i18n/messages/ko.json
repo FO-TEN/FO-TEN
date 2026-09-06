@@ -46,6 +46,7 @@
   "onboarding.entry": "입국일",
   "onboarding.return": "체류만료일",
   "onboarding.return_hint": "외국인등록증 뒷면에 적혀 있어요",
+  "onboarding.locked": "저축을 이미 시작해서 목표를 바꿀 수 없어요.",
   "onboarding.return_err": "체류만료일은 입국일 이후여야 해요",
   "onboarding.days_left": "귀국까지 {n}일",
   "onboarding.income": "월 급여",
