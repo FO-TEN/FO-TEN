@@ -288,9 +288,12 @@ public class RoadmapTools implements ToolProvider{
                     .append(money(c.recommendedCashSaving())).append("원\n");
         }
 
+        // 같은 값이 카드로도 나간다. 다 읽으면 화면에 같은 숫자가 두 번 보인다.
         sb.append("말하는 방법:\n");
-        sb.append("- 상품마다 한 줄로, 이름과 월 납입액을 먼저 말하세요. 금리와 기간은 뒤에 붙입니다.\n");
-        sb.append("- 금액과 금리는 위 값 그대로 옮기고 직접 더하거나 빼지 마세요.\n");
+        sb.append("- 이 내용은 카드로도 함께 나갑니다. 상품 이름과 금액을 하나씩 읊지 마세요.\n");
+        sb.append("- 조건을 반영해 상품을 골랐다는 것과 매달 모을 금액만 한두 문장으로 말하세요.\n");
+        sb.append("- 상품이 몇 개인지는 말해도 됩니다. 자세한 것은 아래 카드에서 보라고 알려주세요.\n");
+        sb.append("- 말하게 되는 금액은 위 값 그대로 옮기고 직접 더하거나 빼지 마세요.\n");
         sb.append("- 예금이 없으면 목돈이 아직 없어서라고 알려주세요.\n");
         sb.append("- 이자와 만기 금액은 아직 계산되지 않았습니다. 지어내지 마세요.\n");
         return sb.toString();
