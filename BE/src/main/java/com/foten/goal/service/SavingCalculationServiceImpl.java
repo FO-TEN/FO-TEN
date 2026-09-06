@@ -1,5 +1,6 @@
 package com.foten.goal.service;
 
+import com.foten.goal.domain.CategorySavingPotential;
 import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.SavingCalculationOutput;
 import java.util.ArrayList;
@@ -44,7 +45,8 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
         int additionalNeeded = targetBaselineAmount - currentExpectedSaving;
 
         return new SavingCalculationOutput(
-                currentExpectedSaving, maxExpectedSaving, topCategory, topAmount, judgeResult, additionalNeeded);
+                currentExpectedSaving, maxExpectedSaving, topCategory, topAmount, judgeResult, additionalNeeded,
+                savingByCategory(categories));
     }
 
     // 함수 1: 남은 예상 변동비 (현재예상저축액 구성요소)
@@ -120,5 +122,14 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
                 .map(c -> new TopCategory(c.category(), calcSavingPotential(c)))
                 .max((a, b) -> a.amount() - b.amount())
                 .orElse(null);
+    }
+
+    // 함수 8: 항목별 절감 여력 (전체, 0 이하 제외, 내림차순)
+    List<CategorySavingPotential> savingByCategory(List<CategorySpendingInput> categories) {
+        return categories.stream()
+                .map(c -> new CategorySavingPotential(c.category(), calcSavingPotential(c)))
+                .filter(c -> c.amount() > 0)
+                .sorted((a, b) -> b.amount() - a.amount())
+                .toList();
     }
 }
