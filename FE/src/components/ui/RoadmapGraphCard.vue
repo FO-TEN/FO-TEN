@@ -70,7 +70,7 @@ const subtitle = computed(() =>
   <section class="rg">
     <div class="head">
       <p class="rt">{{ t('card.roadmap_title') }}</p>
-      <p class="rs num">{{ subtitle }}</p>
+      <p class="rs">{{ subtitle }}</p>
     </div>
 
     <div class="chart" :style="{ height: CHART_H + 'px' }">
@@ -85,13 +85,13 @@ const subtitle = computed(() =>
             :class="l.k"
             :style="{ height: l.h + 'px' }"
           >
-            <span v-if="l.text && l.h >= LABEL_MIN_H" class="lt num">{{ l.text }}</span>
+            <span v-if="l.text && l.h >= LABEL_MIN_H" class="lt">{{ l.text }}</span>
           </div>
         </div>
       </div>
     </div>
     <div class="axis">
-      <p v-for="b in bars" :key="b.key" class="ax num" :style="{ flexGrow: b.grow }">{{ b.label }}</p>
+      <p v-for="b in bars" :key="b.key" class="ax" :style="{ flexGrow: b.grow }">{{ b.label }}</p>
     </div>
 
     <div class="legend">
@@ -104,10 +104,10 @@ const subtitle = computed(() =>
     <p class="note">{{ t('card.roadmap_note') }}</p>
 
     <div class="foot">
-      <span class="fl num">{{ t('card.roadmap_after', { n: totalMonths }) }}</span>
+      <span class="fl">{{ t('card.roadmap_after', { n: totalMonths }) }}</span>
       <span class="fr">
         <b class="num">{{ comma(Math.round(n(payload.finalAmount) / 10000)) }}</b>
-        <span class="num">{{ t('card.roadmap_total', { i: comma(Math.round(n(payload.expectedInterestTotal) / 10000)) }) }}</span>
+        <span>{{ t('card.roadmap_total', { i: comma(Math.round(n(payload.expectedInterestTotal) / 10000)) }) }}</span>
       </span>
     </div>
   </section>
@@ -130,7 +130,6 @@ const subtitle = computed(() =>
   padding: 18px 16px 16px;
   border-radius: 16px;
   background: var(--surface-card);
-  border: 1px solid var(--border-soft);
 }
 .head {
   display: flex;
@@ -170,10 +169,7 @@ const subtitle = computed(() =>
   flex-direction: column;
   width: 100%;
   overflow: hidden;
-  border-radius: 6px 6px 0 0;
-}
-.stack .layer:last-child {
-  border-radius: 0 0 6px 6px;
+  border-radius: 6px;
 }
 .layer {
   display: flex;
@@ -194,7 +190,7 @@ const subtitle = computed(() =>
 .savings .lt { color: var(--c-savings-text); }
 .deposit .lt { color: var(--c-deposit-text); }
 .top {
-  margin-bottom: 3px;
+  margin-bottom: 1px;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
@@ -202,7 +198,8 @@ const subtitle = computed(() =>
   white-space: nowrap;
 }
 .badge {
-  margin-bottom: 4px;
+  align-self: flex-start;
+  margin: 0 0 10px 5px;
   padding: 2px 7px;
   border-radius: var(--r-pill);
   background: var(--gray-850);
@@ -225,9 +222,7 @@ const subtitle = computed(() =>
   font-weight: 500;
   line-height: 1.4;
   color: var(--gray-500);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: anywhere;
 }
 
 .legend {
