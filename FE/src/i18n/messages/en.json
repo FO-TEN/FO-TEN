@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Hello, {name}.\nShall we look at this month's savings together?",
+  "chat.chip_roadmap": "Create my roadmap",
   "chat.chip_spending": "See my spending",
   "chat.chip_goal": "Change my goal",
   "chat.placeholder": "Ask me anything",
   "chat.too_long": "Please keep it under {n} characters",
   "chat.failed": "Couldn't get an answer. Please ask again.",
+  "chat.select_done": "Done selecting",
+
+  "card.reco_title": "Recommended mix",
+  "card.monthly_base": "Monthly saving",
+  "card.months": "{n} months",
+  "card.rate": "{r}% rate",
+  "card.deposit": "Lump-sum deposit",
+  "card.cash": "Cash savings",
 
   "spending.title": "Spending in month {m}",
   "spending.until_day": "Through {m}/{d}",

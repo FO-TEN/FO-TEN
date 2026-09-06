@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "হ্যালো, {name}।\nএই মাসের সঞ্চয় একসাথে দেখি?",
+  "chat.chip_roadmap": "রোডম্যাপ তৈরি করুন",
   "chat.chip_spending": "আমার খরচ দেখুন",
   "chat.chip_goal": "লক্ষ্য বদলান",
   "chat.placeholder": "যা খুশি জিজ্ঞেস করুন",
   "chat.too_long": "{n} অক্ষরের মধ্যে লিখুন",
   "chat.failed": "উত্তর পাওয়া যায়নি। আবার জিজ্ঞেস করুন।",
+  "chat.select_done": "নির্বাচন সম্পন্ন",
+
+  "card.reco_title": "প্রস্তাবিত সমন্বয়",
+  "card.monthly_base": "মাসিক সঞ্চয়",
+  "card.months": "{n} মাস",
+  "card.rate": "সুদ {r}%",
+  "card.deposit": "এককালীন আমানত",
+  "card.cash": "নগদ সঞ্চয়",
 
   "spending.title": "{m} মাসের খরচ",
   "spending.until_day": "{d}/{m} পর্যন্ত",

@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Salom, {name}.\nBu oygi jamgʻarmani birga koʻramizmi?",
+  "chat.chip_roadmap": "Yoʻl xaritasi tuzish",
   "chat.chip_spending": "Xarajatlarimni koʻrish",
   "chat.chip_goal": "Maqsadni oʻzgartirish",
   "chat.placeholder": "Istalgan narsani soʻrang",
   "chat.too_long": "{n} belgidan kam yozing",
   "chat.failed": "Javob olinmadi. Qayta soʻrang.",
+  "chat.select_done": "Tanlash tugadi",
+
+  "card.reco_title": "Tavsiya etilgan to'plam",
+  "card.monthly_base": "Oylik jamg'arma",
+  "card.months": "{n} oy",
+  "card.rate": "foiz {r}%",
+  "card.deposit": "Muddatli omonat",
+  "card.cash": "Naqd jamg'arma",
 
   "spending.title": "{m}-oy xarajati",
   "spending.until_day": "{d}/{m} gacha",

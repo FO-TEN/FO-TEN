@@ -7,12 +7,14 @@ import { useLocaleStore } from '../stores/locale'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
 import PotenAvatar from '../components/ui/PotenAvatar.vue'
+import RecommendationCard from '../components/ui/RecommendationCard.vue'
+import ConditionChecklist from '../components/ui/ConditionChecklist.vue'
 import sendIcon from '../assets/icons/send.svg'
 
 /*
  * Figma 05_대화 · 홈(217:2463).
  *  말풍선  contentKo / contentLocal  — LangSwitch(한국어 ↔ 내 언어)로 그 자리에서 바꾼다. 재호출 없음.
- *  칩      서버 suggestions(labelKo/labelLocal) + 첫 화면 고정 칩 2개(소비 내역 보기 · 목표 바꾸기)
+ *  칩      서버 suggestions(labelKo/labelLocal) + 첫 화면 고정 칩 3개(로드맵 만들기 · 소비 내역 보기 · 목표 바꾸기)
  *  입력    POST /chat (500자 상한 — 서버가 400 을 내므로 여기서도 막는다)
  *  이력    GET /chat/messages 최신순 → 오래된 순으로 뒤집어 그린다
  */
@@ -57,7 +59,9 @@ function chipLabel(s) {
 }
 
 const showGreeting = computed(() => !chat.hasHistory)
+// 로드맵은 화면 이동이 아니라 대화로 만든다. 이미 있으면 서버가 그렇게 답한다.
 const staticChips = computed(() => [
+  { key: 'roadmap', label: t('chat.chip_roadmap'), go: () => chat.send('내 로드맵 만들기') },
   { key: 'spending', label: t('chat.chip_spending'), go: () => router.push({ name: 'spending' }) },
   { key: 'goal', label: t('chat.chip_goal'), go: () => router.push({ name: 'onboarding', params: { step: 1 }, query: { from: 'me' } }) },
 ])
@@ -71,6 +75,13 @@ async function submit() {
 async function pickChip(s) {
   await chat.send(s.value)
 }
+
+// 우대조건은 여러 개를 골라 한 번에 보낸다. 서버가 그 종류로 내려주면 버튼 대신 체크박스로 그린다.
+const conditionChips = computed(() =>
+  chat.suggestions.length && chat.suggestions.every((s) => s.action === 'RATE_CONDITION')
+    ? chat.suggestions
+    : [],
+)
 </script>
 
 <template>
@@ -99,12 +110,19 @@ async function pickChip(s) {
           <div class="wrap">
             <div v-if="m.pending" class="bubble bot-b typing"><span /><span /><span /></div>
             <div v-else class="bubble bot-b">{{ text(m) }}</div>
+            <RecommendationCard v-if="m.card && m.card.type === 'RECOMMENDATION'" :payload="m.card.payload" />
           </div>
         </div>
       </template>
 
       <!-- 칩: 서버 선택지가 있으면 그것, 아니면 첫 화면 고정 칩 -->
-      <div v-if="chat.suggestions.length" class="chips">
+      <ConditionChecklist
+        v-if="conditionChips.length"
+        :items="conditionChips"
+        :disabled="chat.sending"
+        @submit="chat.send($event)"
+      />
+      <div v-else-if="chat.suggestions.length" class="chips">
         <button v-for="(s, i) in chat.suggestions" :key="i" type="button" class="chip" @click="pickChip(s)">{{ chipLabel(s) }}</button>
       </div>
       <div v-else-if="showGreeting" class="chips">

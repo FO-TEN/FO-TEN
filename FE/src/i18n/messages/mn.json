@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Сайн уу, {name}.\nЭнэ сарын хуримтлалыг хамт харах уу?",
+  "chat.chip_roadmap": "Замын зураг үүсгэх",
   "chat.chip_spending": "Миний зарлагыг харах",
   "chat.chip_goal": "Зорилго өөрчлөх",
   "chat.placeholder": "Юу ч асуугаарай",
   "chat.too_long": "{n} тэмдэгтээс бага бичнэ үү",
   "chat.failed": "Хариу авч чадсангүй. Дахин асууна уу.",
+  "chat.select_done": "Сонголт дууслаа",
+
+  "card.reco_title": "Санал болгосон багц",
+  "card.monthly_base": "Сар бүрийн хуримтлал",
+  "card.months": "{n} сар",
+  "card.rate": "хүү {r}%",
+  "card.deposit": "Хадгаламж",
+  "card.cash": "Бэлэн мөнгөний хуримтлал",
 
   "spending.title": "{m}-р сарын зарлага",
   "spending.until_day": "{m}/{d} хүртэл",

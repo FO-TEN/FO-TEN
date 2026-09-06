@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Olá, {name}.\nMai ita haree poupansa fulan ida-ne'e hamutuk?",
+  "chat.chip_roadmap": "Halo roadmap",
   "chat.chip_spending": "Haree ha'u-nia gastu",
   "chat.chip_goal": "Troka objetivu",
   "chat.placeholder": "Husu buat ruma",
   "chat.too_long": "Hakerek menus karakter {n}",
   "chat.failed": "La hetan resposta. Favór husu fali.",
+  "chat.select_done": "Hili remata",
+
+  "card.reco_title": "Kombinasaun rekomendadu",
+  "card.monthly_base": "Poupansa kada fulan",
+  "card.months": "fulan {n}",
+  "card.rate": "juru {r}%",
+  "card.deposit": "Depózitu lump-sum",
+  "card.cash": "Poupansa osan",
 
   "spending.title": "Gastu fulan {m}",
   "spending.until_day": "To'o {d}/{m}",

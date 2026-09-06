@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "سلام، {name}۔\nاس ماہ کی بچت مل کر دیکھیں؟",
+  "chat.chip_roadmap": "روڈ میپ بنائیں",
   "chat.chip_spending": "میرے اخراجات دیکھیں",
   "chat.chip_goal": "ہدف بدلیں",
   "chat.placeholder": "کچھ بھی پوچھیں",
   "chat.too_long": "{n} حروف سے کم لکھیں",
   "chat.failed": "جواب نہیں ملا۔ دوبارہ پوچھیں۔",
+  "chat.select_done": "انتخاب مکمل",
+
+  "card.reco_title": "تجویز کردہ مجموعہ",
+  "card.monthly_base": "ماہانہ بچت",
+  "card.months": "{n} ماہ",
+  "card.rate": "شرح سود {r}%",
+  "card.deposit": "یکمشت ڈپازٹ",
+  "card.cash": "نقد بچت",
 
   "spending.title": "{m} ماہ کے اخراجات",
   "spending.until_day": "{d}/{m} تک",

@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "សួស្តី {name}។\nមើលការសន្សំខែនេះជាមួយគ្នាទេ?",
+  "chat.chip_roadmap": "បង្កើតផែនការសន្សំ",
   "chat.chip_spending": "មើលការចំណាយរបស់ខ្ញុំ",
   "chat.chip_goal": "ប្តូរគោលដៅ",
   "chat.placeholder": "សួរអ្វីក៏បាន",
   "chat.too_long": "សូមសរសេរក្រោម {n} តួអក្សរ",
   "chat.failed": "មិនបានចម្លើយទេ។ សូមសួរម្តងទៀត។",
+  "chat.select_done": "ជ្រើសរើសរួចរាល់",
+
+  "card.reco_title": "បណ្តុំផលិតផលដែលណែនាំ",
+  "card.monthly_base": "ប្រាក់សន្សំរៀងរាល់ខែ",
+  "card.months": "{n} ខែ",
+  "card.rate": "អត្រាការប្រាក់ {r}%",
+  "card.deposit": "ប្រាក់បញ្ញើដុំ",
+  "card.cash": "ការសន្សំជាសាច់ប្រាក់",
 
   "spending.title": "ការចំណាយខែ {m}",
   "spending.until_day": "រហូតដល់ថ្ងៃ {d}/{m}",

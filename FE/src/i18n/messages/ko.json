@@ -84,11 +84,20 @@
 
   "chat.title": "포텐이",
   "chat.greeting": "{name} 님, 안녕하세요.\n이번 달 저축을 같이 볼까요?",
+  "chat.chip_roadmap": "로드맵 만들기",
   "chat.chip_spending": "내 소비 보기",
   "chat.chip_goal": "목표 바꾸기",
   "chat.placeholder": "궁금한 걸 물어보세요",
   "chat.too_long": "{n}자 안으로 써 주세요",
   "chat.failed": "답을 가져오지 못했어요. 다시 물어봐 주세요.",
+  "chat.select_done": "선택 완료",
+
+  "card.reco_title": "추천 조합",
+  "card.monthly_base": "매달 모을 돈",
+  "card.months": "{n}개월",
+  "card.rate": "금리 {r}%",
+  "card.deposit": "목돈 예금",
+  "card.cash": "현금성 저축",
 
   "spending.title": "{m}월 소비",
   "spending.until_day": "{m}월 {d}일까지",

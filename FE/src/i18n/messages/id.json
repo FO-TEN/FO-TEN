@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Halo, {name}.\nMau lihat tabungan bulan ini bersama?",
+  "chat.chip_roadmap": "Buat peta tabungan",
   "chat.chip_spending": "Lihat pengeluaran saya",
   "chat.chip_goal": "Ubah target",
   "chat.placeholder": "Tanya apa saja",
   "chat.too_long": "Tulis kurang dari {n} karakter",
   "chat.failed": "Tidak mendapat jawaban. Coba tanya lagi.",
+  "chat.select_done": "Selesai memilih",
+
+  "card.reco_title": "Kombinasi rekomendasi",
+  "card.monthly_base": "Tabungan per bulan",
+  "card.months": "{n} bulan",
+  "card.rate": "bunga {r}%",
+  "card.deposit": "Deposito",
+  "card.cash": "Tabungan tunai",
 
   "spending.title": "Pengeluaran bulan {m}",
   "spending.until_day": "Sampai {d}/{m}",

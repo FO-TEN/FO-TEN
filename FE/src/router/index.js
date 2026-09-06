@@ -49,6 +49,10 @@ router.beforeEach(async (to) => {
   }
 
   if (to.meta.guest && auth.member) {
+    // member 는 새로고침 뒤 sessionStorage 에서 살아나지만 onboarding 은 비어 있다.
+    // 확인하지 않고 판단하면 다 끝낸 회원도 온보딩 1단계로 보낸다.
+    const ok = await auth.ensureSession()
+    if (!ok) return true
     return auth.onboarding?.completed ? { name: 'home' } : { name: 'onboarding', params: { step: 1 } }
   }
   return true

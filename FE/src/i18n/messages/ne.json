@@ -84,11 +84,20 @@
 
   "chat.title": "फोटेन",
   "chat.greeting": "नमस्ते, {name}।\nयो महिनाको बचत सँगै हेरौँ?",
+  "chat.chip_roadmap": "रोडम्याप बनाउनुहोस्",
   "chat.chip_spending": "मेरो खर्च हेर्ने",
   "chat.chip_goal": "लक्ष्य बदल्ने",
   "chat.placeholder": "जे पनि सोध्नुहोस्",
   "chat.too_long": "{n} अक्षरभित्र लेख्नुहोस्",
   "chat.failed": "जवाफ आएन। फेरि सोध्नुहोस्।",
+  "chat.select_done": "छनोट सकियो",
+
+  "card.reco_title": "सिफारिस गरिएको संयोजन",
+  "card.monthly_base": "हरेक महिना जम्मा गर्ने रकम",
+  "card.months": "{n} महिना",
+  "card.rate": "ब्याज {r}%",
+  "card.deposit": "एकमुष्ट निक्षेप",
+  "card.cash": "नगद बचत",
 
   "spending.title": "{m} महिनाको खर्च",
   "spending.until_day": "{m}/{d} सम्म",

@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Kumusta, {name}.\nTingnan natin ang ipon ngayong buwan?",
+  "chat.chip_roadmap": "Gumawa ng roadmap",
   "chat.chip_spending": "Tingnan ang gastos ko",
   "chat.chip_goal": "Baguhin ang layunin",
   "chat.placeholder": "Magtanong ng kahit ano",
   "chat.too_long": "Panatilihing wala pang {n} karakter",
   "chat.failed": "Walang nakuhang sagot. Pakitanong ulit.",
+  "chat.select_done": "Tapos na pumili",
+
+  "card.reco_title": "Inirerekomendang kombinasyon",
+  "card.monthly_base": "Buwanang ipon",
+  "card.months": "{n} buwan",
+  "card.rate": "{r}% interes",
+  "card.deposit": "Lump-sum na deposito",
+  "card.cash": "Cash na ipon",
 
   "spending.title": "Gastos sa buwan {m}",
   "spending.until_day": "Hanggang {m}/{d}",
