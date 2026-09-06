@@ -5,6 +5,7 @@ import com.foten.ai.domain.MemberProfile;
 import com.foten.ai.dto.Suggestion;
 import com.foten.ai.mapper.MemberProfileMapper;
 import com.foten.product.domain.RateConditionVO;
+import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.service.RoadmapQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,8 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String CONDITION_TOOL = "getPreferentialConditionQuestions";
     private static final String SUBMIT_TOOL = "submitPreferentialConditions";
     private static final String COMPOSITION_TOOL = "getSegmentComposition";
+    private static final String CONFIRM_TOOL = "confirmMonthlySaving";
+    private static final String FLOW_ONBOARDING = "ONBOARDING";
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -35,7 +38,8 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
 
         // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
         // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
-        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
+        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)
+                || tools.contains(CONFIRM_TOOL)) {
             return List.of();
         }
         // 질문을 보여준 턴에는 고를 수 있게 조건을 칩으로 낸다.
@@ -58,7 +62,25 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         if (!profile.isRateConditionsAnswered()) {
             return List.of(Suggestion.ask("우대조건 확인할래"));
         }
-        return List.of(Suggestion.ask("상품 구성 알려줘"));
+
+        List<Suggestion> deficit = deficitChips(ctx.memberId(), profile);
+        return deficit.isEmpty() ? List.of(Suggestion.ask("상품 구성 알려줘")) : deficit;
+    }
+
+    // 밀린 금액이 있는 달에만 고를 것이 생긴다. 누르는 순간 이번 달 저축액이 정해지므로
+    // 사용자가 직접 고른 것으로 남아야 한다.
+    private List<Suggestion> deficitChips(long memberId, MemberProfile profile) {
+        // 밀린 금액은 갚기 전까지 남아 있다. 확정한 달에도 계속 내면 두 번 고르게 된다.
+        if (profile.isMonthlySavingConfirmed()) {
+            return List.of();
+        }
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        if (FLOW_ONBOARDING.equals(status.flowType()) || !Boolean.TRUE.equals(status.hasShortfall())) {
+            return List.of();
+        }
+        return List.of(
+                Suggestion.deficitChoice("이번 달에 밀린 금액까지 다 채울게요"),
+                Suggestion.deficitChoice("남은 기간에 나눠서 채울게요"));
     }
 
     // 이미 제출했으면 도구가 질문 대신 안내를 돌려준다. 고를 것이 없으니 칩도 내지 않는다.

@@ -10,7 +10,13 @@
                g.target_currency,
                EXISTS (SELECT 1 FROM savings_roadmap r WHERE r.member_id = m.member_id) AS roadmap_exists,
                EXISTS (SELECT 1 FROM member_rate_condition_response c
-                       WHERE c.member_id = m.member_id) AS rate_conditions_answered
+                       WHERE c.member_id = m.member_id) AS rate_conditions_answered,
+               EXISTS (SELECT 1
+                       FROM monthly_saving_plan p
+                                JOIN savings_roadmap r
+                                     ON r.savings_roadmap_id = p.savings_roadmap_id
+                       WHERE r.member_id = m.member_id
+                         AND p.plan_month = DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_saving_confirmed
         FROM member m
                  LEFT JOIN stay_info s ON s.member_id = m.member_id
                  LEFT JOIN goal g ON g.member_id = m.member_id

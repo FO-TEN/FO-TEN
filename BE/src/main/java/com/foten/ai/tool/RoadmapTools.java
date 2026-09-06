@@ -1,10 +1,14 @@
 package com.foten.ai.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foten.ai.domain.MemberProfile;
 import com.foten.ai.dto.ChatCard;
+import com.foten.ai.mapper.MemberProfileMapper;
+import com.foten.common.InvalidRequestException;
 import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.product.domain.CreatedRoadmap;
+import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.RateConditionAnswer;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapStatus;
@@ -30,7 +34,11 @@ public class RoadmapTools implements ToolProvider{
     private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
     // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
     private static final String FLOW_ONBOARDING = "ONBOARDING";
+    // 밀린 금액을 이번 달에 다 채우거나, 남은 기간에 나눠 담거나 둘 중 하나다.
+    private static final String FULL_RECOVERY = "FULL_RECOVERY";
+    private static final String SPREAD = "SPREAD";
 
+    private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
     private final RoadmapCommandService roadmapCommandService;
 
@@ -47,7 +55,8 @@ public class RoadmapTools implements ToolProvider{
                         목표를 이룰 수 있는지 묻는 질문은 diagnoseGoal 을 씁니다.
                         이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
                         """,
-                        (arguments, context) -> describeStatus(roadmapQueryService.getStatus(context.memberId()))),
+                        (arguments, context) -> describeStatus(
+                                context.memberId(), roadmapQueryService.getStatus(context.memberId()))),
 
                 ToolSpec.noArgs(
                         "getPreferentialConditionQuestions",
@@ -86,6 +95,24 @@ public class RoadmapTools implements ToolProvider{
                         (arguments, context) -> submitConditions(
                                 context, ToolArguments.stringList(arguments, "conditionCodes"))),
 
+                ToolSpec.optionalEnum(
+                        "confirmMonthlySaving",
+                        """
+                        이번 달에 모을 금액을 확정합니다. 저장이 일어나고 되돌릴 수 없습니다.
+                        밀린 금액이 있으면 채우는 방식에 따라 이번 달 금액이 달라집니다.
+                        choice 는 밀린 금액이 있을 때만 넘깁니다.
+                        FULL_RECOVERY 는 이번 달에 밀린 금액을 다 채우는 것,
+                        SPREAD 는 남은 기간에 나눠 담는 것입니다.
+                        밀린 금액이 없으면 choice 없이 부릅니다.
+                        사용자가 확정하겠다고 답한 다음에만 부릅니다. 짐작해서 부르지 않습니다.
+                        로드맵을 막 만든 달에는 쓸 수 없으므로 getRoadmapStatus 로 먼저 확인합니다.
+                        """,
+                        "choice",
+                        "밀린 금액을 채우는 방식. 밀린 금액이 없으면 넘기지 않습니다.",
+                        List.of(FULL_RECOVERY, SPREAD),
+                        (arguments, context) -> confirmMonthlySaving(
+                                context.memberId(), ToolArguments.string(arguments, "choice"))),
+
                 ToolSpec.noArgs(
                         "getSegmentComposition",
                         """
@@ -97,7 +124,7 @@ public class RoadmapTools implements ToolProvider{
                         (arguments, context) -> describeComposition(context)));
     }
 
-    private String describeStatus(RoadmapStatus s) {
+    private String describeStatus(long memberId, RoadmapStatus s) {
         StringBuilder sb = new StringBuilder("[저축 로드맵 상태]\n");
 
         if (!s.roadmapExists()) {
@@ -114,6 +141,7 @@ public class RoadmapTools implements ToolProvider{
         appendSegment(sb, s);
         appendLastMonth(sb, s);
         appendAmounts(sb, s);
+        appendDeficitGuide(sb, memberId, s);
         sb.append("위 금액들의 차액을 직접 빼서 구하지 마세요. 필요한 값은 이미 위에 있습니다.");
         return sb.toString();
     }
@@ -167,6 +195,23 @@ public class RoadmapTools implements ToolProvider{
         else {
             sb.append("밀린 금액: 없음\n");
         }
+    }
+
+    // 밀린 금액이 있는 달은 어떻게 채울지 정해야 이번 달 금액이 나온다.
+    private void appendDeficitGuide(StringBuilder sb, long memberId, RoadmapStatus s) {
+        if (FLOW_ONBOARDING.equals(s.flowType()) || !Boolean.TRUE.equals(s.hasShortfall())) {
+            return;
+        }
+        // 밀린 금액은 갚기 전까지 남아 있다. 확정 여부까지 봐야 두 번 묻지 않는다.
+        if (isMonthlySavingConfirmed(memberId)) {
+            sb.append("이번 달에 모을 금액은 이미 정해졌습니다. 다시 정하자고 하지 마세요.\n");
+            return;
+        }
+        sb.append("밀린 금액을 어떻게 채울지 정해야 이번 달 금액이 확정됩니다.\n");
+        sb.append("이번 달에 다 채우는 방법과 남은 기간에 나눠 담는 방법이 있다고 알리고,");
+        sb.append(" 어느 쪽이 좋을지 물으세요.\n");
+        sb.append("코드 이름은 내부용입니다. 사용자에게 보여주지 마세요.\n");
+        sb.append("사용자가 어느 쪽인지 답하면 그 자리에서 confirmMonthlySaving 을 부르세요.\n");
     }
 
     private String startRoadmap(long memberId) {
@@ -238,6 +283,58 @@ public class RoadmapTools implements ToolProvider{
                 default -> "지금은 우대조건을 제출할 수 없습니다.";
             };
         }
+    }
+
+    private boolean isMonthlySavingConfirmed(long memberId) {
+        return memberProfileMapper.findProfile(memberId)
+                .map(MemberProfile::isMonthlySavingConfirmed)
+                .orElse(false);
+    }
+
+    private String confirmMonthlySaving(long memberId, String choice) {
+        try {
+            return describeConfirmed(roadmapCommandService.confirmDeficitChoice(memberId, choice));
+        }
+        catch (InvalidRequestException e) {
+            // 밀린 금액이 있는데 방식을 안 정했다. 되묻게 하고 다시 부르지 않게 한다.
+            return "밀린 금액을 어떻게 채울지 아직 정하지 않았습니다.\n"
+                    + "이번 달에 다 채울지 남은 기간에 나눠 담을지 물어보고,\n"
+                    + "답을 들은 뒤에 다시 부르세요.\n";
+        }
+        catch (RoadmapStateConflictException e) {
+            return switch (e.getErrorCode()) {
+                case "NOT_APPLICABLE" -> confirmNotApplicableReason(memberId);
+                case "GOAL_NOT_READY" -> "목표가 아직 확정되지 않아 이번 달 금액을 정할 수 없습니다.";
+                default -> "지금은 이번 달 금액을 확정할 수 없습니다.";
+            };
+        }
+    }
+
+    // 로드맵을 막 만든 달에도, 로드맵이 없을 때도 같은 코드로 온다. 구분해서 알린다.
+    private String confirmNotApplicableReason(long memberId) {
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        if (!status.roadmapExists()) {
+            return "아직 로드맵이 없어 이번 달 금액을 정할 수 없습니다.\n"
+                    + "로드맵을 먼저 만들어야 한다고 안내하세요.\n";
+        }
+        return "로드맵을 막 만든 달이라 이번 달 금액을 따로 정하지 않습니다.\n"
+                + "다음 단계는 우대조건 확인이라고 알리세요.\n";
+    }
+
+    private String describeConfirmed(DeficitChoiceResult result) {
+        StringBuilder sb = new StringBuilder("[이번 달 저축액]\n");
+        sb.append("이번 달에 모을 금액: ").append(money(result.monthlySavingAmount())).append("원\n");
+        sb.append("이 금액을 나누는 기준액: ").append(money(result.productBaselineAmount())).append("원\n");
+
+        if (result.committed()) {
+            sb.append("확정되었습니다. 이 금액을 알려주세요.\n");
+            return sb.toString();
+        }
+        // 구간이 바뀌는 달은 우대조건까지 받아야 확정된다. 다 됐다고 말하면 안 된다.
+        sb.append("아직 확정 전입니다. 계산해 본 금액일 뿐입니다.\n");
+        sb.append("이 금액을 알려주고, 우대조건을 확인해야 확정된다고 안내하세요.\n");
+        sb.append("다 정해졌다고 말하지 마세요.\n");
+        return sb.toString();
     }
 
     // NOT_APPLICABLE 은 로드맵이 없을 때도 온다. 구분하지 않으면 없는 상품을 있다고 말한다.
