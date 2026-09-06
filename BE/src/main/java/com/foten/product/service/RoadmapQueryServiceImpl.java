@@ -3,15 +3,20 @@ package com.foten.product.service;
 import com.foten.common.ResourceNotFoundException;
 import com.foten.goal.domain.Goal;
 import com.foten.goal.mapper.GoalMapper;
+import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.AssetSnapshotVO;
 import com.foten.product.domain.MonthlySavingPlanVO;
+import com.foten.product.domain.ProductAllocationCandidate;
 import com.foten.product.domain.ProductSubscriptionVO;
+import com.foten.product.domain.ProductVO;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapSegmentVO;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SavingsRoadmapVO;
+import com.foten.product.domain.SegmentComposition;
 import com.foten.product.mapper.AssetSnapshotMapper;
 import com.foten.product.mapper.MonthlySavingPlanMapper;
+import com.foten.product.mapper.ProductMapper;
 import com.foten.product.mapper.ProductSubscriptionMapper;
 import com.foten.product.mapper.RateConditionMapper;
 import com.foten.product.mapper.RoadmapSegmentMapper;
@@ -21,9 +26,12 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +40,15 @@ import org.springframework.stereotype.Service;
 public class RoadmapQueryServiceImpl implements RoadmapQueryService {
 
     private static final String ROLLOVER_DEPOSIT = "ROLLOVER_DEPOSIT";
+    private static final String NEW_SAVINGS = "NEW_SAVINGS";
+    private static final String SPREAD = "SPREAD";
 
     private final SavingsRoadmapMapper savingsRoadmapMapper;
     private final RoadmapSegmentMapper roadmapSegmentMapper;
     private final MonthlySavingPlanMapper monthlySavingPlanMapper;
     private final AssetSnapshotMapper assetSnapshotMapper;
     private final ProductSubscriptionMapper productSubscriptionMapper;
+    private final ProductMapper productMapper;
     private final TransactionHistoryMapper transactionHistoryMapper;
     private final RateConditionMapper rateConditionMapper;
     private final GoalMapper goalMapper; // 교차 도메인, 읽기 전용 (target_baseline_amount 절대 안 씀)
@@ -138,6 +149,81 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     @Override
     public List<RateConditionVO> getRateConditions() {
         return rateConditionMapper.selectBehaviorBased();
+    }
+
+    @Override
+    public SegmentComposition getCurrentComposition(long memberId) {
+        // 이 엔드포인트는 온보딩/구간전환 커밋 이후에만 호출된다고 전제한다 — getStatus() 와 달리
+        // "아직 로드맵이 없음"을 정상 케이스로 봐주지 않는다.
+        SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+        RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
+        BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
+                .map(Goal::getTargetBaselineAmount)
+                .orElseThrow(() -> new ResourceNotFoundException("목표 정보가 없습니다. memberId=" + memberId));
+
+        List<ProductSubscriptionVO> subscriptions = productSubscriptionMapper.selectActiveBySegment(segment.getSegmentId());
+        ProductSubscriptionVO depositSubscription = subscriptions.stream()
+                .filter(s -> ROLLOVER_DEPOSIT.equals(s.getSubscriptionRole()))
+                .findFirst()
+                .orElse(null);
+        List<ProductSubscriptionVO> savingsSubscriptions = subscriptions.stream()
+                .filter(s -> NEW_SAVINGS.equals(s.getSubscriptionRole()))
+                .toList();
+
+        // 상품구성 기준액 판단 (§4-7) — 이 구간 첫 회차의 deficitChoice로 목표기준액/필요저축액 중 선택.
+        MonthlySavingPlanVO firstPlanOfSegment = monthlySavingPlanMapper.selectFirstBySegment(segment.getSegmentId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "이 구간의 저축 제안이 아직 없습니다. segmentId=" + segment.getSegmentId()));
+        BigDecimal basisAmount = SPREAD.equals(firstPlanOfSegment.getDeficitChoice())
+                ? firstPlanOfSegment.getRequiredSnapshot()
+                : baselineAmount;
+
+        Map<Long, ProductVO> productById = subscriptions.isEmpty()
+                ? Map.of()
+                : productMapper.selectByIds(subscriptions.stream().map(ProductSubscriptionVO::getProductId).toList())
+                        .stream()
+                        .collect(Collectors.toMap(ProductVO::getProductId, p -> p));
+
+        // 배분은 저장된 값을 읽지 않고 이 기준액으로 다시 계산한다 — 이 카드는 "이번 달 실제"가
+        // 아니라 "이 구간 동안 유지할 기준"을 보여줘야 하기 때문 (UI v5 "여기서 보이는 월 100만
+        // 원은 이번 달 130만 원이 아니라 앞으로 유지할 월 저축기준이에요").
+        List<ProductAllocationCandidate> candidates = savingsSubscriptions.stream()
+                .map(s -> new ProductAllocationCandidate(
+                        s.getProductId(), s.getExpectedAppliedRate(), s.getMonthlyPaymentLimitSnapshot()))
+                .sorted(Comparator.comparing(ProductAllocationCandidate::appliedRate).reversed())
+                .toList();
+        AllocationPlan plan = roadmapCalculationService.allocate(candidates, basisAmount);
+        Map<Long, BigDecimal> allocatedByProductId = plan.allocations().stream()
+                .collect(Collectors.toMap(
+                        AllocationPlan.AllocationEntry::productId, AllocationPlan.AllocationEntry::allocatedAmount));
+
+        List<SegmentComposition.SavingsSummary> savingsSummaries = savingsSubscriptions.stream()
+                .map(s -> new SegmentComposition.SavingsSummary(
+                        productById.get(s.getProductId()).getProductName(),
+                        s.getTermMonths(),
+                        s.getExpectedAppliedRate(),
+                        s.getMonthlyPaymentLimitSnapshot(),
+                        allocatedByProductId.getOrDefault(s.getProductId(), BigDecimal.ZERO)))
+                .toList();
+
+        // 이자 관련 필드(maturityAmount/expectedInterest)는 이자_계산식_결정.md 로 공식만 정해졌고
+        // 코드는 아직 없다 — NEW_SEGMENT 브랜치에서 함께 채운다.
+        SegmentComposition.DepositSummary depositSummary = depositSubscription == null ? null
+                : new SegmentComposition.DepositSummary(
+                        productById.get(depositSubscription.getProductId()).getProductName(),
+                        depositSubscription.getTermMonths(),
+                        depositSubscription.getExpectedAppliedRate(),
+                        depositSubscription.getInitialPrincipal(),
+                        depositSubscription.getMaturityAmount(),
+                        null);
+        BigDecimal rolloverAmount = depositSubscription == null ? null : depositSubscription.getInitialPrincipal();
+
+        return new SegmentComposition(
+                baselineAmount, rolloverAmount, depositSummary, savingsSummaries,
+                plan.recommendedCashSaving(), null, null);
     }
 
     // §2-2 현재 누적자금의 "현재 예금 금액" 항목 — 이 구간의 ACTIVE ROLLOVER_DEPOSIT 구독 원금 합

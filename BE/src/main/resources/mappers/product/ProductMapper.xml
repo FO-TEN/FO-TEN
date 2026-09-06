@@ -18,4 +18,20 @@
           AND (pr.max_term IS NULL OR pr.max_term &gt;= #{termMonths})
     </select>
 
+    <select id="selectByIds" resultType="com.foten.product.domain.ProductVO">
+        SELECT product_id,
+               product_name,
+               product_type,
+               installment_type,
+               monthly_payment_limit,
+               max_rate,
+               min_subscription_amount,
+               description
+        FROM product
+        WHERE product_id IN
+        <foreach collection="productIds" item="productId" open="(" separator="," close=")">
+            #{productId}
+        </foreach>
+    </select>
+
 </mapper>
