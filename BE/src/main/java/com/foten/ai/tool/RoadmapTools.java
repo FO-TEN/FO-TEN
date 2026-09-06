@@ -143,22 +143,40 @@ public class RoadmapTools implements ToolProvider{
         }
     }
 
+    /**
+     * 값을 한 줄씩 늘어놓으면 "~입니다" 가 여덟 줄 쌓여 읽히지 않는다.
+     * UI 흐름 v5 2장의 [최초 월 저축기준 안내]는 세 문장이다. 값과 함께 말하는 방법도 준다.
+     */
     private String describeCreated(CreatedRoadmap r) {
         CreatedRoadmap.SegmentSummary segment = r.segment();
 
         StringBuilder sb = new StringBuilder("[로드맵을 만들었습니다]\n");
-        sb.append("전체 기간: ").append(r.totalMonths()).append("개월\n");
-        sb.append("매달 모으기로 한 금액: ").append(money(r.baselineAmount())).append("원\n");
-        sb.append("이번 달에 모아야 하는 금액: ").append(money(r.requiredAmount())).append("원\n");
-        sb.append("첫 운용 구간: ").append(segment.segmentNo()).append("번째, ")
-                .append(segment.plannedMonths()).append("개월 (")
-                .append(segment.startDate()).append(" ~ ").append(segment.endDate()).append(")");
+        sb.append("매달 모을 금액: ").append(money(r.baselineAmount())).append("원\n");
+        sb.append("전체 기간: ").append(r.totalMonths()).append("개월 (오늘부터 귀국 한 달 전까지)\n");
+        sb.append("첫 운용 구간: ").append(segment.plannedMonths()).append("개월");
         if (segment.isLastSegment()) {
-            sb.append(" — 마지막 구간");
+            sb.append(" — 이 구간이 마지막입니다");
         }
         sb.append("\n");
-        sb.append("상품 가입은 아직 하지 않았습니다. 다음은 우대조건 확인이라고 안내하세요.\n");
+
+        // 만든 직후에는 목표기준액과 필요저축액이 같다. 같으면 한 번만 말해야 사용자가 되묻지 않는다.
+        if (differs(r.requiredAmount(), r.baselineAmount())) {
+            sb.append("이번 달에만 모아야 하는 금액: ").append(money(r.requiredAmount())).append("원\n");
+        }
+
+        sb.append("말하는 방법:\n");
+        sb.append("- 세 문장 안팎으로 짧게 말하세요. 값을 한 줄에 하나씩 늘어놓지 마세요.\n");
+        sb.append("- 매달 모을 금액을 먼저, 가장 중요하게 다루세요. 기간과 구간은 곁들이는 정도입니다.\n");
+        sb.append("- 날짜를 그대로 읽지 말고 '오늘부터 몇 개월' 처럼 기간으로 말하세요.\n");
+        sb.append("- 첫 달은 밀린 금액이 없어 따로 정할 것이 없다고 알려주세요.\n");
+        sb.append("- 마지막에 '이 금액을 어떤 상품에 나눠 모을지 정해볼게요' 처럼 다음 단계를 알리세요.\n");
+        sb.append("- 상품은 아직 정해지지 않았습니다. 상품 이름을 지어내지 마세요.\n");
         return sb.toString();
+    }
+
+    // BigDecimal 은 소수점 자릿수가 다르면 equals 가 false 다. 금액 비교는 compareTo 로 한다.
+    private boolean differs(BigDecimal a, BigDecimal b) {
+        return a != null && b != null && a.compareTo(b) != 0;
     }
 
     private String describeConditions(List<RateConditionVO> conditions) {
