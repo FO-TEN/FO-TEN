@@ -1,4 +1,4 @@
-package com.foten.ai.mapper;
+package com.foten.member.mapper;
 
 public interface MemberLanguageMapper {
     String findLanguageCode(long memberId);

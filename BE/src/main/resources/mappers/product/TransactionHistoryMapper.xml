@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.TransactionHistoryMapper">
+
+    <select id="sumSavingsPaymentBetween" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM transaction_history
+        WHERE member_id = #{memberId}
+          AND transaction_type = 'SAVINGS_PAYMENT'
+          AND transaction_at &gt;= #{since}
+          AND transaction_at &lt; #{until}
+    </select>
+
+    <select id="sumSavingsPaymentBySegment" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(th.amount), 0)
+        FROM transaction_history th
+        JOIN product_subscription ps ON ps.product_subscription_id = th.product_subscription_id
+        WHERE ps.segment_id = #{segmentId}
+          AND th.transaction_type = 'SAVINGS_PAYMENT'
+    </select>
+
+</mapper>

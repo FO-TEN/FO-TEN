@@ -120,15 +120,6 @@ public class ExchangeTools implements ToolProvider{
         return sb.toString();
     }
 
-    // 오늘 기준 환율이 아니면 그 사실을 사용자에게 고지한다.
-    private void appendBaseDate(StringBuilder sb, KrwConversionResponse converted) {
-        sb.append("환율 기준일: ").append(converted.baseDate());
-        if (converted.stale()) {
-            sb.append(" (오늘 환율이 아직 들어오지 않아 이 날짜 기준으로 계산했습니다. 답변에 기준일을 반드시 밝히세요.)");
-        }
-        sb.append("\n");
-    }
-
     private String money(BigDecimal value) {
         return value == null ? "0" : MONEY.format(value);
     }
