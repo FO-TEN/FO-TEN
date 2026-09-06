@@ -21,6 +21,7 @@ import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SavingsPaymentRecord;
 import com.foten.product.domain.SavingsRoadmapVO;
 import com.foten.product.domain.SegmentComposition;
+import com.foten.product.domain.SegmentDetail;
 import com.foten.product.domain.MemberRateConditionResponseVO;
 import com.foten.product.mapper.AssetSnapshotMapper;
 import com.foten.product.mapper.MemberRateConditionResponseMapper;
@@ -500,5 +501,34 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
             }
         }
         return bonusByProductId;
+    }
+
+    @Override
+    public SegmentDetail getSegmentDetail(long memberId) {
+        // getStatus() 를 그대로 재사용 — lastMonthActualAmount/currentSegmentNo/baselineAmount
+        // 모두 거기서만 계산되는 값이라 따로 다시 구하지 않는다.
+        RoadmapStatus status = getStatus(memberId);
+
+        SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+        LocalDate thisMonth = YearMonth.now().atDay(1);
+        MonthlySavingPlanVO currentPlan = monthlySavingPlanMapper
+                .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
+                .orElseThrow(() -> new IllegalStateException(
+                        "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요). memberId=" + memberId));
+
+        // "다음 달부터" = 구성 기준액(§4-7과 동일 규칙) — SPREAD면 그때 얼려둔 필요저축액이
+        // 영구 기준, 아니면(NONE/FULL_RECOVERY) 목표기준액.
+        BigDecimal futureAmount = SPREAD.equals(currentPlan.getDeficitChoice())
+                ? currentPlan.getRequiredSnapshot() : status.baselineAmount();
+
+        List<SegmentDetail.Bar> bars = new ArrayList<>();
+        if (status.lastMonthActualAmount() != null) {
+            bars.add(new SegmentDetail.Bar("지난달", "ACTUAL", status.lastMonthActualAmount()));
+        }
+        bars.add(new SegmentDetail.Bar("이번 달", "PLAN", currentPlan.getMonthlySavingAmount()));
+        bars.add(new SegmentDetail.Bar("다음 달부터", "FUTURE", futureAmount));
+
+        return new SegmentDetail(status.currentSegmentNo(), currentPlan.getDeficitChoice(), status.baselineAmount(), bars);
     }
 }
