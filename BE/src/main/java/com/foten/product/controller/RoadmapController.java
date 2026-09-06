@@ -1,0 +1,23 @@
+package com.foten.product.controller;
+
+import com.foten.member.support.LoginMember;
+import com.foten.product.domain.RoadmapStatus;
+import com.foten.product.dto.RoadmapStatusResponse;
+import com.foten.product.service.RoadmapQueryService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequiredArgsConstructor
+public class RoadmapController {
+
+    private final RoadmapQueryService roadmapQueryService;
+
+    @GetMapping("/api/roadmap/status")
+    public ResponseEntity<RoadmapStatusResponse> status(@LoginMember long memberId) {
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        return ResponseEntity.ok(RoadmapStatusResponse.from(status));
+    }
+}

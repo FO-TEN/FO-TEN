@@ -29,6 +29,14 @@ public class ExceptionAdvice {
                 .body(Map.of("message", e.getMessage()));
     }
 
+    @ExceptionHandler(RoadmapStateConflictException.class)
+    public ResponseEntity<Map<String, String>> handleRoadmapStateConflict(RoadmapStateConflictException e) {
+        log.warn("로드맵 상태 충돌: {} - {}", e.getErrorCode(), e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("errorCode", e.getErrorCode(), "message", e.getMessage()));
+    }
+
     @ExceptionHandler(UnauthorizedException.class)
     public ResponseEntity<Map<String, String>> handleUnauthorized(UnauthorizedException e) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
