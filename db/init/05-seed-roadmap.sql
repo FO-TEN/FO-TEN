@@ -3,8 +3,11 @@
 -- 02-seed.sql 의 nguyen01/rai01/sok01 은 아직 savings_roadmap 이 없어서 온보딩
 -- 흐름(4-1~4-5)만 반복 테스트할 수 있다. 새구간(NEW_SEGMENT) 전환처럼 "구간을 이미
 -- 어느 정도 진행한 이력"이 있어야 재현되는 흐름은 기존 3계정과 완전히 분리된 전용
--- 계정 1명(lan01)을 만들어 이 파일 하나로 관리한다 — 다른 팀원 작업(온보딩 흐름
+-- 계정들(lan01, lan02)을 만들어 이 파일 하나로 관리한다 — 다른 팀원 작업(온보딩 흐름
 -- 테스트)에 영향을 주지 않기 위함이다.
+--
+-- lan01 = 부족액 없는 NEW_SEGMENT, lan02 = 부족액 있는 NEW_SEGMENT (deficitChoice
+-- FULL_RECOVERY/SPREAD 검증용) — 두 계정 다 구조는 같고 구간1의 마지막 달 납입액만 다르다.
 --
 -- lan01 시나리오 — "구간 전환 대기" (flowType=NEW_SEGMENT)
 --   로드맵 총 22개월 → 구간분해(로직 v3 §3-2): 12 + 10(마지막)
@@ -33,7 +36,7 @@
 --   손계산(만기 이자, 이자_계산식_결정.md 공식 — 세전):
 --     Σ(500,000 × 5.00% × 잔여개월/12), 잔여개월 12..1
 --     = 500,000 × 0.05 × (12+11+...+1)/12 = 500,000 × 0.05 × 6.5 = 162,500원
---     세후(15.4% 원천징수) = 162,500 × (1-0.154) ≈ 137,495원
+--     세후(15.4% 원천징수) = 162,500 × (1-0.154) = 137,475원
 --     만기금(세전, DB 저장값) = 원금 6,000,000 + 162,500 = 6,162,500원
 --   NEW_SEGMENT 분기를 구현한 뒤 이 값과 실제 계산 결과가 맞는지 확인하는 용도다.
 --
@@ -239,3 +242,159 @@ JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELEC
       SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
       SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) c ON TRUE
 WHERE m.login_id = 'lan01';
+
+-- ================================================================
+-- lan02 — lan01과 구조는 동일하되 구간1의 12회차(마지막 달)만 계획한 500,000원 대신
+-- 200,000원만 납입시켜 부족액 300,000원을 만든다(로직 v3 §2-6 예시와 같은 비율).
+-- POST /api/rate-conditions/responses 의 NEW_SEGMENT + deficitChoice(FULL_RECOVERY/
+-- SPREAD) 분기를 검증하는 용도 — 매번 재적용해서 두 값을 번갈아 호출해보면 된다.
+--
+-- 손계산 (오늘 CURDATE() 기준):
+--   완료된 12개월분 목표 = 500,000 × 12 = 6,000,000
+--   실제 납입 = 500,000 × 11 + 200,000 = 5,700,000
+--   부족액(shortfallAmount) = 6,000,000 - 5,700,000 = 300,000
+--   FULL_RECOVERY 당월저축액 = 목표기준액 500,000 + 부족액 300,000 = 800,000
+--     → 구성 기준액은 목표기준액(500,000)이라 새 구간(2번, 10개월) 후보 중 KB내맘대로적금
+--       (2.45%, 한도 3,000,000) 하나만 선택되고, 한도가 넉넉해 800,000 전부 그 상품에
+--       들어가고 현금성 0원이어야 한다(한도 여유분이 부족액을 전부 흡수하는 케이스).
+--   SPREAD 당월저축액 = 필요저축액 = (목표저축액 11,000,000 - 현재누적자금 5,700,000)
+--       ÷ 남은개월수 10 = 530,000 (구성 기준액도 이 값과 동일)
+-- ================================================================
+INSERT IGNORE INTO member (login_id, password, name, nationality, language_code) VALUES
+    ('lan02', '$2b$10$n29e29y3iQykR13fevsGX.0WxzbNMKsG24pxZWsbbOX0NG4rKwaB2', 'Pham Thi Mai', 'VIETNAM', 'vi');
+
+SET @lan02_start := DATE_SUB(DATE_SUB(CURDATE(), INTERVAL 1 DAY), INTERVAL 12 MONTH);
+
+INSERT IGNORE INTO stay_info (member_id, visa_type, entry_date, expected_return_date)
+SELECT member_id, 'E-9', @lan02_start, DATE_ADD(@lan02_start, INTERVAL 23 MONTH)
+FROM member WHERE login_id = 'lan02';
+
+INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cost, monthly_remittance, current_savings)
+SELECT member_id, 2400000, 850000, 350000, 1200000
+FROM member WHERE login_id = 'lan02';
+
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
+SELECT member_id, 300000000, 'VND', 500000, 500000
+FROM member WHERE login_id = 'lan02';
+
+INSERT IGNORE INTO member_rate_condition_response (member_id, condition_code, will_meet)
+SELECT member_id, c.condition_code, c.will_meet
+FROM member m
+JOIN (SELECT 'SALARY_TRANSFER' AS condition_code, TRUE AS will_meet UNION ALL
+      SELECT 'CARD_PAYMENT', TRUE UNION ALL
+      SELECT 'OVERSEAS_REMITTANCE', TRUE UNION ALL
+      SELECT 'AUTO_TRANSFER', FALSE UNION ALL
+      SELECT 'STARBANKING_TRANSFER', FALSE UNION ALL
+      SELECT 'SPECIAL_DAY', FALSE) c ON TRUE
+WHERE m.login_id = 'lan02';
+
+DELETE th FROM transaction_history th
+JOIN member m ON m.member_id = th.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE msa FROM monthly_saving_allocation msa
+JOIN monthly_saving_plan msp ON msp.monthly_saving_plan_id = msa.monthly_saving_plan_id
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE msp FROM monthly_saving_plan msp
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE ps FROM product_subscription ps
+JOIN member m ON m.member_id = ps.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE ans FROM asset_snapshot ans
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = ans.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE rs FROM roadmap_segment rs
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = rs.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+DELETE sr FROM savings_roadmap sr
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+INSERT INTO savings_roadmap (member_id, start_date, end_date, total_months)
+SELECT member_id, @lan02_start, DATE_ADD(@lan02_start, INTERVAL 22 MONTH), 22
+FROM member WHERE login_id = 'lan02';
+
+INSERT INTO roadmap_segment (savings_roadmap_id, segment_no, planned_months, start_date, end_date, is_last_segment, status)
+SELECT sr.savings_roadmap_id, 1, 12, sr.start_date,
+       DATE_ADD(sr.start_date, INTERVAL 12 MONTH), FALSE, 'ACTIVE'
+FROM savings_roadmap sr
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02';
+
+INSERT INTO product_subscription
+    (member_id, product_id, segment_id, subscription_role, term_months, start_date, maturity_date,
+     expected_applied_rate, monthly_payment_limit_snapshot, status)
+SELECT m.member_id, 3, rs.segment_id, 'NEW_SAVINGS', 12, rs.start_date, rs.end_date, 5.00, 500000, 'ACTIVE'
+FROM roadmap_segment rs
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = rs.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+WHERE m.login_id = 'lan02' AND rs.segment_no = 1;
+
+-- monthly_saving_plan 은 "계획"이라 12회차도 계획대로 500,000 그대로 둔다 — 실제로 덜 낸 건
+-- transaction_history(아래)만 반영한다. 부족액은 계획과 실적의 차이에서 나오는 것이지
+-- 계획 자체를 바꾸는 게 아니다.
+INSERT INTO monthly_saving_plan
+    (savings_roadmap_id, segment_id, plan_month, cycle_no, deficit_choice, monthly_saving_amount,
+     recommended_cash_saving, current_accumulated_fund, cumulative_saving_performance,
+     baseline_snapshot, required_snapshot)
+SELECT sr.savings_roadmap_id, rs.segment_id,
+       DATE_FORMAT(DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH), '%Y-%m-01'),
+       c.cycle_no, 'NONE', 500000, 0,
+       500000 * (c.cycle_no - 1), 500000 * (c.cycle_no - 1), 500000, 500000
+FROM savings_roadmap sr
+JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.segment_no = 1
+JOIN member m ON m.member_id = sr.member_id
+JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+      SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+      SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) c ON TRUE
+WHERE m.login_id = 'lan02';
+
+-- monthly_saving_allocation 도 "계획"대로 500,000 전액 배분 — 실적(실제 납입)과는 별개.
+INSERT INTO monthly_saving_allocation (monthly_saving_plan_id, product_subscription_id, allocated_amount, allocation_order)
+SELECT msp.monthly_saving_plan_id, ps.product_subscription_id, 500000, 1
+FROM monthly_saving_plan msp
+JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
+JOIN member m ON m.member_id = sr.member_id
+JOIN product_subscription ps ON ps.segment_id = msp.segment_id
+WHERE m.login_id = 'lan02';
+
+-- asset_snapshot 은 실제 마감 스냅샷이라 12회차만 실제 납입액(200,000)을 반영한다.
+INSERT INTO asset_snapshot (savings_roadmap_id, segment_id, snapshot_month, monthly_payment, cash_saving_balance)
+SELECT sr.savings_roadmap_id, rs.segment_id,
+       DATE_FORMAT(DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH), '%Y-%m-01'),
+       CASE WHEN c.cycle_no = 12 THEN 200000 ELSE 500000 END, 0
+FROM savings_roadmap sr
+JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.segment_no = 1
+JOIN member m ON m.member_id = sr.member_id
+JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+      SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+      SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) c ON TRUE
+WHERE m.login_id = 'lan02';
+
+-- transaction_history — 11회차까지는 500,000 완납, 12회차(마지막 달)만 200,000만 실제 납입.
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, product_subscription_id, memo)
+SELECT m.member_id,
+       DATE_ADD(DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH), INTERVAL 10 HOUR),
+       'SAVINGS_PAYMENT', 'OUT',
+       CASE WHEN c.cycle_no = 12 THEN 200000 ELSE 500000 END,
+       300000, ps.product_subscription_id, 'KB Global Star 적금 납입'
+FROM savings_roadmap sr
+JOIN member m ON m.member_id = sr.member_id
+JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.segment_no = 1
+JOIN product_subscription ps ON ps.segment_id = rs.segment_id
+JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+      SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+      SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) c ON TRUE
+WHERE m.login_id = 'lan02';

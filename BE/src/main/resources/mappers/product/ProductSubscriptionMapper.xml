@@ -34,4 +34,11 @@
              #{expectedAppliedRate}, #{monthlyPaymentLimitSnapshot}, #{initialPrincipal})
     </insert>
 
+    <update id="matureAndClose">
+        UPDATE product_subscription
+        SET status = 'MATURED',
+            maturity_amount = #{maturityAmount}
+        WHERE product_subscription_id = #{productSubscriptionId}
+    </update>
+
 </mapper>
