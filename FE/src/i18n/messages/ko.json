@@ -82,6 +82,8 @@
   "home.cta_title": "어디서 줄일지 같이 볼까요?",
   "home.cta_sub": "포텐이와 대화하기",
   "home.cta_question": "이번 달 어디서 줄일 수 있을까?",
+  "home.products_title": "내 추천 조합",
+  "home.products_sub": "상품과 예상 이자 보기",
 
   "chat.title": "포텐이",
   "chat.greeting": "{name} 님, 안녕하세요.\n이번 달 저축을 같이 볼까요?",
@@ -114,6 +116,8 @@
   "products.banner": "만기까지 이자 {i} 받아요",
   "products.banner_question": "앞으로 어떻게 모으면 돼?",
   "products.footnote": "모든 만기가 체류만료 전 · 외국인 가입 가능",
+  "products.prev": "이전",
+  "products.next": "다음",
   "products.empty_title": "아직 정해진 상품이 없어요",
   "products.empty_sub": "포텐이와 우대조건을 확인하면 상품이 정해져요.",
   "products.empty_cta": "포텐이와 상품 정하기",

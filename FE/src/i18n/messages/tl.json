@@ -82,6 +82,8 @@
   "home.cta_title": "Tingnan natin kung saan magtitipid?",
   "home.cta_sub": "Makipag-chat kay Foten",
   "home.cta_question": "Saan ako puwedeng magtipid ngayong buwan?",
+  "home.products_title": "Ang aking inirekomendang kombinasyon",
+  "home.products_sub": "Tingnan ang mga produkto at inaasahang interes",
 
   "chat.title": "Foten",
   "chat.greeting": "Kumusta, {name}.\nTingnan natin ang ipon ngayong buwan?",
@@ -114,6 +116,8 @@
   "products.banner": "Makakatanggap ka ng {i} na interes hanggang maturity",
   "products.banner_question": "앞으로 어떻게 모으면 돼?",
   "products.footnote": "Lahat ng maturity bago matapos ang pananatili · bukas sa dayuhan",
+  "products.prev": "Nakaraan",
+  "products.next": "Susunod",
   "products.empty_title": "Wala pang napiling produkto",
   "products.empty_sub": "Suriin ang mga kondisyon ng bonus rate kasama si Poten para pumili.",
   "products.empty_cta": "Pumili ng produkto kasama si Poten",

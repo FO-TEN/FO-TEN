@@ -82,6 +82,8 @@
   "home.cta_title": "कहाँ घटाउने सँगै हेरौँ?",
   "home.cta_sub": "फोटेनसँग कुरा गर्नुहोस्",
   "home.cta_question": "यो महिना कहाँ खर्च घटाउन सक्छु?",
+  "home.products_title": "मेरो सिफारिस संयोजन",
+  "home.products_sub": "उत्पादन र अनुमानित ब्याज हेर्ने",
 
   "chat.title": "फोटेन",
   "chat.greeting": "नमस्ते, {name}।\nयो महिनाको बचत सँगै हेरौँ?",
@@ -114,6 +116,8 @@
   "products.banner": "परिपक्वतासम्म {i} ब्याज पाउनुहुन्छ",
   "products.banner_question": "앞으로 어떻게 모으면 돼?",
   "products.footnote": "सबै परिपक्वता बसाइ सकिनु अघि · विदेशीले खोल्न सक्ने",
+  "products.prev": "अघिल्लो",
+  "products.next": "अर्को",
   "products.empty_title": "अझै उत्पादन तय भएको छैन",
   "products.empty_sub": "पोटेनसँग सुविधा दर सर्त जाँचेपछि उत्पादन तय हुन्छ।",
   "products.empty_cta": "पोटेनसँग उत्पादन छान्ने",
