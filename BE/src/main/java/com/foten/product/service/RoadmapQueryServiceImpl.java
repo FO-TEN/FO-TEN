@@ -6,12 +6,14 @@ import com.foten.goal.mapper.GoalMapper;
 import com.foten.product.domain.AssetSnapshotVO;
 import com.foten.product.domain.MonthlySavingPlanVO;
 import com.foten.product.domain.ProductSubscriptionVO;
+import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapSegmentVO;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SavingsRoadmapVO;
 import com.foten.product.mapper.AssetSnapshotMapper;
 import com.foten.product.mapper.MonthlySavingPlanMapper;
 import com.foten.product.mapper.ProductSubscriptionMapper;
+import com.foten.product.mapper.RateConditionMapper;
 import com.foten.product.mapper.RoadmapSegmentMapper;
 import com.foten.product.mapper.SavingsRoadmapMapper;
 import com.foten.product.mapper.TransactionHistoryMapper;
@@ -19,6 +21,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +39,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     private final AssetSnapshotMapper assetSnapshotMapper;
     private final ProductSubscriptionMapper productSubscriptionMapper;
     private final TransactionHistoryMapper transactionHistoryMapper;
+    private final RateConditionMapper rateConditionMapper;
     private final GoalMapper goalMapper; // 교차 도메인, 읽기 전용 (target_baseline_amount 절대 안 씀)
     private final RoadmapCalculationService roadmapCalculationService;
 
@@ -129,6 +133,11 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                 true, flowType, cycleNo, segment.getSegmentNo(), segment.getIsLastSegment(),
                 pendingSegmentTransition, lastMonthActualAmount, hasShortfall,
                 hasShortfall ? shortfallAmount : null, null, baselineAmount, requiredAmount);
+    }
+
+    @Override
+    public List<RateConditionVO> getRateConditions() {
+        return rateConditionMapper.selectBehaviorBased();
     }
 
     // §2-2 현재 누적자금의 "현재 예금 금액" 항목 — 이 구간의 ACTIVE ROLLOVER_DEPOSIT 구독 원금 합
