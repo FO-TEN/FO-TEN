@@ -1,8 +1,11 @@
 package com.foten.product.service;
 
+import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.FirstSegmentPlan;
+import com.foten.product.domain.ProductAllocationCandidate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 // 로드맵 도메인의 순수 계산 (DB 접근 없음, 단위테스트 대상). 로직 v3 §2 공식을 그대로 옮긴다.
 public interface RoadmapCalculationService {
@@ -40,4 +43,13 @@ public interface RoadmapCalculationService {
     // roadmapEndDate 를 그대로 쓰고, 아니면 시작일 + 계획개월수로 계산한다.
     LocalDate calculateSegmentEndDate(
             LocalDate segmentStartDate, int plannedMonths, boolean isLastSegment, LocalDate roadmapEndDate);
+
+    // 개인별 예상 적용금리 = MIN(상품 최고금리, 기본금리 + Σ 향후 충족 예정 우대금리) (§4-4)
+    BigDecimal calculateExpectedAppliedRate(BigDecimal maxRate, BigDecimal baseRate, BigDecimal bonusSum);
+
+    // 적금 월 납입액 배분 (§4-6/§5-3). candidates 는 호출 전 appliedRate 내림차순 정렬이 전제다.
+    // 정렬 순서대로 상품별 월 한도까지 채우고, 다 채우고도 남으면 추천 현금성 저축액으로 돌린다.
+    // "마지막 구간이라 상품을 1개만 쓴다"는 규칙은 없다 — 후보 자체가 그 구간 기간을 커버하는
+    // 상품만 걸러져 나온 결과일 뿐이라 이 메서드는 구간 종류를 몰라도 된다.
+    AllocationPlan allocate(List<ProductAllocationCandidate> candidates, BigDecimal targetAmount);
 }

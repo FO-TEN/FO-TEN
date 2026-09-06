@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.MonthlySavingAllocationMapper">
+
+    <insert id="insert" parameterType="com.foten.product.domain.MonthlySavingAllocationVO"
+            useGeneratedKeys="true" keyProperty="monthlySavingAllocationId">
+        INSERT INTO monthly_saving_allocation
+            (monthly_saving_plan_id, product_subscription_id, allocated_amount, allocation_order)
+        VALUES
+            (#{monthlySavingPlanId}, #{productSubscriptionId}, #{allocatedAmount}, #{allocationOrder})
+    </insert>
+
+</mapper>

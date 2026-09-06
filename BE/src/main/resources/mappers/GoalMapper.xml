@@ -25,4 +25,10 @@
                              target_currency = newrow.target_currency,
                              target_baseline_amount = newrow.target_baseline_amount
     </insert>
+
+    <update id="updateMonthlyRequiredSaving">
+        UPDATE goal
+        SET monthly_required_saving = #{amount}
+        WHERE member_id = #{memberId}
+    </update>
 </mapper>

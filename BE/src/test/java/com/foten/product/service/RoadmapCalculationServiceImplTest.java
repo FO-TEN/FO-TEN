@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.FirstSegmentPlan;
+import com.foten.product.domain.ProductAllocationCandidate;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class RoadmapCalculationServiceImplTest {
@@ -101,5 +104,63 @@ class RoadmapCalculationServiceImplTest {
                 LocalDate.of(2026, 9, 6), 12, false, LocalDate.of(2099, 1, 1));
 
         assertEquals(LocalDate.of(2027, 9, 6), result);
+    }
+
+    @Test
+    void calculateExpectedAppliedRate_기본금리와_우대금리_합이_최고금리를_넘으면_최고금리로_자른다() {
+        BigDecimal result = service.calculateExpectedAppliedRate(
+                BigDecimal.valueOf(5.0), BigDecimal.valueOf(3.0), BigDecimal.valueOf(2.5));
+
+        assertEquals(BigDecimal.valueOf(5.0), result);
+    }
+
+    @Test
+    void calculateExpectedAppliedRate_합이_최고금리보다_낮으면_합_그대로다() {
+        BigDecimal result = service.calculateExpectedAppliedRate(
+                BigDecimal.valueOf(6.0), BigDecimal.valueOf(3.0), BigDecimal.valueOf(1.5));
+
+        assertEquals(BigDecimal.valueOf(4.5), result);
+    }
+
+    @Test
+    void allocate_로직v3_예시대로_정렬순서대로_한도까지_채우고_남은_금액은_없다() {
+        // 로직 v3 §4-6 예시: 필요저축액 100만원, A 5.0%/한도60만, B 4.6%/한도50만, C 4.2%/한도100만
+        // → A, B 만 가입하고 C는 가입하지 않는다. 최초 납입 A:60만, B:40만
+        List<ProductAllocationCandidate> candidates = List.of(
+                new ProductAllocationCandidate(1L, BigDecimal.valueOf(5.0), BigDecimal.valueOf(600_000)),
+                new ProductAllocationCandidate(2L, BigDecimal.valueOf(4.6), BigDecimal.valueOf(500_000)),
+                new ProductAllocationCandidate(3L, BigDecimal.valueOf(4.2), BigDecimal.valueOf(1_000_000)));
+
+        AllocationPlan plan = service.allocate(candidates, BigDecimal.valueOf(1_000_000));
+
+        assertEquals(2, plan.allocations().size());
+        assertEquals(1L, plan.allocations().get(0).productId());
+        assertEquals(BigDecimal.valueOf(600_000), plan.allocations().get(0).allocatedAmount());
+        assertEquals(1, plan.allocations().get(0).allocationOrder());
+        assertEquals(2L, plan.allocations().get(1).productId());
+        assertEquals(BigDecimal.valueOf(400_000), plan.allocations().get(1).allocatedAmount());
+        assertEquals(0, plan.recommendedCashSaving().signum());
+    }
+
+    @Test
+    void allocate_로직v3_예시대로_한도를_다_채우고도_남으면_추천_현금성_저축액이다() {
+        // 로직 v3 §5-3 예시: A 최대60만 / B 최대50만, 당월저축액 130만 → A:60만 B:50만 현금성 20만
+        List<ProductAllocationCandidate> candidates = List.of(
+                new ProductAllocationCandidate(1L, BigDecimal.valueOf(5.0), BigDecimal.valueOf(600_000)),
+                new ProductAllocationCandidate(2L, BigDecimal.valueOf(4.6), BigDecimal.valueOf(500_000)));
+
+        AllocationPlan plan = service.allocate(candidates, BigDecimal.valueOf(1_300_000));
+
+        assertEquals(BigDecimal.valueOf(600_000), plan.allocations().get(0).allocatedAmount());
+        assertEquals(BigDecimal.valueOf(500_000), plan.allocations().get(1).allocatedAmount());
+        assertEquals(BigDecimal.valueOf(200_000), plan.recommendedCashSaving());
+    }
+
+    @Test
+    void allocate_후보가_없으면_전액_추천_현금성_저축액이다() {
+        AllocationPlan plan = service.allocate(List.of(), BigDecimal.valueOf(500_000));
+
+        assertTrue(plan.allocations().isEmpty());
+        assertEquals(BigDecimal.valueOf(500_000), plan.recommendedCashSaving());
     }
 }

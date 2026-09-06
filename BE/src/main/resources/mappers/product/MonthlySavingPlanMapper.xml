@@ -24,4 +24,16 @@
           AND cycle_no = 1
     </select>
 
+    <insert id="insert" parameterType="com.foten.product.domain.MonthlySavingPlanVO"
+            useGeneratedKeys="true" keyProperty="monthlySavingPlanId">
+        INSERT INTO monthly_saving_plan
+            (savings_roadmap_id, segment_id, plan_month, cycle_no, deficit_choice, monthly_saving_amount,
+             recommended_cash_saving, current_accumulated_fund, cumulative_saving_performance,
+             baseline_snapshot, required_snapshot, projected_total_interest)
+        VALUES
+            (#{savingsRoadmapId}, #{segmentId}, #{planMonth}, #{cycleNo}, #{deficitChoice}, #{monthlySavingAmount},
+             #{recommendedCashSaving}, #{currentAccumulatedFund}, #{cumulativeSavingPerformance},
+             #{baselineSnapshot}, #{requiredSnapshot}, #{projectedTotalInterest})
+    </insert>
+
 </mapper>

@@ -24,4 +24,14 @@
           AND status = 'ACTIVE'
     </select>
 
+    <insert id="insert" parameterType="com.foten.product.domain.ProductSubscriptionVO"
+            useGeneratedKeys="true" keyProperty="productSubscriptionId">
+        INSERT INTO product_subscription
+            (member_id, product_id, segment_id, subscription_role, term_months, start_date, maturity_date,
+             expected_applied_rate, monthly_payment_limit_snapshot, initial_principal)
+        VALUES
+            (#{memberId}, #{productId}, #{segmentId}, #{subscriptionRole}, #{termMonths}, #{startDate}, #{maturityDate},
+             #{expectedAppliedRate}, #{monthlyPaymentLimitSnapshot}, #{initialPrincipal})
+    </insert>
+
 </mapper>

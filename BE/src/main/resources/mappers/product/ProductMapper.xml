@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.ProductMapper">
+
+    <select id="selectSavingsCandidates" resultType="com.foten.product.domain.ProductRateCandidate">
+        SELECT p.product_id,
+               p.product_name,
+               p.max_rate,
+               p.monthly_payment_limit,
+               pr.base_rate
+        FROM product p
+        JOIN product_rate pr ON pr.product_id = p.product_id
+        WHERE p.product_type = 'SAVINGS'
+          AND p.installment_type = 'FREE'
+          AND pr.min_term &lt;= #{termMonths}
+          AND (pr.max_term IS NULL OR pr.max_term &gt;= #{termMonths})
+    </select>
+
+</mapper>
