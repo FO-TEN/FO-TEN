@@ -3,11 +3,13 @@ package com.foten.product.controller;
 import com.foten.member.support.LoginMember;
 import com.foten.product.domain.CreatedRoadmap;
 import com.foten.product.domain.DeficitChoiceResult;
+import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
 import com.foten.product.dto.CreateRoadmapResponse;
 import com.foten.product.dto.DeficitChoiceRequest;
 import com.foten.product.dto.DeficitChoiceResponse;
+import com.foten.product.dto.RoadmapGraphResponse;
 import com.foten.product.dto.RoadmapStatusResponse;
 import com.foten.product.dto.SegmentCompositionResponse;
 import com.foten.product.service.RoadmapCommandService;
@@ -52,5 +54,11 @@ public class RoadmapController {
         String choice = request != null ? request.choice() : null;
         DeficitChoiceResult result = roadmapCommandService.confirmDeficitChoice(memberId, choice);
         return ResponseEntity.ok(DeficitChoiceResponse.from(result));
+    }
+
+    @GetMapping("/api/roadmap/graph")
+    public ResponseEntity<RoadmapGraphResponse> graph(@LoginMember long memberId) {
+        RoadmapGraph graph = roadmapQueryService.getGraph(memberId);
+        return ResponseEntity.ok(RoadmapGraphResponse.from(graph));
     }
 }

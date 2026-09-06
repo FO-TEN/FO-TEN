@@ -24,6 +24,25 @@
           AND status = 'ACTIVE'
     </select>
 
+    <select id="selectBySegment" resultType="com.foten.product.domain.ProductSubscriptionVO">
+        SELECT product_subscription_id,
+               member_id,
+               product_id,
+               segment_id,
+               subscription_role,
+               term_months,
+               start_date,
+               maturity_date,
+               expected_applied_rate,
+               monthly_payment_limit_snapshot,
+               initial_principal,
+               status,
+               maturity_amount,
+               created_at
+        FROM product_subscription
+        WHERE segment_id = #{segmentId}
+    </select>
+
     <insert id="insert" parameterType="com.foten.product.domain.ProductSubscriptionVO"
             useGeneratedKeys="true" keyProperty="productSubscriptionId">
         INSERT INTO product_subscription

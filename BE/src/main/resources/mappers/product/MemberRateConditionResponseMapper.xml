@@ -4,6 +4,12 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.foten.product.mapper.MemberRateConditionResponseMapper">
 
+    <select id="selectByMemberId" resultType="com.foten.product.domain.MemberRateConditionResponseVO">
+        SELECT member_id, condition_code, will_meet, responded_at
+        FROM member_rate_condition_response
+        WHERE member_id = #{memberId}
+    </select>
+
     <insert id="upsertAll">
         INSERT INTO member_rate_condition_response (member_id, condition_code, will_meet)
         VALUES

@@ -45,6 +45,27 @@
         LIMIT 1
     </select>
 
+    <select id="selectLatestBySegment" resultType="com.foten.product.domain.MonthlySavingPlanVO">
+        SELECT monthly_saving_plan_id,
+               savings_roadmap_id,
+               segment_id,
+               plan_month,
+               cycle_no,
+               deficit_choice,
+               monthly_saving_amount,
+               recommended_cash_saving,
+               current_accumulated_fund,
+               cumulative_saving_performance,
+               baseline_snapshot,
+               required_snapshot,
+               projected_total_interest,
+               created_at
+        FROM monthly_saving_plan
+        WHERE segment_id = #{segmentId}
+        ORDER BY cycle_no DESC
+        LIMIT 1
+    </select>
+
     <select id="selectByRoadmapAndMonth" resultType="com.foten.product.domain.MonthlySavingPlanVO">
         SELECT monthly_saving_plan_id,
                savings_roadmap_id,

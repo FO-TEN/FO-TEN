@@ -19,6 +19,21 @@
           AND status = 'ACTIVE'
     </select>
 
+    <select id="selectAllByRoadmapId" resultType="com.foten.product.domain.RoadmapSegmentVO">
+        SELECT segment_id,
+               savings_roadmap_id,
+               segment_no,
+               planned_months,
+               start_date,
+               end_date,
+               is_last_segment,
+               status,
+               created_at
+        FROM roadmap_segment
+        WHERE savings_roadmap_id = #{savingsRoadmapId}
+        ORDER BY segment_no ASC
+    </select>
+
     <insert id="insert" parameterType="com.foten.product.domain.RoadmapSegmentVO"
             useGeneratedKeys="true" keyProperty="segmentId">
         INSERT INTO roadmap_segment
