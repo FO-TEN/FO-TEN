@@ -426,6 +426,17 @@ CREATE TABLE asset_snapshot (
 --
 -- 정렬 키는 created_at 이 아니라 chat_message_id 다. 같은 초에 들어온 질문·답변의
 -- 순서가 뒤집히면 대화가 뒤죽박죽 복원된다.
+--
+-- 카드(로드맵 그래프·추천 조합 등)는 메시지가 아니라 메시지에 딸린 필드다. 선택지와 같은 자리다.
+-- 별도 ASSISTANT 행으로 넣으면 한 턴이 세 행이 되어, 행 개수로 창을 자르는 대화 메모리가
+-- 5턴을 3턴으로 줄여 읽는다. 카드는 모델이 말한 것이 아니라 툴 데이터의 그림이라, 발화로
+-- 넣으면 다음 턴에 모델이 그것을 제 말로 읽는 문제도 생긴다.
+--
+-- 되감았을 때 다시 계산하지 않고 그때 값을 그대로 그린다. 로드맵은 달마다 바뀌므로 지금
+-- 계산하면 8월 대화에 9월 그래프가 붙는다. 그래서 스냅샷을 저장한다.
+--
+-- card_payload 를 JSON 으로 두면 컬럼은 모양을 몰라도 된다. 안에 들어갈 값은 카드를
+-- 만드는 도메인이 정한다.
 -- ============================================================
 CREATE TABLE chat_message (
     chat_message_id BIGINT       NOT NULL AUTO_INCREMENT,
@@ -434,9 +445,14 @@ CREATE TABLE chat_message (
     content_ko      TEXT         NULL,       -- 한국어      (USER 행은 NULL)
     content_local   TEXT         NULL,       -- 사용자 언어 (ko 회원은 NULL)
     language_code   VARCHAR(10)  NULL,       -- content_local 의 언어
+    card_type       VARCHAR(30)  NULL,       -- ROADMAP / RECOMMENDATION 등. 카드가 없으면 NULL
+    card_payload    JSON         NULL,       -- 그릴 때 필요한 값 스냅샷
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (chat_message_id),
     KEY idx_chat_message_member (member_id, chat_message_id),
+    CONSTRAINT chk_chat_message_card CHECK (
+        message_role = 'ASSISTANT' OR (card_type IS NULL AND card_payload IS NULL)
+    ),
     CONSTRAINT fk_chat_message_member FOREIGN KEY (member_id)
         REFERENCES member (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

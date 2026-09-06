@@ -16,5 +16,7 @@ public class ChatMessageVO {
     private String contentKo;
     private String contentLocal;
     private String languageCode;
+    private String cardType;
+    private String cardPayload;
     private LocalDateTime createdAt;
 }
