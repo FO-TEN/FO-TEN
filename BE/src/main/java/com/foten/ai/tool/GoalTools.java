@@ -24,8 +24,11 @@ public class GoalTools implements ToolProvider{
                 """
                 회원의 목표 저축 달성 가능성을 진단합니다.
                 목표 달성 여부, 이번 달 필요한 저축액, 지금까지 밀린 금액,
-                줄이면 좋은 소비 카테고리를 알려줍니다.
+                목표를 세운 지 몇 개월째인지, 그동안 모았어야 할 금액과 실제로 모은 금액,
+                소비 항목마다 한 달에 얼마까지 줄일 수 있는지를 알려줍니다.
                 사용자가 목표 달성 여부·저축 현황·절약 방법을 물을 때 사용합니다.
+                "식비는 얼마나 줄일 수 있어?" 처럼 절감 여력을 묻는 질문도 이 도구로 답합니다.
+                이미 쓴 금액을 묻는 질문은 getSpendingSummary 를 씁니다.
                 """,
                 (arguments, context) -> describe(goalDiagnosisService.diagnose(context.memberId()))));
     }
