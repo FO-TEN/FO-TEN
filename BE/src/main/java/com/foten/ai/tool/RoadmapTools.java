@@ -34,6 +34,8 @@ public class RoadmapTools implements ToolProvider{
     private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
     // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
     private static final String FLOW_ONBOARDING = "ONBOARDING";
+    // 구간이 바뀌는 달에도 우대조건을 다시 받아 다음 구간 상품을 고른다.
+    private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
     // 밀린 금액을 이번 달에 다 채우거나, 남은 기간에 나눠 담거나 둘 중 하나다.
     private static final String FULL_RECOVERY = "FULL_RECOVERY";
     private static final String SPREAD = "SPREAD";
@@ -78,7 +80,7 @@ public class RoadmapTools implements ToolProvider{
                         """,
                         (arguments, context) -> startRoadmap(context.memberId())),
 
-                ToolSpec.stringList(
+                ToolSpec.stringListWithOptionalEnum(
                         "submitPreferentialConditions",
                         """
                         사용자가 앞으로 지키겠다고 답한 우대금리 조건을 제출하고, 그 조건을 반영한
@@ -89,11 +91,19 @@ public class RoadmapTools implements ToolProvider{
                         먼저 getPreferentialConditionQuestions 로 질문과 코드를 확인하세요.
                         해당한다고 답한 조건의 코드만 넘기면 됩니다. 나머지는 서버가 아니오로 처리합니다.
                         아무것도 해당하지 않으면 빈 목록을 넘기세요.
+                        구간이 바뀌는 달에 밀린 금액이 있으면 deficitChoice 도 함께 넘깁니다.
+                        방금 confirmMonthlySaving 에 넘긴 것과 같은 값이어야 합니다.
+                        그 외에는 deficitChoice 를 넘기지 않습니다.
                         """,
                         "conditionCodes",
                         "사용자가 앞으로 지키겠다고 답한 조건의 코드 목록 (예: SALARY_TRANSFER)",
+                        "deficitChoice",
+                        "밀린 금액을 채우는 방식. 구간이 바뀌는 달에 밀린 금액이 있을 때만 넘깁니다.",
+                        List.of(FULL_RECOVERY, SPREAD),
                         (arguments, context) -> submitConditions(
-                                context, ToolArguments.stringList(arguments, "conditionCodes"))),
+                                context,
+                                ToolArguments.stringList(arguments, "conditionCodes"),
+                                ToolArguments.string(arguments, "deficitChoice"))),
 
                 ToolSpec.optionalEnum(
                         "confirmMonthlySaving",
@@ -153,7 +163,8 @@ public class RoadmapTools implements ToolProvider{
         return switch (flowType) {
             case "ONBOARDING" -> "로드맵을 막 만든 달입니다. 다음은 우대조건 확인입니다"
                     + " (getPreferentialConditionQuestions).";
-            case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 지난 구간에서 모인 목돈부터 알려주세요.";
+            case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 다음 구간 상품을 새로 고르는 달이라고 알리고,"
+                    + " 우대조건을 다시 확인하자고 하세요 (getPreferentialConditionQuestions).";
             case "REGULAR_MONTH" -> "평소 달입니다. 지난달 결과와 이번 달 저축액을 알려주세요.";
             default -> "알 수 없습니다. 무엇을 도와드릴지 물어보세요.";
         };
@@ -172,6 +183,7 @@ public class RoadmapTools implements ToolProvider{
         if (Boolean.TRUE.equals(s.pendingSegmentTransition())) {
             sb.append("이번 달에 이 구간이 끝나고 새 구간이 시작됩니다.\n");
         }
+        // 값이 없으면 아예 말하지 않는다. 있다고 운을 떼면 지난달 납입액을 목돈이라고 바꿔 부른다.
         if (isPositive(s.rolloverAmount())) {
             sb.append("지난 구간에서 모인 목돈: ").append(money(s.rolloverAmount())).append("원\n");
         }
@@ -262,7 +274,7 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 모델이 코드를 빠뜨리거나 지어낼 수 있어, 실제 조건 목록에 맞춰 예/아니오를 채운다.
-    private String submitConditions(ToolContext context, List<String> agreedCodes) {
+    private String submitConditions(ToolContext context, List<String> agreedCodes, String deficitChoice) {
         long memberId = context.memberId();
         List<RateConditionAnswer> answers = roadmapQueryService.getRateConditions().stream()
                 .map(condition -> new RateConditionAnswer(
@@ -271,10 +283,14 @@ public class RoadmapTools implements ToolProvider{
                 .toList();
 
         try {
-            // deficitChoice: 이 도구는 아직 NEW_SEGMENT 대화(밀린 돈 처리 선택)를 지원하지
-            // 않아서 항상 null — ONBOARDING 제출용으로만 쓰인다.
             return describeComposition(context,
-                    roadmapCommandService.submitRateConditionResponses(memberId, answers, null));
+                    roadmapCommandService.submitRateConditionResponses(memberId, answers, deficitChoice));
+        }
+        catch (InvalidRequestException e) {
+            // 구간이 바뀌는 달에 밀린 금액 처리 방식이 빠졌다. 되묻게 하고 값을 지어내지 않게 한다.
+            return "밀린 금액을 어떻게 채울지 정해야 상품을 정할 수 있습니다.\n"
+                    + "이번 달에 다 채울지 남은 기간에 나눠 담을지 물어보고,\n"
+                    + "답을 들은 뒤에 그 방식을 함께 넘겨 다시 부르세요.\n";
         }
         catch (RoadmapStateConflictException e) {
             return switch (e.getErrorCode()) {
@@ -403,7 +419,9 @@ public class RoadmapTools implements ToolProvider{
             return "아직 로드맵이 없어 우대조건을 받을 수 없습니다.\n"
                     + "로드맵을 먼저 만들어야 한다고 안내하세요. 조건 목록을 늘어놓지 마세요.\n";
         }
-        if (!FLOW_ONBOARDING.equals(status.flowType())) {
+        // 구간이 바뀌는 달은 다음 구간 상품을 새로 고르므로 조건을 다시 받는다.
+        if (!FLOW_ONBOARDING.equals(status.flowType())
+                && !FLOW_NEW_SEGMENT.equals(status.flowType())) {
             return "우대조건은 이미 제출했고 상품이 정해져 있습니다.\n"
                     + "이미 정해져서 다시 받을 수 없다고 알리고, 지금 상품 구성을 보여줄지 물어보세요.\n"
                     + "조건 목록을 늘어놓거나 번호를 묻지 마세요. 고를 수 있는 것이 없습니다.\n";
@@ -415,6 +433,14 @@ public class RoadmapTools implements ToolProvider{
         }
 
         StringBuilder sb = new StringBuilder("[우대금리 조건 질문]\n");
+        if (FLOW_NEW_SEGMENT.equals(status.flowType())) {
+            sb.append("구간이 바뀌는 달이라 다음 구간 상품을 새로 고릅니다.\n");
+            sb.append("지난번 답이 아직 유효한지 다시 확인하는 것이라고 알리세요.\n");
+            if (Boolean.TRUE.equals(status.hasShortfall())) {
+                sb.append("밀린 금액이 있어 제출할 때 채우는 방식도 함께 넘겨야 합니다.\n");
+                sb.append("아직 방식을 안 정했으면 그것부터 물으세요.\n");
+            }
+        }
         int no = 1;
         for (RateConditionVO condition : conditions) {
             sb.append(no++).append(". 코드 ").append(condition.getConditionCode())
