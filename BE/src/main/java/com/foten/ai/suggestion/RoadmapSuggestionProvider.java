@@ -24,6 +24,8 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String COMPOSITION_TOOL = "getSegmentComposition";
     private static final String CONFIRM_TOOL = "confirmMonthlySaving";
     private static final String FLOW_ONBOARDING = "ONBOARDING";
+    private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
+    private static final Suggestion RECHECK_CONDITIONS = Suggestion.ask("우대조건 다시 확인할래");
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -38,8 +40,13 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
 
         // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
         // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
-        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)
-                || tools.contains(CONFIRM_TOOL)) {
+        // 구간이 바뀌는 달은 방식을 정해도 아직 확정 전이다. 조건까지 받아야 끝난다.
+        if (tools.contains(CONFIRM_TOOL)) {
+            return isNewSegment(ctx.memberId()) ? List.of(RECHECK_CONDITIONS) : List.of();
+        }
+        // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
+        // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
+        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
             return List.of();
         }
         // 질문을 보여준 턴에는 고를 수 있게 조건을 칩으로 낸다.
@@ -64,7 +71,17 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         }
 
         List<Suggestion> deficit = deficitChips(ctx.memberId(), profile);
-        return deficit.isEmpty() ? List.of(Suggestion.ask("상품 구성 알려줘")) : deficit;
+        if (!deficit.isEmpty()) {
+            return deficit;
+        }
+        // 밀린 금액이 없는 구간 전환은 바로 조건 확인으로 간다.
+        return isNewSegment(ctx.memberId())
+                ? List.of(RECHECK_CONDITIONS)
+                : List.of(Suggestion.ask("상품 구성 알려줘"));
+    }
+
+    private boolean isNewSegment(long memberId) {
+        return FLOW_NEW_SEGMENT.equals(roadmapQueryService.getStatus(memberId).flowType());
     }
 
     // 밀린 금액이 있는 달에만 고를 것이 생긴다. 누르는 순간 이번 달 저축액이 정해지므로
@@ -86,7 +103,11 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     // 이미 제출했으면 도구가 질문 대신 안내를 돌려준다. 고를 것이 없으니 칩도 내지 않는다.
     private List<Suggestion> conditionChips(long memberId) {
         MemberProfile profile = memberProfileMapper.findProfile(memberId).orElse(null);
-        if (profile == null || !profile.isRoadmapExists() || profile.isRateConditionsAnswered()) {
+        if (profile == null || !profile.isRoadmapExists()) {
+            return List.of();
+        }
+        // 구간이 바뀌는 달은 지난 구간 답이 남아 있어도 다시 고르게 한다.
+        if (profile.isRateConditionsAnswered() && !isNewSegment(memberId)) {
             return List.of();
         }
         List<RateConditionVO> conditions = roadmapQueryService.getRateConditions();

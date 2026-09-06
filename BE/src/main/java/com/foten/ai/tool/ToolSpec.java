@@ -88,6 +88,39 @@ public record ToolSpec(
         return new ToolSpec(name, description, parameters, executor);
     }
 
+    // 배열 하나와, 정해진 값 중 하나를 받는(생략 가능) 인자를 함께 받는 툴.
+    // 구간이 바뀌는 달의 우대조건 제출처럼 고른 목록과 방식을 한 번에 보내야 할 때 쓴다.
+    public static ToolSpec stringListWithOptionalEnum(
+            String name, String description,
+            String listArgument, String listDescription,
+            String enumArgument, String enumDescription, List<String> enumValues,
+            BiFunction<String, ToolContext, String> executor) {
+        Map<String, Object> itemSchema = new LinkedHashMap<>();
+        itemSchema.put("type", "string");
+
+        Map<String, Object> listSchema = new LinkedHashMap<>();
+        listSchema.put("type", "array");
+        listSchema.put("items", itemSchema);
+        listSchema.put("description", listDescription);
+
+        Map<String, Object> enumSchema = new LinkedHashMap<>();
+        enumSchema.put("type", "string");
+        enumSchema.put("enum", enumValues);
+        enumSchema.put("description", enumDescription);
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put(listArgument, listSchema);
+        properties.put(enumArgument, enumSchema);
+
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", properties);
+        parameters.put("required", List.of(listArgument));
+        parameters.put("additionalProperties", false);
+
+        return new ToolSpec(name, description, parameters, executor);
+    }
+
     public LlmTool toLlmTool() {
         return LlmTool.of(name, description, parameters);
     }
