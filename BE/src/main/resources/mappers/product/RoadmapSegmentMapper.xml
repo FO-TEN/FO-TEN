@@ -19,4 +19,12 @@
           AND status = 'ACTIVE'
     </select>
 
+    <insert id="insert" parameterType="com.foten.product.domain.RoadmapSegmentVO"
+            useGeneratedKeys="true" keyProperty="segmentId">
+        INSERT INTO roadmap_segment
+            (savings_roadmap_id, segment_no, planned_months, start_date, end_date, is_last_segment)
+        VALUES
+            (#{savingsRoadmapId}, #{segmentNo}, #{plannedMonths}, #{startDate}, #{endDate}, #{isLastSegment})
+    </insert>
+
 </mapper>

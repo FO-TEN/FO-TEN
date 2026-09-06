@@ -1,5 +1,6 @@
 package com.foten.product.service;
 
+import com.foten.product.domain.FirstSegmentPlan;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -9,6 +10,8 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class RoadmapCalculationServiceImpl implements RoadmapCalculationService {
+
+    private static final int GENERAL_SEGMENT_MONTHS = 12;
 
     @Override
     public BigDecimal reverseTargetAmount(BigDecimal baselineAmount, int totalMonths, BigDecimal initialAccumulatedFund) {
@@ -48,5 +51,19 @@ public class RoadmapCalculationServiceImpl implements RoadmapCalculationService 
     public BigDecimal calculateShortfall(BigDecimal baselineAmount, int completedCycles, BigDecimal cumulativeSavingPerformance) {
         BigDecimal target = baselineAmount.multiply(BigDecimal.valueOf(completedCycles));
         return target.subtract(cumulativeSavingPerformance).max(BigDecimal.ZERO);
+    }
+
+    @Override
+    public FirstSegmentPlan calculateFirstSegment(int totalMonths) {
+        if (totalMonths <= GENERAL_SEGMENT_MONTHS) {
+            return new FirstSegmentPlan(totalMonths, true);
+        }
+        return new FirstSegmentPlan(GENERAL_SEGMENT_MONTHS, false);
+    }
+
+    @Override
+    public LocalDate calculateSegmentEndDate(
+            LocalDate segmentStartDate, int plannedMonths, boolean isLastSegment, LocalDate roadmapEndDate) {
+        return isLastSegment ? roadmapEndDate : segmentStartDate.plusMonths(plannedMonths);
     }
 }
