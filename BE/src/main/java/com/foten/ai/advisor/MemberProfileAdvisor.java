@@ -38,6 +38,7 @@ public class MemberProfileAdvisor implements Advisor {
         }
 
         appendRoadmap(sb, profile.isRoadmapExists());
+        appendRateConditions(sb, profile.isRateConditionsAnswered());
         sb.append("금액은 이 정보에 없습니다. 필요하면 도구를 사용하세요.");
         return sb.toString();
     }
@@ -55,6 +56,18 @@ public class MemberProfileAdvisor implements Advisor {
         sb.append("귀국 예정일: ").append(returnDate)
                 .append(" (약 ").append(monthsLeft).append("개월, ")
                 .append(daysLeft).append("일 남음)").append("\n");
+    }
+
+    /**
+     * 이미 제출했는데 또 제출하겠다고 나서면 서버가 막고, 모델은 그제서야 안 된다고 말한다.
+     * 미리 알려주면 그 왕복이 없어진다. 로드맵 유무와 같은 이유다.
+     */
+    private void appendRateConditions(StringBuilder sb, boolean answered) {
+        if (!answered) {
+            return;
+        }
+        sb.append("우대조건: 이미 제출해 상품이 정해짐\n");
+        sb.append("다시 제출할 수 없습니다. 상품이 궁금하다는 요청이면 getSegmentComposition 을 쓰세요.\n");
     }
 
     private void appendRoadmap(StringBuilder sb, boolean hasRoadmap) {
