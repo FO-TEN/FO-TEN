@@ -2,9 +2,12 @@ package com.foten.product.controller;
 
 import com.foten.member.support.LoginMember;
 import com.foten.product.domain.CreatedRoadmap;
+import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
 import com.foten.product.dto.CreateRoadmapResponse;
+import com.foten.product.dto.DeficitChoiceRequest;
+import com.foten.product.dto.DeficitChoiceResponse;
 import com.foten.product.dto.RoadmapStatusResponse;
 import com.foten.product.dto.SegmentCompositionResponse;
 import com.foten.product.service.RoadmapCommandService;
@@ -13,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -38,5 +42,15 @@ public class RoadmapController {
     public ResponseEntity<SegmentCompositionResponse> currentComposition(@LoginMember long memberId) {
         SegmentComposition composition = roadmapQueryService.getCurrentComposition(memberId);
         return ResponseEntity.ok(SegmentCompositionResponse.from(composition));
+    }
+
+    @PostMapping("/api/roadmap/monthly-plan/deficit-choice")
+    public ResponseEntity<DeficitChoiceResponse> confirmDeficitChoice(
+            @LoginMember long memberId,
+            @RequestBody(required = false) DeficitChoiceRequest request
+    ) {
+        String choice = request != null ? request.choice() : null;
+        DeficitChoiceResult result = roadmapCommandService.confirmDeficitChoice(memberId, choice);
+        return ResponseEntity.ok(DeficitChoiceResponse.from(result));
     }
 }
