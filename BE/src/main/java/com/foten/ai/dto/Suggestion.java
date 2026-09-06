@@ -19,6 +19,12 @@ public record Suggestion(
         return new Suggestion(Kind.FOLLOWUP, "ASK", question, question, null);
     }
 
+    // 우대조건은 하나씩 누르는 것이 아니라 여러 개를 골라 한 번에 보낸다.
+    // 화면이 이 action 을 보고 버튼 대신 체크박스로 그린다.
+    public static Suggestion rateCondition(String conditionCode, String label) {
+        return new Suggestion(Kind.DECISION, "RATE_CONDITION", conditionCode, label, null);
+    }
+
     public Suggestion withLocalLabel(String label) {
         return new Suggestion(kind, action, value, labelKo, label);
     }
