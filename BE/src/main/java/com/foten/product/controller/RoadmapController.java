@@ -6,12 +6,14 @@ import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
+import com.foten.product.domain.SegmentDetail;
 import com.foten.product.dto.CreateRoadmapResponse;
 import com.foten.product.dto.DeficitChoiceRequest;
 import com.foten.product.dto.DeficitChoiceResponse;
 import com.foten.product.dto.RoadmapGraphResponse;
 import com.foten.product.dto.RoadmapStatusResponse;
 import com.foten.product.dto.SegmentCompositionResponse;
+import com.foten.product.dto.SegmentDetailResponse;
 import com.foten.product.service.RoadmapCommandService;
 import com.foten.product.service.RoadmapQueryService;
 import lombok.RequiredArgsConstructor;
@@ -60,5 +62,11 @@ public class RoadmapController {
     public ResponseEntity<RoadmapGraphResponse> graph(@LoginMember long memberId) {
         RoadmapGraph graph = roadmapQueryService.getGraph(memberId);
         return ResponseEntity.ok(RoadmapGraphResponse.from(graph));
+    }
+
+    @GetMapping("/api/roadmap/segments/current/detail")
+    public ResponseEntity<SegmentDetailResponse> currentSegmentDetail(@LoginMember long memberId) {
+        SegmentDetail detail = roadmapQueryService.getSegmentDetail(memberId);
+        return ResponseEntity.ok(SegmentDetailResponse.from(detail));
     }
 }
