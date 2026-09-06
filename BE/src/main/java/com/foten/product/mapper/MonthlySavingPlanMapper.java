@@ -21,6 +21,11 @@ public interface MonthlySavingPlanMapper {
     // 기준액"이 목표기준액인지 필요저축액인지 판단할 때 쓴다.
     Optional<MonthlySavingPlanVO> selectFirstBySegment(@Param("segmentId") Long segmentId);
 
+    // 그 구간에서 가장 최근에 커밋된 회차 — §4-7 그래프가 "앞으로 유지할 구성 기준액"을
+    // 판단할 때 쓴다(SPREAD로 확정된 적이 있으면 그 필요저축액이 영구 기준이 된다).
+    // selectFirstBySegment 와 반대로 cycle_no DESC 로 가장 최근 값을 가져온다.
+    Optional<MonthlySavingPlanVO> selectLatestBySegment(@Param("segmentId") Long segmentId);
+
     // 생성된 monthly_saving_plan_id 를 plan.monthlySavingPlanId 에 다시 채워 넣는다.
     void insert(MonthlySavingPlanVO plan);
 }

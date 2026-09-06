@@ -12,6 +12,10 @@ public interface ProductSubscriptionMapper {
     // 적금이 여러 개일 수 있어(§4-6 배분 결과) 이 구간 전체를 순회하며 하나씩 만기 처리한다.
     List<ProductSubscriptionVO> selectActiveBySegment(@Param("segmentId") Long segmentId);
 
+    // 상태 무관 그 구간의 구독 전체 — §4-7 그래프용. 완료 구간은 전부 MATURED, 현재 구간은
+    // 전부 ACTIVE라 상태 필터가 없어도 결과가 갈린다.
+    List<ProductSubscriptionVO> selectBySegment(@Param("segmentId") Long segmentId);
+
     // 생성된 product_subscription_id 를 subscription.productSubscriptionId 에 다시 채워 넣는다.
     void insert(ProductSubscriptionVO subscription);
 

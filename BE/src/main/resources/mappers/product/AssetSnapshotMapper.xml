@@ -18,4 +18,18 @@
         LIMIT 1
     </select>
 
+    <select id="selectLatestBySegment" resultType="com.foten.product.domain.AssetSnapshotVO">
+        SELECT asset_snapshot_id,
+               savings_roadmap_id,
+               segment_id,
+               snapshot_month,
+               monthly_payment,
+               cash_saving_balance,
+               created_at
+        FROM asset_snapshot
+        WHERE segment_id = #{segmentId}
+        ORDER BY snapshot_month DESC
+        LIMIT 1
+    </select>
+
 </mapper>
