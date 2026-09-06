@@ -167,16 +167,22 @@ public class RoadmapTools implements ToolProvider{
         }
 
         StringBuilder sb = new StringBuilder("[우대금리 조건 질문]\n");
+        int no = 1;
         for (RateConditionVO condition : conditions) {
-            sb.append("- 코드 ").append(condition.getConditionCode())
+            sb.append(no++).append(". 코드 ").append(condition.getConditionCode())
                     .append(" | ").append(condition.getLabel());
             if (condition.getDescription() != null && !condition.getDescription().isBlank()) {
                 sb.append(" | ").append(condition.getDescription());
             }
             sb.append("\n");
         }
-        sb.append("코드는 사용자에게 보여주지 말고 질문 문구만 말하세요.");
-        sb.append(" 사용자의 대답이 어느 코드에 해당하는지는 기억해 두세요.\n");
+
+        sb.append("보여주는 방법:\n");
+        sb.append("- 먼저 '받을 수 있는 우대금리를 확인할게요' 처럼 한 줄로 안내하세요.\n");
+        sb.append("- 질문마다 앞에 번호를 붙이고, 질문과 질문 사이에 빈 줄을 넣으세요.\n");
+        sb.append("- 마지막에 '해당하는 번호를 모두 알려주세요' 라고 덧붙이세요.\n");
+        sb.append("- 코드는 내부용입니다. 사용자에게 보여주지 말고 질문 문구만 말하세요.\n");
+        sb.append("사용자의 대답이 어느 코드에 해당하는지는 기억해 두세요.\n");
         return sb.toString();
     }
 
