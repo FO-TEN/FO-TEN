@@ -18,6 +18,7 @@ public class ExchangeRateController {
 
     @GetMapping("/{currencyCode}")
     public ExchangeRateResponse findLatest(@PathVariable String currencyCode) {
+        exchangeRateService.ensureRate(currencyCode);
         return exchangeRateService.findLatest(currencyCode);
     }
 
@@ -26,6 +27,7 @@ public class ExchangeRateController {
             @PathVariable String currencyCode,
             @RequestParam BigDecimal amount
     ) {
+        exchangeRateService.ensureRate(currencyCode);
         return exchangeRateService.toKrw(currencyCode, amount);
     }
 
