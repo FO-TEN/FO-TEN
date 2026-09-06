@@ -1,6 +1,7 @@
 package com.foten.product.mapper;
 
 import com.foten.product.domain.MonthlySavingPlanVO;
+import java.time.LocalDate;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -9,6 +10,11 @@ import org.apache.ibatis.annotations.Param;
 public interface MonthlySavingPlanMapper {
     // cycle_no=1 행. "최초 현재 누적자금"을 담고 있어 목표저축액(KRW) 역산에 쓴다.
     Optional<MonthlySavingPlanVO> selectFirst(@Param("savingsRoadmapId") Long savingsRoadmapId);
+
+    // 이번 달(planMonth)이 이미 커밋됐는지 확인 — §4-6 멱등성 체크(재호출 시 재계산 없이
+    // 기존 값 그대로 반환). uk_monthly_saving_plan_roadmap_month 유니크 키와 짝을 이룬다.
+    Optional<MonthlySavingPlanVO> selectByRoadmapAndMonth(
+            @Param("savingsRoadmapId") Long savingsRoadmapId, @Param("planMonth") LocalDate planMonth);
 
     // 이 구간이 시작될 때 처음 만들어진 회차 (구간 기준 첫 회차 — 위 selectFirst 는 로드맵 전체
     // 기준 1회차라 다르다). 배분이 아니라 deficitChoice/requiredSnapshot 확인용 — §4-7 "상품 구성

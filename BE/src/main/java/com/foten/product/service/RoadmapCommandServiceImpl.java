@@ -10,6 +10,7 @@ import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.AllocationPlan.AllocationEntry;
 import com.foten.product.domain.AssetSnapshotVO;
 import com.foten.product.domain.CreatedRoadmap;
+import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.DepositRateCandidate;
 import com.foten.product.domain.FirstSegmentPlan;
 import com.foten.product.domain.MemberRateConditionResponseVO;
@@ -283,12 +284,10 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                         rc.product().productId(), rc.appliedRate(), rc.product().monthlyPaymentLimit()))
                 .toList();
 
-        // STEP 5 (공통). 구성 기준액/당월저축액 결정 (§4-7, §5-2). ONBOARDING 은 부족액이 있을 수
-        // 없어 둘 다 목표기준액과 같다 — 그래서 아래를 분기 없이 그냥 태워도 결과가 같다.
-        BigDecimal compositionBasis = SPREAD.equals(deficitChoice) ? status.requiredAmount() : baselineAmount;
-        BigDecimal monthlySavingAmount = FULL_RECOVERY.equals(deficitChoice)
-                ? baselineAmount.add(status.shortfallAmount() != null ? status.shortfallAmount() : BigDecimal.ZERO)
-                : status.requiredAmount();
+        // STEP 5 (공통). 구성 기준액/당월저축액 결정 (§4-7, §5-2) — 4-6과 공유하는 계산이라
+        // private 헬퍼로 뺐다. ONBOARDING 은 부족액이 있을 수 없어 둘 다 목표기준액과 같다.
+        BigDecimal compositionBasis = computeProductBaselineAmount(status, baselineAmount, deficitChoice);
+        BigDecimal monthlySavingAmount = computeMonthlySavingAmount(status, baselineAmount, deficitChoice);
 
         // STEP 6. 1차 배분 — "구성 기준액"으로 이번 구간에 실제 가입할 상품 집합을 확정한다.
         // (4-5 GET .../composition 이 나중에 이 기준액으로 다시 계산해서 "앞으로 유지할 기준"을
@@ -382,6 +381,126 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         return new SegmentComposition(
                 baselineAmount, rolloverAmount, depositSummary, savingsSummaries,
                 actualPlan.recommendedCashSaving(), null, null);
+    }
+
+    @Override
+    @Transactional
+    public DeficitChoiceResult confirmDeficitChoice(long memberId, String choice) {
+        // STEP 1. ONBOARDING(§3-1 흐름표에 이 호출이 없음) 또는 로드맵 자체가 없으면 대상이 아니다.
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        if (!status.roadmapExists() || ONBOARDING.equals(status.flowType())) {
+            throw new RoadmapStateConflictException(
+                    "NOT_APPLICABLE", "지금은 당월 저축 방식을 확정할 시점이 아닙니다. flowType=" + status.flowType());
+        }
+        if (Boolean.TRUE.equals(status.hasShortfall()) && choice == null) {
+            throw new InvalidRequestException(
+                    "DEFICIT_CHOICE_REQUIRED", "부족액이 있는 달에는 choice가 필요합니다.");
+        }
+        // 부족액이 없는데 choice가 왔으면 에러가 아니라 그냥 무시하고 NONE 취급한다 (§4-6).
+        String effectiveChoice = Boolean.TRUE.equals(status.hasShortfall()) ? choice : NO_DEFICIT;
+
+        BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
+                .map(Goal::getTargetBaselineAmount)
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다. memberId=" + memberId));
+        BigDecimal monthlySavingAmount = computeMonthlySavingAmount(status, baselineAmount, effectiveChoice);
+        BigDecimal productBaselineAmount = computeProductBaselineAmount(status, baselineAmount, effectiveChoice);
+
+        // STEP 2. 새 구간월 대기 중이면 커밋하지 않는다 — 실제 커밋은 4-4에서 같은 choice를
+        // 다시 실어 보낼 때 일어난다(§4-6).
+        if (Boolean.TRUE.equals(status.pendingSegmentTransition())) {
+            return new DeficitChoiceResult(monthlySavingAmount, productBaselineAmount, false);
+        }
+
+        SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+        RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
+        LocalDate thisMonth = YearMonth.now().atDay(1);
+
+        // STEP 3. 멱등성 — 이번 달이 이미 커밋됐으면 재계산·재커밋 없이 그 값을 그대로 돌려준다.
+        // 기준액은 그 행에 얼려둔 deficit_choice로 그때와 똑같이 재구성한다.
+        Optional<MonthlySavingPlanVO> existing =
+                monthlySavingPlanMapper.selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth);
+        if (existing.isPresent()) {
+            MonthlySavingPlanVO plan = existing.get();
+            BigDecimal existingBasis = SPREAD.equals(plan.getDeficitChoice())
+                    ? plan.getRequiredSnapshot() : plan.getBaselineSnapshot();
+            return new DeficitChoiceResult(plan.getMonthlySavingAmount(), existingBasis, true);
+        }
+
+        // STEP 4. 실제 커밋 — 새 상품을 고르지 않는다. 이 구간이 시작될 때 이미 만들어진
+        // NEW_SAVINGS 구독들(자기 스냅샷 금리·한도)에 다시 배분만 한다.
+        List<ProductSubscriptionVO> activeSubscriptions =
+                productSubscriptionMapper.selectActiveBySegment(segment.getSegmentId());
+        List<ProductSubscriptionVO> activeSavings = activeSubscriptions.stream()
+                .filter(s -> NEW_SAVINGS.equals(s.getSubscriptionRole()))
+                .sorted(Comparator.comparing(ProductSubscriptionVO::getExpectedAppliedRate).reversed())
+                .toList();
+        List<ProductAllocationCandidate> candidates = activeSavings.stream()
+                .map(s -> new ProductAllocationCandidate(
+                        s.getProductId(), s.getExpectedAppliedRate(), s.getMonthlyPaymentLimitSnapshot()))
+                .toList();
+        Map<Long, Long> subscriptionIdByProductId = activeSavings.stream()
+                .collect(Collectors.toMap(ProductSubscriptionVO::getProductId, ProductSubscriptionVO::getProductSubscriptionId));
+
+        AllocationPlan plan = roadmapCalculationService.allocate(candidates, monthlySavingAmount);
+
+        BigDecimal depositPrincipal = activeSubscriptions.stream()
+                .filter(s -> ROLLOVER_DEPOSIT.equals(s.getSubscriptionRole()))
+                .map(ProductSubscriptionVO::getInitialPrincipal)
+                .findFirst().orElse(BigDecimal.ZERO);
+        BigDecimal segmentSavingsPaid = transactionHistoryMapper.sumSavingsPaymentBySegment(segment.getSegmentId());
+        BigDecimal cashSavingBalance = assetSnapshotMapper.selectLatest(roadmap.getSavingsRoadmapId())
+                .map(AssetSnapshotVO::getCashSavingBalance)
+                .orElse(BigDecimal.ZERO);
+        BigDecimal currentAccumulatedFund = roadmapCalculationService.calculateCurrentAccumulatedFund(
+                depositPrincipal, segmentSavingsPaid, cashSavingBalance);
+        BigDecimal cumulativeSavingPerformance = calculateCumulativeSavingPerformanceNow(memberId, roadmap);
+
+        MonthlySavingPlanVO newPlan = MonthlySavingPlanVO.builder()
+                .savingsRoadmapId(roadmap.getSavingsRoadmapId())
+                .segmentId(segment.getSegmentId())
+                .planMonth(thisMonth)
+                .cycleNo(status.cycleNo())
+                .deficitChoice(effectiveChoice)
+                .monthlySavingAmount(monthlySavingAmount)
+                .recommendedCashSaving(plan.recommendedCashSaving())
+                .currentAccumulatedFund(currentAccumulatedFund)
+                .cumulativeSavingPerformance(cumulativeSavingPerformance)
+                .baselineSnapshot(baselineAmount)
+                .requiredSnapshot(monthlySavingAmount)
+                .build();
+        monthlySavingPlanMapper.insert(newPlan); // insert 후 monthlySavingPlanId 채워짐
+
+        for (AllocationPlan.AllocationEntry entry : plan.allocations()) {
+            MonthlySavingAllocationVO allocation = MonthlySavingAllocationVO.builder()
+                    .monthlySavingPlanId(newPlan.getMonthlySavingPlanId())
+                    .productSubscriptionId(subscriptionIdByProductId.get(entry.productId()))
+                    .allocatedAmount(entry.allocatedAmount())
+                    .allocationOrder(entry.allocationOrder())
+                    .build();
+            monthlySavingAllocationMapper.insert(allocation);
+        }
+
+        // STEP 5. 필요저축액 컬럼 갱신 — 설계 원칙 7, 이 트랜잭션이 이번 달 값을 확정하는 지점.
+        goalMapper.updateMonthlyRequiredSaving(memberId, monthlySavingAmount);
+
+        return new DeficitChoiceResult(monthlySavingAmount, productBaselineAmount, true);
+    }
+
+    // 구성 기준액(§4-7) — SPREAD면 필요저축액, 그 외(NONE/FULL_RECOVERY)면 목표기준액.
+    // 4-4·4-6이 똑같이 쓰는 계산이라 공통으로 뺐다.
+    private BigDecimal computeProductBaselineAmount(RoadmapStatus status, BigDecimal baselineAmount, String deficitChoice) {
+        return SPREAD.equals(deficitChoice) ? status.requiredAmount() : baselineAmount;
+    }
+
+    // 당월저축액(§5-2) — FULL_RECOVERY면 목표기준액+부족액(한 번에 만회), 그 외면 필요저축액.
+    private BigDecimal computeMonthlySavingAmount(RoadmapStatus status, BigDecimal baselineAmount, String deficitChoice) {
+        return FULL_RECOVERY.equals(deficitChoice)
+                ? baselineAmount.add(status.shortfallAmount() != null ? status.shortfallAmount() : BigDecimal.ZERO)
+                : status.requiredAmount();
     }
 
     // 구독 하나의 만기금(세전, 원금+이자 합산) 계산 — 이자_계산식_결정.md 공식.
