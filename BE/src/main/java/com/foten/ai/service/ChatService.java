@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -27,6 +28,10 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ChatService {
     private static final int MAX_TOOL_ROUNDS = 3;
+    // 다시 쓰게 할 때 붙이는 지시. 도구 결과는 이미 대화에 있어 도구 없이도 같은 답을 만들 수 있다.
+    private static final String REWRITE_KOREAN =
+            "직전 답에 한국어가 아닌 문자 체계의 글자가 섞였습니다. "
+            + "같은 내용을 한국어와 숫자·기호만 써서 다시 답하세요. 내용을 더하거나 빼지 마세요.";
 
     private final LlmClient llmClient;
     private final ToolRegistry toolRegistry;
@@ -42,7 +47,7 @@ public class ChatService {
         ChatContext ctx = ChatContext.of(memberId, languageCode, message);
         ctx.messages().add(LlmMessage.system(SystemPrompt.BASE));
 
-        String contentKo = AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
+        String contentKo = koreanOnly(ctx, AdvisorChain.of(advisors, this::runToolLoop).next(ctx));
         String contentLocal = translator.translate(contentKo, languageCode);
 
         // 한 턴에 카드가 여럿 담기면 마지막 것을 쓴다. 답변이 다루는 것은 마지막으로 부른 도구다.
@@ -80,6 +85,29 @@ public class ChatService {
 
         log.warn("툴 왕복 상한({}) 도달 - 루프를 종료한다.", MAX_TOOL_ROUNDS);
         return "죄송해요, 지금은 답변을 정리하지 못했어요. 다시 물어봐 주시겠어요?";
+    }
+
+    // 모델이 한국어 답 사이에 다른 문자 체계의 글자를 드물게 섞는다(예: 한 단어가 구자라트 문자로).
+    // 규칙만으로는 100% 막히지 않아 검사한다. 한 번 다시 쓰게 하고, 그래도 남으면 그 글자만 걷어낸다.
+    // 걷어내면 단어 하나가 빌 수 있지만 낯선 문자가 화면에 찍히는 것보다 낫다. 본문은 로그에 남기지 않는다.
+    private String koreanOnly(ChatContext ctx, String draft) {
+        if (KoreanScript.isClean(draft)) {
+            return draft;
+        }
+        log.warn("답변에 한국어가 아닌 글자가 섞여 다시 씁니다. count={}", KoreanScript.foreignCount(draft));
+        try {
+            List<LlmMessage> retry = new ArrayList<>(ctx.messages());
+            retry.add(LlmMessage.system(REWRITE_KOREAN));
+            String rewritten = llmClient.call(retry);
+            if (KoreanScript.isClean(rewritten)) {
+                return rewritten;
+            }
+            log.warn("다시 쓴 답에도 남아 걷어냅니다. count={}", KoreanScript.foreignCount(rewritten));
+        }
+        catch (RuntimeException e) {
+            log.warn("다시 쓰기 실패 ({}) - 걷어냅니다.", e.getClass().getSimpleName());
+        }
+        return KoreanScript.strip(draft);
     }
 
     // 선택지는 대화 이력에 남기지 않는다.
