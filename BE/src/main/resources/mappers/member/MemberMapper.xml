@@ -20,4 +20,10 @@
         VALUES (#{loginId}, #{password}, #{name}, #{nationality}, #{languageCode})
     </insert>
 
+    <select id="findById" resultType="com.foten.member.domain.Member">
+        SELECT member_id, login_id, password, name, nationality, language_code, created_at
+        FROM member
+        WHERE member_id = #{memberId}
+    </select>
+
 </mapper>

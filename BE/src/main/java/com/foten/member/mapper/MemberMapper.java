@@ -9,4 +9,6 @@ public interface MemberMapper {
     Optional<Member> findByLoginId(@Param("loginId") String loginId);
     boolean existsByLoginId(@Param("loginId") String loginId);
     void insert(Member member);
+
+    Optional<Member> findById(@Param("memberId") long memberId);
 }

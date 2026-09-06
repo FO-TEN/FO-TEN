@@ -2,8 +2,13 @@ package com.foten.member.service;
 
 import com.foten.common.ConflictException;
 import com.foten.common.InvalidRequestException;
+import com.foten.common.ResourceNotFoundException;
 import com.foten.common.UnauthorizedException;
+import com.foten.goal.mapper.FinancialInfoMapper;
+import com.foten.goal.mapper.GoalMapper;
+import com.foten.goal.mapper.StayInfoMapper;
 import com.foten.member.domain.Member;
+import com.foten.member.dto.MyInfoResponse;
 import com.foten.member.dto.RegisterRequest;
 import com.foten.member.mapper.MemberMapper;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +24,9 @@ public class MemberServiceImpl implements MemberService{
 
     private static final BCryptPasswordEncoder ENCODER = new BCryptPasswordEncoder();
     private final MemberMapper memberMapper;
+    private final StayInfoMapper stayInfoMapper;
+    private final FinancialInfoMapper financialInfoMapper;
+    private final GoalMapper goalMapper;
 
     private static final int MAX_LOGIN_ID = 50;
     private static final int MAX_NAME = 50;
@@ -64,6 +72,20 @@ public class MemberServiceImpl implements MemberService{
             throw new ConflictException("이미 사용 중인 아이디입니다.");
         }
         return member;
+    }
+
+    @Override
+    public MyInfoResponse getMyInfo(long memberId) {
+        Member member = memberMapper.findById(memberId)
+                .orElseThrow(() -> new ResourceNotFoundException("회원 정보가 없습니다."));
+
+        // 온보딩 전이면 값이 없다. 없는 것은 null 로 내려 화면이 빈 자리로 그린다.
+        return MyInfoResponse.of(
+                member,
+                stayInfoMapper.selectByMemberId(memberId).orElse(null),
+                financialInfoMapper.selectByMemberId(memberId).orElse(null),
+                goalMapper.selectByMemberId(memberId).orElse(null)
+        );
     }
 
     private void validate(RegisterRequest request) {
