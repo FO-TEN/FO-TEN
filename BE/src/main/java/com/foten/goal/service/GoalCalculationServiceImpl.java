@@ -25,7 +25,7 @@ public class GoalCalculationServiceImpl implements GoalCalculationService {
     private int calcRemainingMonths(GoalCalculationInput input) {
         Period period = Period.between(input.calculationDate(), input.expectedReturnDate());
         int totalMonths = period.getYears() * 12 + period.getMonths();
-        int remainingMonths = totalMonths - 2; // 가입월, 해제월은 계산에서 제외
+        int remainingMonths = totalMonths - 1; // 해제월은 계산에서 제외
         return Math.max(remainingMonths, 1); // 0개월 개념을 쓰지 않음 — 최소 1개월
     }
 }
