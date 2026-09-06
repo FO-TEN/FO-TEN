@@ -1,11 +1,16 @@
 package com.foten.product.service;
 
+import com.foten.product.domain.AllocationPlan;
+import com.foten.product.domain.AllocationPlan.AllocationEntry;
 import com.foten.product.domain.FirstSegmentPlan;
+import com.foten.product.domain.ProductAllocationCandidate;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -65,5 +70,31 @@ public class RoadmapCalculationServiceImpl implements RoadmapCalculationService 
     public LocalDate calculateSegmentEndDate(
             LocalDate segmentStartDate, int plannedMonths, boolean isLastSegment, LocalDate roadmapEndDate) {
         return isLastSegment ? roadmapEndDate : segmentStartDate.plusMonths(plannedMonths);
+    }
+
+    @Override
+    public BigDecimal calculateExpectedAppliedRate(BigDecimal maxRate, BigDecimal baseRate, BigDecimal bonusSum) {
+        return maxRate.min(baseRate.add(bonusSum));
+    }
+
+    @Override
+    public AllocationPlan allocate(List<ProductAllocationCandidate> candidates, BigDecimal targetAmount) {
+        List<AllocationEntry> allocations = new ArrayList<>();
+        BigDecimal remaining = targetAmount;
+        int order = 1;
+
+        for (ProductAllocationCandidate candidate : candidates) {
+            if (remaining.signum() <= 0) {
+                break;
+            }
+            BigDecimal amount = remaining.min(candidate.monthlyPaymentLimit());
+            if (amount.signum() > 0) {
+                allocations.add(new AllocationEntry(candidate.productId(), amount, order++));
+                remaining = remaining.subtract(amount);
+            }
+        }
+
+        BigDecimal recommendedCashSaving = remaining.max(BigDecimal.ZERO);
+        return new AllocationPlan(allocations, recommendedCashSaving);
     }
 }

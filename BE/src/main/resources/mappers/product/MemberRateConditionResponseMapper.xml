@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.MemberRateConditionResponseMapper">
+
+    <insert id="upsertAll">
+        INSERT INTO member_rate_condition_response (member_id, condition_code, will_meet)
+        VALUES
+        <foreach collection="responses" item="r" separator=",">
+            (#{r.memberId}, #{r.conditionCode}, #{r.willMeet})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+            will_meet = VALUES(will_meet),
+            responded_at = CURRENT_TIMESTAMP
+    </insert>
+
+</mapper>
