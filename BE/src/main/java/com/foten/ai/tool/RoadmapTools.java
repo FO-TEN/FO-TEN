@@ -1,23 +1,35 @@
 package com.foten.ai.tool;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foten.ai.dto.ChatCard;
+import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.product.domain.CreatedRoadmap;
+import com.foten.product.domain.RateConditionAnswer;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapStatus;
+import com.foten.product.domain.SegmentComposition;
 import com.foten.product.service.RoadmapCommandService;
 import com.foten.product.service.RoadmapQueryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.util.List;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class RoadmapTools implements ToolProvider{
 
     private static final DecimalFormat MONEY = new DecimalFormat("#,###");
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    // 화면이 되감을 때 그릴 카드의 종류. 값은 앱이 관리한다(chat_message.card_type).
+    private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
+    // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
+    private static final String FLOW_ONBOARDING = "ONBOARDING";
 
     private final RoadmapQueryService roadmapQueryService;
     private final RoadmapCommandService roadmapCommandService;
@@ -45,7 +57,7 @@ public class RoadmapTools implements ToolProvider{
                         사용자에게 조건을 물어볼 때, 그리고 사용자의 대답을 코드로 옮길 때 씁니다.
                         이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
                         """,
-                        (arguments, context) -> describeConditions(roadmapQueryService.getRateConditions())),
+                        (arguments, context) -> describeConditions(context.memberId())),
 
                 ToolSpec.noArgs(
                         "startRoadmap",
@@ -55,7 +67,34 @@ public class RoadmapTools implements ToolProvider{
                         로드맵이 없을 때만 쓸 수 있으므로 getRoadmapStatus 로 먼저 확인합니다.
                         상품 가입은 하지 않습니다 — 우대조건을 받은 뒤에 정해집니다.
                         """,
-                        (arguments, context) -> startRoadmap(context.memberId())));
+                        (arguments, context) -> startRoadmap(context.memberId())),
+
+                ToolSpec.stringList(
+                        "submitPreferentialConditions",
+                        """
+                        사용자가 앞으로 지키겠다고 답한 우대금리 조건을 제출하고, 그 조건을 반영한
+                        적금 상품 구성을 받아옵니다. 상품 가입이 확정되고 되돌릴 수 없습니다.
+                        사용자가 조건을 고른 뒤 제출하겠다고 답한 다음에만 부릅니다.
+                        조건에 답한 것만으로는 부족합니다 - 고른 항목을 되읽어 주고
+                        "이대로 제출할까요?" 에 그렇다고 답한 뒤에 부릅니다.
+                        먼저 getPreferentialConditionQuestions 로 질문과 코드를 확인하세요.
+                        해당한다고 답한 조건의 코드만 넘기면 됩니다. 나머지는 서버가 아니오로 처리합니다.
+                        아무것도 해당하지 않으면 빈 목록을 넘기세요.
+                        """,
+                        "conditionCodes",
+                        "사용자가 앞으로 지키겠다고 답한 조건의 코드 목록 (예: SALARY_TRANSFER)",
+                        (arguments, context) -> submitConditions(
+                                context, ToolArguments.stringList(arguments, "conditionCodes"))),
+
+                ToolSpec.noArgs(
+                        "getSegmentComposition",
+                        """
+                        지금 구간에 어떤 적금 상품으로 얼마씩 나눠 모으는지 알려줍니다.
+                        상품 이름, 가입 기간, 적용 금리, 상품별 월 납입액이 나옵니다.
+                        우대조건을 제출해 상품이 정해진 뒤에만 쓸 수 있습니다.
+                        아직이면 getRoadmapStatus 로 어느 단계인지 먼저 확인하세요.
+                        """,
+                        (arguments, context) -> describeComposition(context)));
     }
 
     private String describeStatus(RoadmapStatus s) {
@@ -65,6 +104,8 @@ public class RoadmapTools implements ToolProvider{
             sb.append("로드맵: 아직 없음\n");
             sb.append("로드맵이 무엇인지 짧게 설명하고 시작할지 물으세요.");
             sb.append(" 사용자가 하겠다고 답한 다음에 startRoadmap 을 부릅니다.\n");
+            sb.append("사용자가 이미 만들겠다고 말했다면 다시 묻지 말고 그 자리에서 startRoadmap 을 부르세요.");
+            sb.append(" 한 번 더 확인하는 것은 두 번 묻는 것입니다.\n");
             return sb.toString();
         }
 
@@ -143,10 +184,6 @@ public class RoadmapTools implements ToolProvider{
         }
     }
 
-    /**
-     * 값을 한 줄씩 늘어놓으면 "~입니다" 가 여덟 줄 쌓여 읽히지 않는다.
-     * UI 흐름 v5 2장의 [최초 월 저축기준 안내]는 세 문장이다. 값과 함께 말하는 방법도 준다.
-     */
     private String describeCreated(CreatedRoadmap r) {
         CreatedRoadmap.SegmentSummary segment = r.segment();
 
@@ -179,7 +216,98 @@ public class RoadmapTools implements ToolProvider{
         return a != null && b != null && a.compareTo(b) != 0;
     }
 
-    private String describeConditions(List<RateConditionVO> conditions) {
+    // 모델이 코드를 빠뜨리거나 지어낼 수 있어, 실제 조건 목록에 맞춰 예/아니오를 채운다.
+    private String submitConditions(ToolContext context, List<String> agreedCodes) {
+        long memberId = context.memberId();
+        List<RateConditionAnswer> answers = roadmapQueryService.getRateConditions().stream()
+                .map(condition -> new RateConditionAnswer(
+                        condition.getConditionCode(),
+                        agreedCodes.contains(condition.getConditionCode())))
+                .toList();
+
+        try {
+            return describeComposition(context,
+                    roadmapCommandService.submitRateConditionResponses(memberId, answers));
+        }
+        catch (RoadmapStateConflictException e) {
+            return switch (e.getErrorCode()) {
+                case "NOT_APPLICABLE" -> notApplicableReason(memberId);
+                case "GOAL_NOT_READY" -> "목표가 아직 확정되지 않아 상품을 정할 수 없습니다.";
+                default -> "지금은 우대조건을 제출할 수 없습니다.";
+            };
+        }
+    }
+
+    // NOT_APPLICABLE 은 로드맵이 없을 때도 온다. 구분하지 않으면 없는 상품을 있다고 말한다.
+    private String notApplicableReason(long memberId) {
+        if (!roadmapQueryService.getStatus(memberId).roadmapExists()) {
+            return "아직 로드맵이 없어 우대조건을 받을 수 없습니다."
+                    + " 로드맵을 먼저 만들어야 한다고 안내하세요.";
+        }
+        return "이미 우대조건을 제출해 상품이 정해져 있습니다."
+                + " 다시 제출할 수 없다고 알리고, 지금 상품 구성을 보고 싶은지 물어보세요.";
+    }
+
+    // 가입 전에는 IllegalStateException 이 난다. 던지면 ToolRegistry 가 이유를 뭉갠다.
+    private String describeComposition(ToolContext context) {
+        try {
+            return describeComposition(context,
+                    roadmapQueryService.getCurrentComposition(context.memberId()));
+        }
+        catch (IllegalStateException | ResourceNotFoundException e) {
+            return "아직 상품이 정해지지 않았습니다. 우대조건을 먼저 확인해야 한다고 안내하세요.";
+        }
+    }
+
+    // 제출(4-4)과 조회(4-5)가 같은 타입을 돌려주므로 문장 만드는 코드를 함께 쓴다.
+    private String describeComposition(ToolContext context, SegmentComposition c) {
+        addCard(context, c);
+
+        StringBuilder sb = new StringBuilder("[이번 구간 상품 구성]\n");
+        sb.append("매달 모을 기준 금액: ").append(money(c.monthlyBaseline())).append("원\n");
+
+        for (SegmentComposition.SavingsSummary s : c.savings()) {
+            sb.append("적금 | ").append(s.productName())
+                    .append(" | ").append(s.termMonths()).append("개월")
+                    .append(" | 금리 ").append(s.appliedRate()).append("%")
+                    .append(" | 월 ").append(money(s.monthlyAllocated())).append("원\n");
+        }
+
+        if (c.deposit() != null) {
+            SegmentComposition.DepositSummary d = c.deposit();
+            sb.append("예금 | ").append(d.productName())
+                    .append(" | ").append(d.termMonths()).append("개월")
+                    .append(" | 금리 ").append(d.appliedRate()).append("%")
+                    .append(" | 목돈 ").append(money(d.principal())).append("원\n");
+        }
+
+        if (isPositive(c.recommendedCashSaving())) {
+            sb.append("적금에 담지 못하고 현금으로 두는 금액: ")
+                    .append(money(c.recommendedCashSaving())).append("원\n");
+        }
+
+        sb.append("말하는 방법:\n");
+        sb.append("- 상품마다 한 줄로, 이름과 월 납입액을 먼저 말하세요. 금리와 기간은 뒤에 붙입니다.\n");
+        sb.append("- 금액과 금리는 위 값 그대로 옮기고 직접 더하거나 빼지 마세요.\n");
+        sb.append("- 예금이 없으면 목돈이 아직 없어서라고 알려주세요.\n");
+        sb.append("- 이자와 만기 금액은 아직 계산되지 않았습니다. 지어내지 마세요.\n");
+        return sb.toString();
+    }
+
+    // 이미 제출한 뒤에 질문을 다시 늘어놓으면 답해도 제출이 막혀 막다른 길이 된다.
+    private String describeConditions(long memberId) {
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        if (!status.roadmapExists()) {
+            return "아직 로드맵이 없어 우대조건을 받을 수 없습니다.\n"
+                    + "로드맵을 먼저 만들어야 한다고 안내하세요. 조건 목록을 늘어놓지 마세요.\n";
+        }
+        if (!FLOW_ONBOARDING.equals(status.flowType())) {
+            return "우대조건은 이미 제출했고 상품이 정해져 있습니다.\n"
+                    + "이미 정해져서 다시 받을 수 없다고 알리고, 지금 상품 구성을 보여줄지 물어보세요.\n"
+                    + "조건 목록을 늘어놓거나 번호를 묻지 마세요. 고를 수 있는 것이 없습니다.\n";
+        }
+
+        List<RateConditionVO> conditions = roadmapQueryService.getRateConditions();
         if (conditions == null || conditions.isEmpty()) {
             return "우대금리 조건 질문이 없습니다.";
         }
@@ -200,8 +328,21 @@ public class RoadmapTools implements ToolProvider{
         sb.append("- 질문마다 앞에 번호를 붙이고, 질문과 질문 사이에 빈 줄을 넣으세요.\n");
         sb.append("- 마지막에 '해당하는 번호를 모두 알려주세요' 라고 덧붙이세요.\n");
         sb.append("- 코드는 내부용입니다. 사용자에게 보여주지 말고 질문 문구만 말하세요.\n");
+        sb.append("- 번호를 들은 뒤에는 고른 항목을 되읽어 주고 이대로 제출할지 한 번 더 물으세요.\n");
+        sb.append("- 사용자가 제출하겠다고 답하기 전에는 submitPreferentialConditions 를 부르지 마세요.\n");
         sb.append("사용자의 대답이 어느 코드에 해당하는지는 기억해 두세요.\n");
         return sb.toString();
+    }
+
+    // 되감을 때 다시 계산하면 옛 대화에 새 구성이 붙는다. 그때 값을 그대로 남긴다.
+    private void addCard(ToolContext context, SegmentComposition composition) {
+        try {
+            context.cards().add(new ChatCard(CARD_RECOMMENDATION, MAPPER.writeValueAsString(composition)));
+        }
+        catch (Exception e) {
+            // 카드를 못 만들어도 답변은 나가야 한다. 예외 메시지에 금액이 실려 종류만 남긴다.
+            log.warn("카드를 만들지 못했습니다. type={} ({})", CARD_RECOMMENDATION, e.getClass().getSimpleName());
+        }
     }
 
     private boolean isPositive(BigDecimal value) {

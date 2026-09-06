@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+// UI 흐름 v5 의 사용자 버튼을 칩으로. 부를 도구가 있는 단계만 붙인다.
 @Component
 @RequiredArgsConstructor
 public class RoadmapSuggestionProvider implements SuggestionProvider {
@@ -16,26 +17,39 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String STATUS_TOOL = "getRoadmapStatus";
     private static final String START_TOOL = "startRoadmap";
     private static final String CONDITION_TOOL = "getPreferentialConditionQuestions";
+    private static final String SUBMIT_TOOL = "submitPreferentialConditions";
+    private static final String COMPOSITION_TOOL = "getSegmentComposition";
 
     private final MemberProfileMapper memberProfileMapper;
 
     @Override
     public List<Suggestion> suggest(ChatContext ctx, String contentKo) {
-        List<String> tools = ctx.calledTools();
-        boolean touchedRoadmap = tools.contains(STATUS_TOOL) || tools.contains(START_TOOL);
-
-        // 우대조건 질문을 보여준 턴에는 칩을 붙이지 않는다.
-        if (contentKo == null || !touchedRoadmap || tools.contains(CONDITION_TOOL)) {
+        if (contentKo == null) {
             return List.of();
         }
 
-        // 이 시점에는 생성 트랜잭션이 끝나 있다. 방금 만든 로드맵도 여기서 보인다.
-        boolean roadmapExists = memberProfileMapper.findProfile(ctx.memberId())
-                .map(MemberProfile::isRoadmapExists)
-                .orElse(false);
+        List<String> tools = ctx.calledTools();
 
-        return roadmapExists
-                ? List.of(Suggestion.ask("우대조건 확인할래"))
-                : List.of(Suggestion.ask("내 로드맵 만들기"));
+        // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
+        if (tools.contains(CONDITION_TOOL) || tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
+            return List.of();
+        }
+        if (!tools.contains(STATUS_TOOL) && !tools.contains(START_TOOL)) {
+            return List.of();
+        }
+
+        // 이 시점에는 생성·제출 트랜잭션이 끝나 있다. 방금 만든 로드맵도 여기서 보인다.
+        MemberProfile profile = memberProfileMapper.findProfile(ctx.memberId()).orElse(null);
+        if (profile == null) {
+            return List.of();
+        }
+
+        if (!profile.isRoadmapExists()) {
+            return List.of(Suggestion.ask("내 로드맵 만들기"));
+        }
+        if (!profile.isRateConditionsAnswered()) {
+            return List.of(Suggestion.ask("우대조건 확인할래"));
+        }
+        return List.of(Suggestion.ask("상품 구성 알려줘"));
     }
 }

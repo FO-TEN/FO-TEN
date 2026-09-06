@@ -45,9 +45,8 @@ public class ChatService {
         String contentKo = AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
         String contentLocal = translator.translate(contentKo, languageCode);
 
-        // 로드맵 그래프·추천 조합 도구가 생기면 툴 결과에서 꺼내 여기에 싣는다.
-        // 그때까지는 항상 null 이고, 응답에도 null 로 나간다.
-        ChatCard card = null;
+        // 한 턴에 카드가 여럿 담기면 마지막 것을 쓴다. 답변이 다루는 것은 마지막으로 부른 도구다.
+        ChatCard card = ctx.cards().isEmpty() ? null : ctx.cards().get(ctx.cards().size() - 1);
 
         chatMemory.addUserMessage(memberId, null, message, languageCode);
         chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode, card);
@@ -56,7 +55,7 @@ public class ChatService {
     }
 
     private String runToolLoop(ChatContext ctx) {
-        ToolContext toolContext = new ToolContext(ctx.memberId(), ctx.languageCode());
+        ToolContext toolContext = new ToolContext(ctx.memberId(), ctx.languageCode(), ctx.cards());
 
         for(int round=0; round<MAX_TOOL_ROUNDS; round++) {
             LlmChatResponse.Choice choice = llmClient.callWithTools(ctx.messages(), toolRegistry.toLlmTools());

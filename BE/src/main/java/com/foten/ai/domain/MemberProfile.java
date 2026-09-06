@@ -15,4 +15,5 @@ public class MemberProfile {
     private LocalDate expectedReturnDate;
     private String targetCurrency;
     private boolean roadmapExists;
+    private boolean rateConditionsAnswered;
 }
