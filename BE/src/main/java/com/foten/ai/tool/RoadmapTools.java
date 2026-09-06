@@ -323,13 +323,15 @@ public class RoadmapTools implements ToolProvider{
             sb.append("\n");
         }
 
+        // 같은 항목이 체크박스로도 나간다. 질문을 다 늘어놓으면 화면에 두 번 보인다.
         sb.append("보여주는 방법:\n");
-        sb.append("- 먼저 '받을 수 있는 우대금리를 확인할게요' 처럼 한 줄로 안내하세요.\n");
-        sb.append("- 질문마다 앞에 번호를 붙이고, 질문과 질문 사이에 빈 줄을 넣으세요.\n");
-        sb.append("- 마지막에 '해당하는 번호를 모두 알려주세요' 라고 덧붙이세요.\n");
-        sb.append("- 코드는 내부용입니다. 사용자에게 보여주지 말고 질문 문구만 말하세요.\n");
-        sb.append("- 번호를 들은 뒤에는 고른 항목을 되읽어 주고 이대로 제출할지 한 번 더 물으세요.\n");
-        sb.append("- 사용자가 제출하겠다고 답하기 전에는 submitPreferentialConditions 를 부르지 마세요.\n");
+        sb.append("- 이 항목들은 체크박스로도 함께 나갑니다. 항목 이름을 하나도 적지 마세요.\n");
+        sb.append("- 번호도 기호도 붙이지 말고 목록 자체를 만들지 마세요. 목록은 체크박스가 보여줍니다.\n");
+        sb.append("- '받을 수 있는 우대금리를 확인할게요. 앞으로 지킬 수 있는 것을 모두 골라주세요'\n");
+        sb.append("  이 두 문장만 말하고 끝내세요.\n");
+        sb.append("- 코드는 내부용입니다. 사용자에게 보여주지 마세요.\n");
+        sb.append("- 사용자가 고른 뒤 제출하겠다고 답하기 전에는\n");
+        sb.append("  submitPreferentialConditions 를 부르지 마세요.\n");
         sb.append("사용자의 대답이 어느 코드에 해당하는지는 기억해 두세요.\n");
         return sb.toString();
     }
