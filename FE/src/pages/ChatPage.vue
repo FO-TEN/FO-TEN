@@ -9,6 +9,7 @@ import BottomNav from '../components/layout/BottomNav.vue'
 import PotenAvatar from '../components/ui/PotenAvatar.vue'
 import RecommendationCard from '../components/ui/RecommendationCard.vue'
 import ConditionChecklist from '../components/ui/ConditionChecklist.vue'
+import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
 import sendIcon from '../assets/icons/send.svg'
 
 /*
@@ -111,6 +112,7 @@ const conditionChips = computed(() =>
             <div v-if="m.pending" class="bubble bot-b typing"><span /><span /><span /></div>
             <div v-else class="bubble bot-b">{{ text(m) }}</div>
             <RecommendationCard v-if="m.card && m.card.type === 'RECOMMENDATION'" :payload="m.card.payload" />
+            <RoadmapGraphCard v-else-if="m.card && m.card.type === 'ROADMAP'" :payload="m.card.payload" />
           </div>
         </div>
       </template>
