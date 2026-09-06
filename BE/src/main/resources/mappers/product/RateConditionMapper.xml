@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.RateConditionMapper">
+
+    <select id="selectBehaviorBased" resultType="com.foten.product.domain.RateConditionVO">
+        SELECT condition_code,
+               label,
+               description,
+               is_behavior_based
+        FROM rate_condition
+        WHERE is_behavior_based = TRUE
+    </select>
+
+</mapper>
