@@ -3,6 +3,7 @@ package com.foten.goal.service;
 import com.foten.goal.domain.CategorySavingPotential;
 import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.SavingCalculationOutput;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -131,5 +132,20 @@ public class SavingCalculationServiceImpl implements SavingCalculationService {
                 .filter(c -> c.amount() > 0)
                 .sorted((a, b) -> b.amount() - a.amount())
                 .toList();
+    }
+
+    // 함수 9: 당월저축액 (§5-2) — FULL_RECOVERY 면 이번 회차까지 밀린 것 전부 만회,
+    // SPREAD/NONE 이면 필요저축액 그대로. deficitChoice 를 어디서 읽어올지는
+    // chooseDeficitOption 도구가 정해지면 그때 연결한다 — 여기선 파라미터로만 받는다.
+    BigDecimal calculateMonthlySavingAmount(
+            String deficitChoice,
+            BigDecimal baselineAmount,
+            int cycleNo,
+            BigDecimal cumulativeActualSavings,
+            BigDecimal requiredAmount) {
+        if ("FULL_RECOVERY".equals(deficitChoice)) {
+            return baselineAmount.multiply(BigDecimal.valueOf(cycleNo)).subtract(cumulativeActualSavings);
+        }
+        return requiredAmount;
     }
 }
