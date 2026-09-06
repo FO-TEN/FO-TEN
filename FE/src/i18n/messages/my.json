@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "မင်္ဂလာပါ {name}။\nဒီလ ငွေစုကို အတူကြည့်မလား?",
+  "chat.chip_roadmap": "စုငွေအစီအစဉ် ဖန်တီးရန်",
   "chat.chip_spending": "ကျွန်ုပ်အသုံးစရိတ် ကြည့်ရန်",
   "chat.chip_goal": "ပန်းတိုင်ပြောင်းရန်",
   "chat.placeholder": "ဘာမဆို မေးပါ",
   "chat.too_long": "စာလုံး {n} အတွင်း ရေးပါ",
   "chat.failed": "အဖြေမရပါ။ ထပ်မေးပါ။",
+  "chat.select_done": "ရွေးချယ်ပြီး",
+
+  "card.reco_title": "အကြံပြုထားသော အစုအဖွဲ့",
+  "card.monthly_base": "လစဉ်စုဆောင်းငွေ",
+  "card.months": "{n} လ",
+  "card.rate": "အတိုး {r}%",
+  "card.deposit": "စုပေါင်းအပ်ငွေ",
+  "card.cash": "ငွေသားစုဆောင်းမှု",
 
   "spending.title": "{m} လ အသုံးစရိတ်",
   "spending.until_day": "{m}/{d} အထိ",

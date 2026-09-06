@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "ສະບາຍດີ {name}.\nມາເບິ່ງເງິນເກັບເດືອນນີ້ນຳກັນບໍ?",
+  "chat.chip_roadmap": "ສ້າງແຜນເກັບເງິນ",
   "chat.chip_spending": "ເບິ່ງລາຍຈ່າຍຂ້ອຍ",
   "chat.chip_goal": "ປ່ຽນເປົ້າໝາຍ",
   "chat.placeholder": "ຖາມຫຍັງກໍໄດ້",
   "chat.too_long": "ກະລຸນາພິມບໍ່ເກີນ {n} ຕົວອັກສອນ",
   "chat.failed": "ບໍ່ໄດ້ຮັບຄຳຕອບ. ກະລຸນາຖາມໃໝ່.",
+  "chat.select_done": "ເລືອກສຳເລັດ",
+
+  "card.reco_title": "ຊຸດຜະລິດຕະພັນແນະນຳ",
+  "card.monthly_base": "ເງິນເກັບຕໍ່ເດືອນ",
+  "card.months": "{n} ເດືອນ",
+  "card.rate": "ດອກເບ້ຍ {r}%",
+  "card.deposit": "ເງິນຝາກປະຈຳ",
+  "card.cash": "ເງິນເກັບສົດ",
 
   "spending.title": "ລາຍຈ່າຍເດືອນ {m}",
   "spending.until_day": "ຮອດວັນທີ {d}/{m}",

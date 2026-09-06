@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "สวัสดี {name}\nมาดูเงินเก็บเดือนนี้ด้วยกันไหม?",
+  "chat.chip_roadmap": "สร้างแผนออม",
   "chat.chip_spending": "ดูรายจ่ายของฉัน",
   "chat.chip_goal": "เปลี่ยนเป้าหมาย",
   "chat.placeholder": "ถามอะไรก็ได้",
   "chat.too_long": "กรุณาพิมพ์ไม่เกิน {n} ตัวอักษร",
   "chat.failed": "ไม่ได้รับคำตอบ กรุณาถามอีกครั้ง",
+  "chat.select_done": "เลือกเสร็จแล้ว",
+
+  "card.reco_title": "ชุดผลิตภัณฑ์แนะนำ",
+  "card.monthly_base": "เงินออมต่อเดือน",
+  "card.months": "{n} เดือน",
+  "card.rate": "ดอกเบี้ย {r}%",
+  "card.deposit": "เงินฝากประจำ",
+  "card.cash": "เงินออมสด",
 
   "spending.title": "รายจ่ายเดือน {m}",
   "spending.until_day": "ถึงวันที่ {d}/{m}",

@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "ආයුබෝවන් {name}.\nමේ මාසේ ඉතිරිකිරීම එකට බලමුද?",
+  "chat.chip_roadmap": "ඉතුරුම් සැලැස්ම සාදන්න",
   "chat.chip_spending": "මගේ වියදම් බලන්න",
   "chat.chip_goal": "ඉලක්කය වෙනස් කරන්න",
   "chat.placeholder": "ඕනෑම දෙයක් අහන්න",
   "chat.too_long": "අකුරු {n}ට අඩුවෙන් ලියන්න",
   "chat.failed": "පිළිතුරක් ලැබුණේ නැහැ. නැවත අහන්න.",
+  "chat.select_done": "තේරීම අවසන්",
+
+  "card.reco_title": "නිර්දේශිත සංයෝජනය",
+  "card.monthly_base": "මාසික ඉතිරිය",
+  "card.months": "මාස {n}",
+  "card.rate": "පොලිය {r}%",
+  "card.deposit": "එකවර තැන්පතුව",
+  "card.cash": "මුදල් ඉතිරිය",
 
   "spending.title": "{m} මාසේ වියදම",
   "spending.until_day": "{m}/{d} දක්වා",

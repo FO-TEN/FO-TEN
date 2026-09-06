@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Салам, {name}.\nБул айдагы топтоону чогуу көрөбүзбү?",
+  "chat.chip_roadmap": "Жол картасын түзүү",
   "chat.chip_spending": "Чыгашамды көрүү",
   "chat.chip_goal": "Максатты өзгөртүү",
   "chat.placeholder": "Каалаганыңызды сураңыз",
   "chat.too_long": "{n} белгиден кем жазыңыз",
   "chat.failed": "Жооп келбеди. Кайра сураңыз.",
+  "chat.select_done": "Тандоо бүттү",
+
+  "card.reco_title": "Сунушталган топтом",
+  "card.monthly_base": "Ай сайынкы топтоо",
+  "card.months": "{n} ай",
+  "card.rate": "пайыз {r}%",
+  "card.deposit": "Мөөнөттүү аманат",
+  "card.cash": "Накталай топтоо",
 
   "spending.title": "{m}-айдын чыгашасы",
   "spending.until_day": "{d}/{m} чейин",

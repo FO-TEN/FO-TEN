@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Салом, {name}.\nПасандози ин моҳро якҷоя бинем?",
+  "chat.chip_roadmap": "Харитаи роҳ сохтан",
   "chat.chip_spending": "Хароҷоти манро дидан",
   "chat.chip_goal": "Ҳадафро тағйир додан",
   "chat.placeholder": "Ҳар чӣ мехоҳед пурсед",
   "chat.too_long": "Камтар аз {n} аломат нависед",
   "chat.failed": "Ҷавоб нагирифтем. Аз нав пурсед.",
+  "chat.select_done": "Интихоб анҷом ёфт",
+
+  "card.reco_title": "Маҷмӯи тавсияшуда",
+  "card.monthly_base": "Пасандози моҳона",
+  "card.months": "{n} моҳ",
+  "card.rate": "фоиз {r}%",
+  "card.deposit": "Пасандози мӯҳлатнок",
+  "card.cash": "Пасандози нақдӣ",
 
   "spending.title": "Хароҷоти моҳи {m}",
   "spending.until_day": "То {d}/{m}",

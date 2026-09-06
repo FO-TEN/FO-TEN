@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Chào {name}.\nCùng xem tiết kiệm tháng này nhé?",
+  "chat.chip_roadmap": "Tạo lộ trình",
   "chat.chip_spending": "Xem chi tiêu của tôi",
   "chat.chip_goal": "Đổi mục tiêu",
   "chat.placeholder": "Hỏi Foten bất cứ điều gì",
   "chat.too_long": "Vui lòng viết dưới {n} ký tự",
   "chat.failed": "Không nhận được câu trả lời. Vui lòng hỏi lại.",
+  "chat.select_done": "Chọn xong",
+
+  "card.reco_title": "Danh mục đề xuất",
+  "card.monthly_base": "Tiền để dành mỗi tháng",
+  "card.months": "{n} tháng",
+  "card.rate": "lãi suất {r}%",
+  "card.deposit": "Tiền gửi có kỳ hạn",
+  "card.cash": "Tiết kiệm tiền mặt",
 
   "spending.title": "Chi tiêu tháng {m}",
   "spending.until_day": "Đến ngày {d}/{m}",

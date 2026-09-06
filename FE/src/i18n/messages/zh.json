@@ -84,11 +84,20 @@
 
   "chat.title": "Foten",
   "chat.greeting": "{name}，你好。\n一起看看这个月的储蓄吧？",
+  "chat.chip_roadmap": "创建储蓄计划",
   "chat.chip_spending": "查看我的消费",
   "chat.chip_goal": "更改目标",
   "chat.placeholder": "有什么想问的？",
   "chat.too_long": "请控制在 {n} 字以内",
   "chat.failed": "没有收到回答，请再问一次。",
+  "chat.select_done": "选择完成",
+
+  "card.reco_title": "推荐组合",
+  "card.monthly_base": "每月存款",
+  "card.months": "{n}个月",
+  "card.rate": "利率{r}%",
+  "card.deposit": "整存定期",
+  "card.cash": "现金储蓄",
 
   "spending.title": "{m}月消费",
   "spending.until_day": "截至 {m}月{d}日",
