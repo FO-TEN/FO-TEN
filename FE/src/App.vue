@@ -1,23 +1,13 @@
+<script setup>
+import { useLocaleStore } from './stores/locale'
+const locale = useLocaleStore()
+</script>
+
 <template>
-  <div class="setup">
-    <h1>FO:TEN</h1>
-    <p>프론트엔드 프로젝트 세팅만 올라간 상태입니다. 화면은 이어서 붙입니다.</p>
+  <!-- 디자인이 375px 모바일 프레임이다. 넓은 화면에서는 가운데에 세운다.
+       페이지 전환 애니메이션은 두지 않는다 — 시안에 없고, 탭이 백그라운드일 때 transitionend 가
+       오지 않아 화면이 투명한 채로 멈추는 경우가 있었다. -->
+  <div class="phone" :lang="locale.htmlLang">
+    <router-view />
   </div>
 </template>
-
-<style scoped>
-.setup {
-  padding: 40px 20px;
-  font-family: system-ui, sans-serif;
-  color: #1c1917;
-}
-h1 {
-  font-size: 24px;
-  font-weight: 700;
-}
-p {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #78716c;
-}
-</style>
