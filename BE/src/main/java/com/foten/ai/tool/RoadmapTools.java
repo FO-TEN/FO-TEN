@@ -11,6 +11,7 @@ import com.foten.product.domain.CreatedRoadmap;
 import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.RateConditionAnswer;
 import com.foten.product.domain.RateConditionVO;
+import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
 import com.foten.product.service.RoadmapCommandService;
@@ -32,6 +33,8 @@ public class RoadmapTools implements ToolProvider{
     private static final ObjectMapper MAPPER = new ObjectMapper();
     // 화면이 되감을 때 그릴 카드의 종류. 값은 앱이 관리한다(chat_message.card_type).
     private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
+    // 전체 기간 동안 돈이 어떻게 쌓이는지 구간별 막대로 그리는 카드.
+    private static final String CARD_ROADMAP = "ROADMAP";
     // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     // 구간이 바뀌는 달에도 우대조건을 다시 받아 다음 구간 상품을 고른다.
@@ -131,7 +134,20 @@ public class RoadmapTools implements ToolProvider{
                         우대조건을 제출해 상품이 정해진 뒤에만 쓸 수 있습니다.
                         아직이면 getRoadmapStatus 로 어느 단계인지 먼저 확인하세요.
                         """,
-                        (arguments, context) -> describeComposition(context)));
+                        (arguments, context) -> describeComposition(context)),
+
+                ToolSpec.noArgs(
+                        "getRoadmapGraph",
+                        """
+                        로드맵 전체 기간 동안 돈이 어떻게 쌓이는지 알려줍니다.
+                        구간마다 적금·예금·현금성·이자가 얼마인지, 마지막에 원금과 예상 이자가
+                        얼마인지가 나옵니다. 지난 구간은 실제 값이고 앞으로의 구간은 지금 조건이
+                        이어진다고 보고 계산한 값입니다.
+                        "앞으로 어떻게 모으면 돼", "끝나면 얼마 모여", "전체 계획 보여줘" 처럼
+                        기간 전체를 묻는 질문에 씁니다. 이번 달 금액은 getRoadmapStatus 를 씁니다.
+                        상품이 정해진 뒤에만 쓸 수 있습니다. 읽기만 하므로 바로 부릅니다.
+                        """,
+                        (arguments, context) -> describeGraph(context)));
     }
 
     private String describeStatus(long memberId, RoadmapStatus s) {
@@ -466,14 +482,42 @@ public class RoadmapTools implements ToolProvider{
         return sb.toString();
     }
 
-    // 되감을 때 다시 계산하면 옛 대화에 새 구성이 붙는다. 그때 값을 그대로 남긴다.
-    private void addCard(ToolContext context, SegmentComposition composition) {
+    private String describeGraph(ToolContext context) {
+        RoadmapGraph graph;
         try {
-            context.cards().add(new ChatCard(CARD_RECOMMENDATION, MAPPER.writeValueAsString(composition)));
+            graph = roadmapQueryService.getGraph(context.memberId());
+        }
+        catch (IllegalStateException | ResourceNotFoundException e) {
+            return "아직 로드맵이나 상품이 정해지지 않아 전체 흐름을 그릴 수 없습니다.\n"
+                    + "getRoadmapStatus 로 어느 단계인지 확인해 안내하세요.\n";
+        }
+        addCard(context, CARD_ROADMAP, graph);
+
+        StringBuilder sb = new StringBuilder("[전체 로드맵]\n");
+        sb.append("총 기간: ").append(graph.totalMonths()).append("개월\n");
+        sb.append("구간 수: ").append(graph.segments().size()).append("개\n");
+        sb.append("끝났을 때 원금 합계: ").append(money(graph.finalAmount())).append("원\n");
+        sb.append("예상 이자 합계: ").append(money(graph.expectedInterestTotal())).append("원\n");
+        sb.append("보여주는 방법:\n");
+        sb.append("- 구간별 막대 그래프 카드가 함께 나갑니다. 구간마다 얼마인지는 읊지 마세요.\n");
+        sb.append("- 총 기간, 끝났을 때 원금, 예상 이자만 한두 문장으로 말하세요.\n");
+        sb.append("- 앞으로의 구간은 지금 조건이 이어진다고 본 계산이라고 한 번 덧붙이세요.\n");
+        sb.append("- 금액은 위 값 그대로 옮기고 더하거나 빼지 마세요.\n");
+        return sb.toString();
+    }
+
+    // 되감을 때 다시 계산하면 옛 대화에 새 값이 붙는다. 그때 값을 그대로 남긴다.
+    private void addCard(ToolContext context, SegmentComposition composition) {
+        addCard(context, CARD_RECOMMENDATION, composition);
+    }
+
+    private void addCard(ToolContext context, String type, Object payload) {
+        try {
+            context.cards().add(new ChatCard(type, MAPPER.writeValueAsString(payload)));
         }
         catch (Exception e) {
             // 카드를 못 만들어도 답변은 나가야 한다. 예외 메시지에 금액이 실려 종류만 남긴다.
-            log.warn("카드를 만들지 못했습니다. type={} ({})", CARD_RECOMMENDATION, e.getClass().getSimpleName());
+            log.warn("카드를 만들지 못했습니다. type={} ({})", type, e.getClass().getSimpleName());
         }
     }
 
