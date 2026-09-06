@@ -46,6 +46,7 @@
   "onboarding.entry": "Ngày nhập cảnh",
   "onboarding.return": "Ngày hết hạn cư trú",
   "onboarding.return_hint": "Ghi ở mặt sau thẻ đăng ký người nước ngoài",
+  "onboarding.locked": "Bạn đã bắt đầu tiết kiệm nên không thể thay đổi mục tiêu.",
   "onboarding.return_err": "Ngày hết hạn phải sau ngày nhập cảnh",
   "onboarding.days_left": "Còn {n} ngày đến khi về nước",
   "onboarding.income": "Lương tháng",

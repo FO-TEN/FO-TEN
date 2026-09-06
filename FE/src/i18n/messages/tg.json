@@ -46,6 +46,7 @@
   "onboarding.entry": "Санаи воридшавӣ",
   "onboarding.return": "Санаи анҷоми виза",
   "onboarding.return_hint": "Дар пушти шаҳодатномаи шаҳрванди хориҷӣ навишта шудааст",
+  "onboarding.locked": "Шумо пасандозро оғоз кардаед, бинобар ин ҳадафро иваз кардан мумкин нест.",
   "onboarding.return_err": "Санаи анҷом бояд баъд аз санаи воридшавӣ бошад",
   "onboarding.days_left": "То бозгашт ба ватан {n} рӯз",
   "onboarding.income": "Маоши моҳона",

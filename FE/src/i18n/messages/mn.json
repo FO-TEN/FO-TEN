@@ -46,6 +46,7 @@
   "onboarding.entry": "Ирсэн огноо",
   "onboarding.return": "Визийн дуусах огноо",
   "onboarding.return_hint": "Гадаад иргэний үнэмлэхийн ар талд бичигдсэн",
+  "onboarding.locked": "Та хуримтлал үүсгэж эхэлсэн тул зорилгоо өөрчлөх боломжгүй.",
   "onboarding.return_err": "Дуусах огноо ирсэн огнооноос хойш байх ёстой",
   "onboarding.days_left": "Эх орондоо буцахад {n} хоног",
   "onboarding.income": "Сарын цалин",

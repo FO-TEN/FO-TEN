@@ -46,6 +46,7 @@
   "onboarding.entry": "Petsa ng pagdating",
   "onboarding.return": "Pag-expire ng visa",
   "onboarding.return_hint": "Nasa likod ng Alien Registration Card",
+  "onboarding.locked": "Nagsimula ka nang mag-ipon, kaya hindi na mababago ang layunin.",
   "onboarding.return_err": "Dapat mas huli ang pag-expire sa petsa ng pagdating",
   "onboarding.days_left": "{n} araw bago umuwi",
   "onboarding.income": "Buwanang sahod",

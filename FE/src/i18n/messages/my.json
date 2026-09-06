@@ -46,6 +46,7 @@
   "onboarding.entry": "ဝင်ရောက်ရက်",
   "onboarding.return": "ဗီဇာသက်တမ်းကုန်ရက်",
   "onboarding.return_hint": "နိုင်ငံခြားသားမှတ်ပုံတင်ကတ်၏ နောက်ကျောတွင် ရေးထားသည်",
+  "onboarding.locked": "ငွေစုစတင်ပြီးဖြစ်၍ ပန်းတိုင်ကို ပြောင်းလို့မရပါ။",
   "onboarding.return_err": "သက်တမ်းကုန်ရက်သည် ဝင်ရောက်ရက်ထက် နောက်ကျရမည်",
   "onboarding.days_left": "အိမ်ပြန်ရန် {n} ရက်",
   "onboarding.income": "လစာ",

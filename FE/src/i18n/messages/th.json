@@ -46,6 +46,7 @@
   "onboarding.entry": "วันเข้าประเทศ",
   "onboarding.return": "วันหมดอายุการพำนัก",
   "onboarding.return_hint": "อยู่ด้านหลังบัตรต่างด้าว",
+  "onboarding.locked": "คุณเริ่มออมเงินแล้ว จึงไม่สามารถเปลี่ยนเป้าหมายได้",
   "onboarding.return_err": "วันหมดอายุต้องอยู่หลังวันเข้าประเทศ",
   "onboarding.days_left": "อีก {n} วันจะกลับบ้าน",
   "onboarding.income": "เงินเดือน",

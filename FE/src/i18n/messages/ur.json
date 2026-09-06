@@ -46,6 +46,7 @@
   "onboarding.entry": "آمد کی تاریخ",
   "onboarding.return": "ویزا ختم ہونے کی تاریخ",
   "onboarding.return_hint": "ایلین رجسٹریشن کارڈ کے پیچھے درج ہے",
+  "onboarding.locked": "آپ بچت شروع کر چکے ہیں، اس لیے ہدف تبدیل نہیں کیا جا سکتا۔",
   "onboarding.return_err": "ختم ہونے کی تاریخ آمد کے بعد ہونی چاہیے",
   "onboarding.days_left": "وطن واپسی میں {n} دن",
   "onboarding.income": "ماہانہ تنخواہ",

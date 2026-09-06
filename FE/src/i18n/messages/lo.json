@@ -46,6 +46,7 @@
   "onboarding.entry": "ວັນເຂົ້າປະເທດ",
   "onboarding.return": "ວັນໝົດອາຍຸວີຊາ",
   "onboarding.return_hint": "ຢູ່ດ້ານຫຼັງບັດຄົນຕ່າງດ້າວ",
+  "onboarding.locked": "ທ່ານໄດ້ເລີ່ມເກັບເງິນແລ້ວ ຈຶ່ງບໍ່ສາມາດປ່ຽນເປົ້າໝາຍໄດ້.",
   "onboarding.return_err": "ວັນໝົດອາຍຸຕ້ອງຢູ່ຫຼັງວັນເຂົ້າປະເທດ",
   "onboarding.days_left": "ອີກ {n} ວັນຈະກັບບ້ານ",
   "onboarding.income": "ເງິນເດືອນ",

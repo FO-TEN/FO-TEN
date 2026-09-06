@@ -46,6 +46,7 @@
   "onboarding.entry": "प्रवेश मिति",
   "onboarding.return": "भिसा सकिने मिति",
   "onboarding.return_hint": "विदेशी पंजीकरण कार्डको पछाडि लेखिएको छ",
+  "onboarding.locked": "तपाईंले बचत सुरु गरिसक्नुभयो, त्यसैले लक्ष्य परिवर्तन गर्न मिल्दैन।",
   "onboarding.return_err": "भिसा सकिने मिति प्रवेश मितिपछि हुनुपर्छ",
   "onboarding.days_left": "घर फर्कन {n} दिन बाँकी",
   "onboarding.income": "मासिक तलब",

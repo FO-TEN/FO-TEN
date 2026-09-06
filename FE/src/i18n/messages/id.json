@@ -46,6 +46,7 @@
   "onboarding.entry": "Tanggal masuk",
   "onboarding.return": "Tanggal habis izin tinggal",
   "onboarding.return_hint": "Tertulis di belakang Alien Registration Card",
+  "onboarding.locked": "Anda sudah mulai menabung, jadi target tidak bisa diubah.",
   "onboarding.return_err": "Tanggal habis harus setelah tanggal masuk",
   "onboarding.days_left": "{n} hari lagi pulang",
   "onboarding.income": "Gaji bulanan",

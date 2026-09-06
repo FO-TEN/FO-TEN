@@ -46,6 +46,7 @@
   "onboarding.entry": "Kirish sanasi",
   "onboarding.return": "Viza tugash sanasi",
   "onboarding.return_hint": "Chet el fuqarosi guvohnomasining orqasida yozilgan",
+  "onboarding.locked": "Siz jamgʻarishni boshlagansiz, shuning uchun maqsadni oʻzgartirib boʻlmaydi.",
   "onboarding.return_err": "Tugash sanasi kirish sanasidan keyin boʻlishi kerak",
   "onboarding.days_left": "Vatanga qaytishga {n} kun",
   "onboarding.income": "Oylik maosh",
