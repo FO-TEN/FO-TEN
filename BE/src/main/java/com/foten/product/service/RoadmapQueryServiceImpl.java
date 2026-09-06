@@ -23,8 +23,11 @@ import com.foten.product.domain.SavingsRoadmapVO;
 import com.foten.product.domain.SegmentComposition;
 import com.foten.product.domain.SegmentDetail;
 import com.foten.product.domain.MemberRateConditionResponseVO;
+import com.foten.product.domain.MonthlyPlanSummary;
+import com.foten.product.domain.MonthlySavingAllocationVO;
 import com.foten.product.mapper.AssetSnapshotMapper;
 import com.foten.product.mapper.MemberRateConditionResponseMapper;
+import com.foten.product.mapper.MonthlySavingAllocationMapper;
 import com.foten.product.mapper.MonthlySavingPlanMapper;
 import com.foten.product.mapper.ProductMapper;
 import com.foten.product.mapper.ProductPreferentialRateMapper;
@@ -62,6 +65,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     private final SavingsRoadmapMapper savingsRoadmapMapper;
     private final RoadmapSegmentMapper roadmapSegmentMapper;
     private final MonthlySavingPlanMapper monthlySavingPlanMapper;
+    private final MonthlySavingAllocationMapper monthlySavingAllocationMapper;
     private final AssetSnapshotMapper assetSnapshotMapper;
     private final ProductSubscriptionMapper productSubscriptionMapper;
     private final ProductMapper productMapper;
@@ -530,5 +534,47 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         bars.add(new SegmentDetail.Bar("다음 달부터", "FUTURE", futureAmount));
 
         return new SegmentDetail(status.currentSegmentNo(), currentPlan.getDeficitChoice(), status.baselineAmount(), bars);
+    }
+
+    @Override
+    public MonthlyPlanSummary getCurrentMonthlyPlan(long memberId) {
+        // 새 계산 없음 — 4-4/4-6에서 이미 확정해둔 값을 그대로 보여주기만 한다 (§4-9).
+        SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+        LocalDate thisMonth = YearMonth.now().atDay(1);
+        MonthlySavingPlanVO plan = monthlySavingPlanMapper
+                .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
+                .orElseThrow(() -> new IllegalStateException(
+                        "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요). memberId=" + memberId));
+        RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
+
+        Map<Long, ProductSubscriptionVO> subscriptionById = productSubscriptionMapper.selectBySegment(segment.getSegmentId())
+                .stream()
+                .collect(Collectors.toMap(ProductSubscriptionVO::getProductSubscriptionId, s -> s));
+        List<MonthlySavingAllocationVO> allocations = monthlySavingAllocationMapper.selectByPlanId(plan.getMonthlySavingPlanId());
+        Map<Long, ProductVO> productById = allocations.isEmpty()
+                ? Map.of()
+                : productMapper.selectByIds(allocations.stream()
+                        .map(a -> subscriptionById.get(a.getProductSubscriptionId()).getProductId())
+                        .toList())
+                        .stream()
+                        .collect(Collectors.toMap(ProductVO::getProductId, p -> p));
+
+        List<MonthlyPlanSummary.AllocationSummary> allocationSummaries = allocations.stream()
+                .map(a -> {
+                    ProductSubscriptionVO subscription = subscriptionById.get(a.getProductSubscriptionId());
+                    return new MonthlyPlanSummary.AllocationSummary(
+                            productById.get(subscription.getProductId()).getProductName(),
+                            subscription.getExpectedAppliedRate(),
+                            a.getAllocatedAmount(),
+                            subscription.getMonthlyPaymentLimitSnapshot());
+                })
+                .toList();
+
+        return new MonthlyPlanSummary(
+                plan.getPlanMonth(), plan.getMonthlySavingAmount(), allocationSummaries,
+                plan.getRecommendedCashSaving(), plan.getMonthlySavingAmount());
     }
 }

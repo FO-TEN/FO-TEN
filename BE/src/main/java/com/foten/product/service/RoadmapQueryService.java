@@ -1,5 +1,6 @@
 package com.foten.product.service;
 
+import com.foten.product.domain.MonthlyPlanSummary;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
@@ -23,4 +24,8 @@ public interface RoadmapQueryService {
     // "1년차 자세히" 확대 카드(§4-8) — 지난달(실적)/이번달(확정 계획)/다음달부터(구성 기준액)
     // 세 막대. 이번 달 저축 방식이 아직 확정(4-6) 안 됐으면 볼 의미가 없어 예외를 던진다.
     SegmentDetail getSegmentDetail(long memberId);
+
+    // "이번 달 배분 계획"(§4-9) — 이미 확정된 monthly_saving_plan/allocation을 그대로
+    // 보여주기만 한다. 새 계산 없음, 실제 납입 여부도 구분하지 않는다.
+    MonthlyPlanSummary getCurrentMonthlyPlan(long memberId);
 }
