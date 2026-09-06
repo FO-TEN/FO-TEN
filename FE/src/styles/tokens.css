@@ -1,0 +1,69 @@
+/*
+ * 디자인 토큰 — Figma "초안" 페이지에서 실제로 쓰인 값만 옮겼다.
+ * 이름은 Figma 변수명(surface/primary, border/strong …)을 따른다.
+ */
+:root {
+  /* 브랜드 */
+  --surface-primary: #ffbc00;      /* 옐로 버튼, 진행바, 그래프 강조 */
+  --on-primary: #60584c;           /* 옐로 위 브라운 글자 */
+  --yellow-50: #fff8e1;            /* 안내 박스, 선택된 메뉴 */
+  --yellow-100: #fff0b3;           /* 대시보드 히어로 카드, CTA */
+  --yellow-link: #b38300;          /* "수정" 텍스트 링크 */
+
+  /* 그레이 (Stone 계열) */
+  --gray-900: #1c1917;
+  --gray-850: #26241f;             /* 대시보드 카드 제목 (조금 더 따뜻한 검정) */
+  --gray-700: #57534e;
+  --gray-600: #6b6459;
+  --gray-500: #78716c;
+  --gray-400: #a8a29e;
+  --gray-300: #d6d3d1;
+  --gray-200: #e7e5e4;
+  --gray-100: #f5f5f4;
+  --gray-50: #fafaf9;
+  --switch-bg: #f0efed;            /* LangSwitch 트랙 */
+  --chat-bg: #f3f2f0;              /* 대화 영역 배경 */
+  --dash-bg: #f4f4f5;              /* 대시보드 배경 */
+
+  /* 상태 */
+  --green: #1e8e5a;
+  --green-bg: #e6f4ed;
+  --orange: #d97b00;
+  --orange-2: #e0851e;
+  --orange-bg: #fdf1e3;
+  --red: #d64545;
+  --red-bg: #fbe9e9;
+
+  /* 카테고리 아이콘 배경 */
+  --cat-food: #f5a24a;
+  --cat-coffee: #e8607a;
+  --cat-bag: #9a6fe0;
+
+  /* 표면 */
+  --surface-card: #ffffff;
+  --border-strong: #d6d3d1;
+  --border-soft: #e7e5e4;
+
+  /* 반경 */
+  --r-input: 8px;
+  --r-button: 12px;
+  --r-card: 12px;
+  --r-card-lg: 24px;
+  --r-cta: 16px;
+  --r-pill: 999px;
+
+  /* 그림자 */
+  --shadow-hero: 0 6px 18px rgba(140, 115, 26, 0.16);
+  --shadow-menu: 0 8px 24px rgba(28, 26, 23, 0.12);
+  --shadow-seg: 0 1px 3px rgba(28, 26, 23, 0.1);
+
+  /* 글꼴 */
+  --font-body: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', Roboto, 'Noto Sans KR', sans-serif;
+  --font-num: 'Plus Jakarta Sans', var(--font-body);
+
+  /* 레이아웃 (디자인 프레임 375 기준) */
+  --frame-w: 375px;
+  --header-h: 56px;
+  --nav-h: 62px;
+  --page-x: 20px;
+}
