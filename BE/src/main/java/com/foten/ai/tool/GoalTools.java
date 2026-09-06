@@ -33,7 +33,9 @@ public class GoalTools implements ToolProvider{
         StringBuilder sb = new StringBuilder();
 
         sb.append("[목표 진단]\n");
-        sb.append("판정: ").append(r.judgeResult()).append("\n");
+        sb.append("판정: ").append(r.judgeResult())
+                .append(" - 지금 소비 속도를 기준으로 한 진단입니다. 사용자가 세운 계획은 없으므로")
+                .append(" '계획대로' 라는 표현을 쓰지 말고 '지금처럼 쓰면' 이라고 말하세요.\n");
         sb.append("이번 달 목표 저축액: ").append(money(r.monthlyBaseline())).append("원").append("\n");
         sb.append("지금 소비 속도로 예상되는 저축액: ")
                 .append(money(r.currentExpectedSaving())).append("원").append("\n");
