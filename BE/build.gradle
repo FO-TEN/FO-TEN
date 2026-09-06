@@ -47,6 +47,9 @@ dependencies {
     // 로깅 (SLF4J + Logback)
     implementation 'ch.qos.logback:logback-classic:1.5.7'
 
+    // BCrypt 검증. Spring Security 전체가 아니라 crypto 모듈 하나만 쓴다
+    implementation 'org.springframework.security:spring-security-crypto:5.8.14'
+
     // Tomcat 9 provides the Servlet 4.0 (javax.servlet) API at runtime.
     // Do NOT use jakarta.servlet-api here — Tomcat 9 is javax-based; jakarta
     // compiles fine but the app will not start at runtime.
