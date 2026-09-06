@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.member.mapper.MemberMapper">
+
+    <select id="findByLoginId" resultType="com.foten.member.domain.Member">
+        SELECT member_id, login_id, password, name, nationality, language_code, created_at
+        FROM member
+        WHERE login_id = #{loginId}
+    </select>
+
+    <select id="existsByLoginId" resultType="boolean">
+        SELECT EXISTS(SELECT 1 FROM member WHERE login_id = #{loginId})
+    </select>
+
+    <insert id="insert" parameterType="com.foten.member.domain.Member"
+            useGeneratedKeys="true" keyProperty="memberId">
+        INSERT INTO member (login_id, password, name, nationality, language_code)
+        VALUES (#{loginId}, #{password}, #{name}, #{nationality}, #{languageCode})
+    </insert>
+
+</mapper>

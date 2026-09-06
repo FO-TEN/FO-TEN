@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.foten.product.mapper.RoadmapSegmentMapper">
+
+    <select id="selectActiveByRoadmapId" resultType="com.foten.product.domain.RoadmapSegmentVO">
+        SELECT segment_id,
+               savings_roadmap_id,
+               segment_no,
+               planned_months,
+               start_date,
+               end_date,
+               is_last_segment,
+               status,
+               created_at
+        FROM roadmap_segment
+        WHERE savings_roadmap_id = #{savingsRoadmapId}
+          AND status = 'ACTIVE'
+    </select>
+
+</mapper>
