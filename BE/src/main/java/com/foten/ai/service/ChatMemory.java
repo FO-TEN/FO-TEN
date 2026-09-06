@@ -1,6 +1,7 @@
 package com.foten.ai.service;
 
 import com.foten.ai.domain.ChatMessageVO;
+import com.foten.ai.dto.ChatCard;
 
 import java.util.List;
 
@@ -14,7 +15,9 @@ public interface ChatMemory {
 
     void addUserMessage(long memberId, String contentKo, String contentLocal, String languageCode);
 
-    void addAssistantMessage(long memberId, String contentKo, String contentLocal, String languageCode);
+    // card 는 답변에 딸린 그림이다. 없으면 null.
+    void addAssistantMessage(long memberId, String contentKo, String contentLocal,
+                             String languageCode, ChatCard card);
 
     void clear(long memberId);  // 테스트 관리용
 }

@@ -15,17 +15,21 @@
 
     <insert id="insert" parameterType="com.foten.ai.domain.ChatMessageVO"
             useGeneratedKeys="true" keyProperty="chatMessageId">
-        INSERT INTO chat_message (member_id, message_role, content_ko, content_local, language_code)
-        VALUES (#{memberId}, #{messageRole}, #{contentKo}, #{contentLocal}, #{languageCode})
+        INSERT INTO chat_message (member_id, message_role, content_ko, content_local, language_code,
+                                  card_type, card_payload)
+        VALUES (#{memberId}, #{messageRole}, #{contentKo}, #{contentLocal}, #{languageCode},
+                #{cardType}, #{cardPayload})
     </insert>
 
     <delete id="deleteByMemberId">
         DELETE FROM chat_message WHERE member_id = #{memberId}
     </delete>
 
+    <!-- 이력 조회용. findRecent 와 달리 카드를 함께 읽는다.
+         findRecent 는 LLM 에게 주는 대화 창이라 카드를 넣으면 모델이 툴 데이터를 제 발화로 읽는다. -->
     <select id="findBefore" resultType="com.foten.ai.domain.ChatMessageVO">
         SELECT chat_message_id, member_id, message_role,
-        content_ko, content_local, language_code, created_at
+        content_ko, content_local, language_code, card_type, card_payload, created_at
         FROM chat_message
         WHERE member_id = #{memberId}
         <if test="before != null">

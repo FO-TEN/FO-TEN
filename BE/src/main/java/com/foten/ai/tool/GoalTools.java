@@ -1,5 +1,6 @@
 package com.foten.ai.tool;
 
+import com.foten.goal.domain.CategorySavingPotential;
 import com.foten.goal.dto.GoalDiagnosisResponse;
 import com.foten.goal.service.GoalDiagnosisService;
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,11 @@ public class GoalTools implements ToolProvider{
                 """
                 회원의 목표 저축 달성 가능성을 진단합니다.
                 목표 달성 여부, 이번 달 필요한 저축액, 지금까지 밀린 금액,
-                줄이면 좋은 소비 카테고리를 알려줍니다.
+                목표를 세운 지 몇 개월째인지, 그동안 모았어야 할 금액과 실제로 모은 금액,
+                소비 항목마다 한 달에 얼마까지 줄일 수 있는지를 알려줍니다.
                 사용자가 목표 달성 여부·저축 현황·절약 방법을 물을 때 사용합니다.
+                "식비는 얼마나 줄일 수 있어?" 처럼 절감 여력을 묻는 질문도 이 도구로 답합니다.
+                이미 쓴 금액을 묻는 질문은 getSpendingSummary 를 씁니다.
                 """,
                 (arguments, context) -> describe(goalDiagnosisService.diagnose(context.memberId()))));
     }
@@ -62,6 +66,10 @@ public class GoalTools implements ToolProvider{
 
     // 이번 달이 아니라 목표를 세운 뒤 누적이다. "밀린 금액" 만으로는 이번 달 얘기로 읽힌다.
     private void appendShortfall(StringBuilder sb, GoalDiagnosisResponse r) {
+        sb.append("목표를 세운 지 ").append(r.elapsedMonths()).append("개월째\n");
+        sb.append("그동안 모았어야 할 금액 (누적): ").append(money(r.cumulativeTarget())).append("원\n");
+        sb.append("실제로 모은 금액 (누적): ").append(money(r.actualCumulativeSavings())).append("원\n");
+
         if (isPositive(r.cumulativeShortfall())) {
             sb.append("계획보다 덜 모인 금액 (누적): ")
                     .append(money(r.cumulativeShortfall())).append("원").append("\n");
@@ -89,7 +97,16 @@ public class GoalTools implements ToolProvider{
         // 판정과 무관하게 항상 알려준다. "불가능" 일 때 특히 필요한 값이다.
         sb.append("모든 항목을 줄였을 때 예상 저축액: ")
                 .append(money(r.maxExpectedSaving())).append("원").append("\n");
-        sb.append("항목별 절감 가능액은 이 결과에 없습니다. 다른 항목을 물으면 아직 알려드릴 수 없다고 답하세요.\n");
+
+        if (r.savingByCategory().isEmpty()) {
+            sb.append("항목별로 더 줄일 여력은 없습니다.\n");
+        } else {
+            sb.append("항목별 절감 여력 (줄일 수 있는 금액이 큰 순):\n");
+            for (CategorySavingPotential c : r.savingByCategory()) {
+                sb.append("- ").append(c.category()).append(": 한 달에 ")
+                        .append(money(c.amount())).append("원까지 줄일 수 있음\n");
+            }
+        }
     }
 
     private boolean isPositive(BigDecimal value) {
@@ -97,5 +114,8 @@ public class GoalTools implements ToolProvider{
     }
     private String money(BigDecimal value) {
         return value == null ? "0" : MONEY.format(value);
+    }
+    private String money(int value) {
+        return MONEY.format(value);
     }
 }

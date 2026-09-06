@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.foten.common.ResourceNotFoundException;
 import com.foten.goal.domain.CategoryMonthlySpending;
+import com.foten.goal.domain.CategorySavingPotential;
 import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.FinancialInfo;
 import com.foten.goal.domain.Goal;
@@ -116,7 +117,7 @@ class GoalDiagnosisServiceImplTest {
         when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
                 .thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(new SavingCalculationOutput(1_010_000, 1_057_500, null, 0, "여유있음", -10_000));
+                .thenReturn(new SavingCalculationOutput(1_010_000, 1_057_500, null, 0, "여유있음", -10_000, List.of()));
 
         GoalDiagnosisResponse response = service.diagnose(MEMBER_ID);
 
@@ -128,6 +129,26 @@ class GoalDiagnosisServiceImplTest {
     }
 
     @Test
+    void diagnose_항목별_절감_여력은_SavingCalculationOutput_값을_그대로_반환한다() {
+        when(goalMapper.selectByMemberId(MEMBER_ID))
+                .thenReturn(Optional.of(목표(BigDecimal.valueOf(1_000_000), BigDecimal.valueOf(1_200_000), monthsAgo(3))));
+        when(financialInfoMapper.selectByMemberId(MEMBER_ID)).thenReturn(Optional.of(재무정보()));
+        when(spendingMapper.findCategoryMonthlySpending(eq(MEMBER_ID), anyInt())).thenReturn(List.of());
+        when(spendingMapper.findCurrentTotalSpent(MEMBER_ID)).thenReturn(BigDecimal.ZERO);
+        when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), any())).thenReturn(BigDecimal.ZERO);
+        when(transactionSummaryMapper.findBalanceAsOf(eq(MEMBER_ID), any())).thenReturn(Optional.empty());
+        when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
+                .thenReturn(BigDecimal.ZERO);
+        when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
+                .thenReturn(new SavingCalculationOutput(0, 0, "식비", 47_500, "노력하면 가능", 0,
+                        List.of(new CategorySavingPotential("식비", 47_500))));
+
+        GoalDiagnosisResponse response = service.diagnose(MEMBER_ID);
+
+        assertEquals(List.of(new CategorySavingPotential("식비", 47_500)), response.savingByCategory());
+    }
+
+    @Test
     void diagnose_누적저축실적은_적금납입누계와_현금성저축액의_합이다() {
         LocalDateTime goalCreatedAt = monthsAgo(3); // 경과개월 = 3
         when(goalMapper.selectByMemberId(MEMBER_ID))
@@ -136,7 +157,7 @@ class GoalDiagnosisServiceImplTest {
         when(spendingMapper.findCategoryMonthlySpending(eq(MEMBER_ID), anyInt())).thenReturn(List.of());
         when(spendingMapper.findCurrentTotalSpent(MEMBER_ID)).thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0));
+                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0, List.of()));
 
         // 적금납입누계 500,000 + 현금성저축액(직전월말잔액 2,000,000 - 평균지출 400,000 = 1,600,000) = 2,100,000
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), eq(goalCreatedAt)))
@@ -153,6 +174,9 @@ class GoalDiagnosisServiceImplTest {
         // achievementRate = 2,100,000 / 3,000,000 x 100 = 70.0
         assertEquals(0, BigDecimal.valueOf(900_000).compareTo(response.cumulativeShortfall()));
         assertEquals(0, new BigDecimal("70.0").compareTo(response.achievementRate()));
+        assertEquals(3, response.elapsedMonths());
+        assertEquals(0, BigDecimal.valueOf(3_000_000).compareTo(response.cumulativeTarget()));
+        assertEquals(0, BigDecimal.valueOf(2_100_000).compareTo(response.actualCumulativeSavings()));
     }
 
     @Test
@@ -164,7 +188,7 @@ class GoalDiagnosisServiceImplTest {
         when(spendingMapper.findCategoryMonthlySpending(eq(MEMBER_ID), anyInt())).thenReturn(List.of());
         when(spendingMapper.findCurrentTotalSpent(MEMBER_ID)).thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0));
+                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0, List.of()));
 
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), eq(goalCreatedAt)))
                 .thenReturn(BigDecimal.ZERO);
@@ -190,7 +214,7 @@ class GoalDiagnosisServiceImplTest {
         when(spendingMapper.findCategoryMonthlySpending(eq(MEMBER_ID), anyInt())).thenReturn(List.of());
         when(spendingMapper.findCurrentTotalSpent(MEMBER_ID)).thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0));
+                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0, List.of()));
 
         when(transactionSummaryMapper.findCumulativeSavingsPayment(eq(MEMBER_ID), eq(goalCreatedAt)))
                 .thenReturn(BigDecimal.ZERO);
@@ -215,7 +239,7 @@ class GoalDiagnosisServiceImplTest {
         when(transactionSummaryMapper.findAverageMonthlyExpense(eq(MEMBER_ID), any(), any(), eq(3)))
                 .thenReturn(BigDecimal.ZERO);
         when(savingCalculationService.diagnose(anyInt(), any(), anyInt(), anyInt(), anyInt(), anyInt()))
-                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0));
+                .thenReturn(new SavingCalculationOutput(0, 0, null, 0, "불가능", 0, List.of()));
 
         YearMonth currentMonth = YearMonth.now();
         List<CategoryMonthlySpending> rows = List.of(

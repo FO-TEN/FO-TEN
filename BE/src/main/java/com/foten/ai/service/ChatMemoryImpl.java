@@ -1,6 +1,7 @@
 package com.foten.ai.service;
 
 import com.foten.ai.domain.ChatMessageVO;
+import com.foten.ai.dto.ChatCard;
 import com.foten.ai.mapper.ChatMessageMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -45,13 +46,16 @@ public class ChatMemoryImpl implements ChatMemory{
     }
 
     @Override
-    public void addAssistantMessage(long memberId, String contentKo, String contentLocal, String languageCode) {
+    public void addAssistantMessage(long memberId, String contentKo, String contentLocal,
+                                    String languageCode, ChatCard card) {
         chatMessageMapper.insert(ChatMessageVO.builder()
                 .memberId(memberId)
                 .messageRole(ROLE_ASSISTANT)
                 .contentKo(contentKo)
                 .contentLocal(contentLocal)
                 .languageCode(languageCode)
+                .cardType(card == null ? null : card.type())
+                .cardPayload(card == null ? null : card.payload())
                 .build());
     }
 

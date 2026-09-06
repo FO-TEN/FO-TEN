@@ -1,5 +1,6 @@
 package com.foten.goal.service;
 
+import com.foten.goal.domain.CategorySavingPotential;
 import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.SavingCalculationOutput;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,22 @@ class SavingCalculationServiceImplTest {
         return new CategorySpendingInput(
                 "식비", 90000, 15, 30,
                 List.of(100000, 95000, 80000, 120000, 90000, 85000),
+                List.of(30, 30, 30, 30, 30, 30));
+    }
+
+    // calcExpectedRemaining=150000, calcAdjustedRemainingSafe=min(150000,90000)=90000 → 절감여력 60000원
+    private static CategorySpendingInput 쇼핑() {
+        return new CategorySpendingInput(
+                "쇼핑", 150000, 15, 30,
+                List.of(150000, 180000, 200000, 210000, 220000, 230000),
+                List.of(30, 30, 30, 30, 30, 30));
+    }
+
+    // calcExpectedRemaining=90000, calcAdjustedRemainingSafe=min(90000,100000)=90000 → 절감여력 0원
+    private static CategorySpendingInput 교통() {
+        return new CategorySpendingInput(
+                "교통", 90000, 15, 30,
+                List.of(150000, 200000, 210000, 220000, 230000, 240000),
                 List.of(30, 30, 30, 30, 30, 30));
     }
 
@@ -89,6 +106,23 @@ class SavingCalculationServiceImplTest {
         int result = service.calcExpectedRemaining(c);
 
         assertEquals(85500, result);
+    }
+
+    @Test
+    void savingByCategory_절감여력이_0이하인_항목은_목록에서_제외된다() {
+        List<CategorySavingPotential> result = service.savingByCategory(List.of(식비(), 교통()));
+
+        assertEquals(1, result.size());
+        assertEquals("식비", result.get(0).category());
+    }
+
+    @Test
+    void savingByCategory_절감여력이_큰_순으로_내림차순_정렬된다() {
+        List<CategorySavingPotential> result = service.savingByCategory(List.of(식비(), 쇼핑()));
+
+        assertEquals(
+                List.of(new CategorySavingPotential("쇼핑", 60000), new CategorySavingPotential("식비", 47500)),
+                result);
     }
 
     @Test

@@ -42,6 +42,30 @@ public record ToolSpec(
         return new ToolSpec(name, description, parameters, executor);
     }
 
+    // 문자열 배열 인자를 받는 툴
+    public static ToolSpec stringList(String name, String description,
+                                      String argument, String argumentDescription,
+                                      BiFunction<String, ToolContext, String> executor) {
+        Map<String, Object> itemSchema = new LinkedHashMap<>();
+        itemSchema.put("type", "string");
+
+        Map<String, Object> argumentSchema = new LinkedHashMap<>();
+        argumentSchema.put("type", "array");
+        argumentSchema.put("items", itemSchema);
+        argumentSchema.put("description", argumentDescription);
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put(argument, argumentSchema);
+
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", properties);
+        parameters.put("required", List.of(argument));
+        parameters.put("additionalProperties", false);
+
+        return new ToolSpec(name, description, parameters, executor);
+    }
+
     public LlmTool toLlmTool() {
         return LlmTool.of(name, description, parameters);
     }

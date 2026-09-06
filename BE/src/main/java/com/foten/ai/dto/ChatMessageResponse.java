@@ -10,6 +10,7 @@ public record ChatMessageResponse (
         String contentKo,
         String contentLocal,
         String languageCode,
+        ChatCard card,
         LocalDateTime createdAt
 ){
     public static ChatMessageResponse from(ChatMessageVO vo) {
@@ -19,6 +20,7 @@ public record ChatMessageResponse (
                 vo.getContentKo(),
                 vo.getContentLocal(),
                 vo.getLanguageCode(),
+                ChatCard.of(vo.getCardType(), vo.getCardPayload()),
                 vo.getCreatedAt()
         );
     }
