@@ -77,7 +77,11 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
                 BigDecimal.valueOf(result.currentExpectedSaving()),
                 BigDecimal.valueOf(result.maxExpectedSaving()),
                 result.topSavingCategory(),
-                BigDecimal.valueOf(result.topSavingAmount()));
+                BigDecimal.valueOf(result.topSavingAmount()),
+                elapsedMonths,
+                cumulativeTarget,
+                actualCumulativeSavings,
+                result.savingByCategory());
     }
 
     // goal 생성 시점(목표기준액 스냅샷 시점)부터 오늘까지 경과한 개월 수. 최소 1개월.
