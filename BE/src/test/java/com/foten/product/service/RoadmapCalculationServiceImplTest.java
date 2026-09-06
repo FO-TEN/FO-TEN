@@ -7,9 +7,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.FirstSegmentPlan;
 import com.foten.product.domain.ProductAllocationCandidate;
+import com.foten.product.domain.RatedDepositCandidate;
+import com.foten.product.domain.SavingsPaymentRecord;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 class RoadmapCalculationServiceImplTest {
@@ -162,5 +167,72 @@ class RoadmapCalculationServiceImplTest {
 
         assertTrue(plan.allocations().isEmpty());
         assertEquals(BigDecimal.valueOf(500_000), plan.recommendedCashSaving());
+    }
+
+    @Test
+    void calculateDepositInterest_원금_곱하기_금리_곱하기_예치개월_나누기_12이다() {
+        // 600만원, 2.25%, 10개월 → 600만 × 2.25% × 10/12 = 112,500원
+        BigDecimal result = service.calculateDepositInterest(
+                BigDecimal.valueOf(6_000_000), BigDecimal.valueOf(2.25), 10);
+
+        assertEquals(0, BigDecimal.valueOf(112_500).compareTo(result));
+    }
+
+    @Test
+    void calculateSavingsInterest_선납이연법으로_회차별_잔여개월을_곱해_합산한다() {
+        // lan01 시드와 동일한 예시: 매달 50만원씩 12회, 5.00%, 만기까지 잔여개월 12..1
+        // = 50만 × 5% × (12+11+...+1)/12 = 50만 × 0.05 × 6.5 = 162,500원
+        LocalDate maturityDate = LocalDate.of(2026, 9, 5);
+        List<SavingsPaymentRecord> payments = new ArrayList<>();
+        for (int cycle = 0; cycle < 12; cycle++) {
+            payments.add(new SavingsPaymentRecord(
+                    BigDecimal.valueOf(500_000),
+                    LocalDateTime.of(2025, 9, 5, 10, 0).plusMonths(cycle)));
+        }
+
+        BigDecimal result = service.calculateSavingsInterest(payments, BigDecimal.valueOf(5.0), maturityDate);
+
+        assertEquals(0, BigDecimal.valueOf(162_500).compareTo(result));
+    }
+
+    @Test
+    void calculateAfterTaxInterest_이자소득세_15_4퍼센트를_뗀다() {
+        BigDecimal result = service.calculateAfterTaxInterest(BigDecimal.valueOf(162_500));
+
+        assertEquals(0, BigDecimal.valueOf(137_475).compareTo(result));
+    }
+
+    @Test
+    void selectDeposit_정렬순서대로_최소가입금액을_넘는_첫_후보를_고른다() {
+        List<RatedDepositCandidate> candidates = List.of(
+                new RatedDepositCandidate(1L, BigDecimal.valueOf(3.0), BigDecimal.valueOf(1_000_000)),
+                new RatedDepositCandidate(2L, BigDecimal.valueOf(2.25), BigDecimal.valueOf(1_000_000)));
+
+        Optional<RatedDepositCandidate> result = service.selectDeposit(candidates, BigDecimal.valueOf(6_162_500));
+
+        assertTrue(result.isPresent());
+        assertEquals(1L, result.get().productId());
+    }
+
+    @Test
+    void selectDeposit_최고금리_후보가_최소가입금액_미달이면_다음_후보를_고른다() {
+        List<RatedDepositCandidate> candidates = List.of(
+                new RatedDepositCandidate(1L, BigDecimal.valueOf(3.0), BigDecimal.valueOf(10_000_000)),
+                new RatedDepositCandidate(2L, BigDecimal.valueOf(2.25), BigDecimal.valueOf(1_000_000)));
+
+        Optional<RatedDepositCandidate> result = service.selectDeposit(candidates, BigDecimal.valueOf(6_162_500));
+
+        assertTrue(result.isPresent());
+        assertEquals(2L, result.get().productId());
+    }
+
+    @Test
+    void selectDeposit_모든_후보의_최소가입금액에_못_미치면_비어있다() {
+        List<RatedDepositCandidate> candidates = List.of(
+                new RatedDepositCandidate(1L, BigDecimal.valueOf(3.0), BigDecimal.valueOf(1_000_000)));
+
+        Optional<RatedDepositCandidate> result = service.selectDeposit(candidates, BigDecimal.valueOf(500_000));
+
+        assertFalse(result.isPresent());
     }
 }

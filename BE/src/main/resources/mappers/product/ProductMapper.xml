@@ -18,6 +18,19 @@
           AND (pr.max_term IS NULL OR pr.max_term &gt;= #{termMonths})
     </select>
 
+    <select id="selectDepositCandidates" resultType="com.foten.product.domain.DepositRateCandidate">
+        SELECT p.product_id,
+               p.product_name,
+               p.max_rate,
+               pr.base_rate,
+               p.min_subscription_amount
+        FROM product p
+        JOIN product_rate pr ON pr.product_id = p.product_id
+        WHERE p.product_type = 'DEPOSIT'
+          AND pr.min_term &lt;= #{termMonths}
+          AND (pr.max_term IS NULL OR pr.max_term &gt;= #{termMonths})
+    </select>
+
     <select id="selectByIds" resultType="com.foten.product.domain.ProductVO">
         SELECT product_id,
                product_name,

@@ -3,9 +3,12 @@ package com.foten.product.service;
 import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.FirstSegmentPlan;
 import com.foten.product.domain.ProductAllocationCandidate;
+import com.foten.product.domain.RatedDepositCandidate;
+import com.foten.product.domain.SavingsPaymentRecord;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 // 로드맵 도메인의 순수 계산 (DB 접근 없음, 단위테스트 대상). 로직 v3 §2 공식을 그대로 옮긴다.
 public interface RoadmapCalculationService {
@@ -52,4 +55,20 @@ public interface RoadmapCalculationService {
     // "마지막 구간이라 상품을 1개만 쓴다"는 규칙은 없다 — 후보 자체가 그 구간 기간을 커버하는
     // 상품만 걸러져 나온 결과일 뿐이라 이 메서드는 구간 종류를 몰라도 된다.
     AllocationPlan allocate(List<ProductAllocationCandidate> candidates, BigDecimal targetAmount);
+
+    // 예금 만기 이자 = 원금 × 연이율 × (예치개월수 ÷ 12) (이자_계산식_결정.md)
+    BigDecimal calculateDepositInterest(BigDecimal principal, BigDecimal rate, int termMonths);
+
+    // 적금 만기 이자 "선납이연법" = Σ(각 회차 납입액 × 연이율 × (그 납입월부터 만기월까지 남은 개월수 ÷ 12))
+    // (이자_계산식_결정.md). 잔여개월은 납입일·만기일의 달력월 차이로 셈한다(일 단위 아님).
+    BigDecimal calculateSavingsInterest(List<SavingsPaymentRecord> payments, BigDecimal rate, LocalDate maturityDate);
+
+    // 이자소득세(15.4%) 원천징수 후 금액 — DB엔 항상 세전 저장, API 응답에 보여줄 때만 이 값을 쓴다.
+    BigDecimal calculateAfterTaxInterest(BigDecimal preTaxInterest);
+
+    // 새 구간에 개설할 예금 선택 (§6-2~6-4) — candidates 는 appliedRate 내림차순 정렬이 전제.
+    // 정렬 순서대로 훑어 minSubscriptionAmount ≤ lumpSum 인 첫 번째(=최고금리 중 가입 가능한 것)를
+    // 고른다. 목돈이 모든 후보의 최소가입금액에 못 미치면(또는 후보가 없으면) empty — 이 경우
+    // 예금을 열지 않고 목돈 전액을 현금성으로 이월한다.
+    Optional<RatedDepositCandidate> selectDeposit(List<RatedDepositCandidate> candidates, BigDecimal lumpSum);
 }

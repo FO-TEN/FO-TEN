@@ -226,8 +226,10 @@ public class RoadmapTools implements ToolProvider{
                 .toList();
 
         try {
+            // deficitChoice: 이 도구는 아직 NEW_SEGMENT 대화(밀린 돈 처리 선택)를 지원하지
+            // 않아서 항상 null — ONBOARDING 제출용으로만 쓰인다.
             return describeComposition(context,
-                    roadmapCommandService.submitRateConditionResponses(memberId, answers));
+                    roadmapCommandService.submitRateConditionResponses(memberId, answers, null));
         }
         catch (RoadmapStateConflictException e) {
             return switch (e.getErrorCode()) {

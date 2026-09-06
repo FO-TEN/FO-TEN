@@ -1,7 +1,9 @@
 package com.foten.product.mapper;
 
+import com.foten.product.domain.SavingsPaymentRecord;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -18,4 +20,9 @@ public interface TransactionHistoryMapper {
 
     // 특정 구간(segment)에 속한 적금 구독들의 실제 납입 합계 (§2-2 현재 적금 실제 납입금액)
     BigDecimal sumSavingsPaymentBySegment(@Param("segmentId") Long segmentId);
+
+    // 적금 구독 하나의 회차별 납입 내역 (만기 이자 "선납이연법" 계산용 — 이자_계산식_결정.md).
+    // 합계가 아니라 건별 (amount, transactionAt) 이 필요해서 별도로 둔다.
+    List<SavingsPaymentRecord> selectSavingsPaymentsBySubscription(
+            @Param("productSubscriptionId") Long productSubscriptionId);
 }

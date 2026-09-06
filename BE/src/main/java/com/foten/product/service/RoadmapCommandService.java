@@ -10,7 +10,7 @@ import java.util.List;
 public interface RoadmapCommandService {
     CreatedRoadmap createRoadmap(long memberId);
 
-    // 우대조건 응답 제출 + 즉시 커밋. 지금은 flowType=ONBOARDING 만 지원한다 —
-    // NEW_SEGMENT 는 만기 이자 계산식이 아직 확정 전이라 별도 브랜치로 미뤘다.
-    SegmentComposition submitRateConditionResponses(long memberId, List<RateConditionAnswer> responses);
+    // 우대조건 응답 제출 + 즉시 커밋. ONBOARDING·NEW_SEGMENT 둘 다 지원한다.
+    // deficitChoice 는 NEW_SEGMENT+부족액 있을 때만 필수(FULL_RECOVERY/SPREAD), 그 외엔 null.
+    SegmentComposition submitRateConditionResponses(long memberId, List<RateConditionAnswer> responses, String deficitChoice);
 }
