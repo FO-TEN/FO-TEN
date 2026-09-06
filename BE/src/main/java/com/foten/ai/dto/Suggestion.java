@@ -25,6 +25,12 @@ public record Suggestion(
         return new Suggestion(Kind.DECISION, "RATE_CONDITION", conditionCode, label, null);
     }
 
+    // 밀린 금액을 어떻게 채울지는 누르는 순간 이번 달 저축액이 정해진다.
+    // 화면이 값을 그대로 보내므로 사용자가 할 법한 말로 만든다.
+    public static Suggestion deficitChoice(String message) {
+        return new Suggestion(Kind.DECISION, "DEFICIT_CHOICE", message, message, null);
+    }
+
     public Suggestion withLocalLabel(String label) {
         return new Suggestion(kind, action, value, labelKo, label);
     }

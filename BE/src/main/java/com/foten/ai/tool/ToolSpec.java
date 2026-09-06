@@ -42,6 +42,28 @@ public record ToolSpec(
         return new ToolSpec(name, description, parameters, executor);
     }
 
+    // 정해진 값 중 하나를 받는 툴. 생략할 수 있어서 required 에 넣지 않는다
+    // (고를 상황이 아닌데 억지로 하나를 채워 보내는 것을 막는다).
+    public static ToolSpec optionalEnum(String name, String description,
+                                        String argument, String argumentDescription,
+                                        List<String> values,
+                                        BiFunction<String, ToolContext, String> executor) {
+        Map<String, Object> argumentSchema = new LinkedHashMap<>();
+        argumentSchema.put("type", "string");
+        argumentSchema.put("enum", values);
+        argumentSchema.put("description", argumentDescription);
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put(argument, argumentSchema);
+
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", properties);
+        parameters.put("additionalProperties", false);
+
+        return new ToolSpec(name, description, parameters, executor);
+    }
+
     // 문자열 배열 인자를 받는 툴
     public static ToolSpec stringList(String name, String description,
                                       String argument, String argumentDescription,
