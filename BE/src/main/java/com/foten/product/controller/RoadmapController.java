@@ -3,8 +3,10 @@ package com.foten.product.controller;
 import com.foten.member.support.LoginMember;
 import com.foten.product.domain.CreatedRoadmap;
 import com.foten.product.domain.RoadmapStatus;
+import com.foten.product.domain.SegmentComposition;
 import com.foten.product.dto.CreateRoadmapResponse;
 import com.foten.product.dto.RoadmapStatusResponse;
+import com.foten.product.dto.SegmentCompositionResponse;
 import com.foten.product.service.RoadmapCommandService;
 import com.foten.product.service.RoadmapQueryService;
 import lombok.RequiredArgsConstructor;
@@ -30,5 +32,11 @@ public class RoadmapController {
     public ResponseEntity<CreateRoadmapResponse> create(@LoginMember long memberId) {
         CreatedRoadmap roadmap = roadmapCommandService.createRoadmap(memberId);
         return ResponseEntity.ok(CreateRoadmapResponse.from(roadmap));
+    }
+
+    @GetMapping("/api/roadmap/segments/current/composition")
+    public ResponseEntity<SegmentCompositionResponse> currentComposition(@LoginMember long memberId) {
+        SegmentComposition composition = roadmapQueryService.getCurrentComposition(memberId);
+        return ResponseEntity.ok(SegmentCompositionResponse.from(composition));
     }
 }

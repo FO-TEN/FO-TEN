@@ -24,6 +24,27 @@
           AND cycle_no = 1
     </select>
 
+    <select id="selectFirstBySegment" resultType="com.foten.product.domain.MonthlySavingPlanVO">
+        SELECT monthly_saving_plan_id,
+               savings_roadmap_id,
+               segment_id,
+               plan_month,
+               cycle_no,
+               deficit_choice,
+               monthly_saving_amount,
+               recommended_cash_saving,
+               current_accumulated_fund,
+               cumulative_saving_performance,
+               baseline_snapshot,
+               required_snapshot,
+               projected_total_interest,
+               created_at
+        FROM monthly_saving_plan
+        WHERE segment_id = #{segmentId}
+        ORDER BY cycle_no ASC
+        LIMIT 1
+    </select>
+
     <insert id="insert" parameterType="com.foten.product.domain.MonthlySavingPlanVO"
             useGeneratedKeys="true" keyProperty="monthlySavingPlanId">
         INSERT INTO monthly_saving_plan
