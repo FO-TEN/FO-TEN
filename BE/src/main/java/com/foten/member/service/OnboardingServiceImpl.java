@@ -1,6 +1,7 @@
 package com.foten.member.service;
 
 import com.foten.common.InvalidRequestException;
+import com.foten.common.RoadmapStateConflictException;
 import com.foten.exchange.dto.KrwConversionResponse;
 import com.foten.exchange.service.ExchangeRateService;
 import com.foten.goal.domain.*;
@@ -11,6 +12,7 @@ import com.foten.goal.service.GoalCalculationService;
 import com.foten.member.dto.OnboardingRequest;
 import com.foten.member.dto.OnboardingResponse;
 import com.foten.member.dto.OnboardingStatusResponse;
+import com.foten.product.mapper.SavingsRoadmapMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,11 +31,21 @@ public class OnboardingServiceImpl implements OnboardingService{
     private final GoalMapper goalMapper;
     private final ExchangeRateService exchangeRateService;
     private final GoalCalculationService goalCalculationService;
+    private final SavingsRoadmapMapper savingsRoadmapMapper;
 
     @Override
     @Transactional
     public OnboardingResponse register(long memberId, OnboardingRequest request) {
         validate(request);
+
+        // 로드맵이 이미 시작된 회원은 목표기준액을 다시 바꿀 수 없다 — product 도메인이
+        // 이 값을 스냅샷 없이 매번 goal 테이블에서 실시간으로 읽어가므로, 여기서 바뀌면
+        // 이미 가입된 적금 상품 구성·로드맵 판정이 통째로 어긋난다 (기획서 §15).
+        if (savingsRoadmapMapper.selectByMemberId(memberId).isPresent()) {
+            throw new RoadmapStateConflictException(
+                    "ROADMAP_ALREADY_EXISTS", "이미 로드맵이 시작된 목표는 수정할 수 없습니다. memberId=" + memberId);
+        }
+
         String currencyCode = request.targetCurrency().trim().toUpperCase();
 
         // 아무도 목표를 세운 적 없는 통화면 환율이 없다. 여기서 한 번 받아둬야 아래 toKrw 가 산다.
