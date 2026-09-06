@@ -14,4 +14,5 @@ public class MemberProfile {
     private String nationality;
     private LocalDate expectedReturnDate;
     private String targetCurrency;
+    private boolean roadmapExists;
 }

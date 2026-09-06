@@ -36,6 +36,8 @@ public class MemberProfileAdvisor implements Advisor {
         if (profile.getTargetCurrency() != null) {
             sb.append("목표 통화: ").append(profile.getTargetCurrency()).append("\n");
         }
+
+        appendRoadmap(sb, profile.isRoadmapExists());
         sb.append("금액은 이 정보에 없습니다. 필요하면 도구를 사용하세요.");
         return sb.toString();
     }
@@ -53,5 +55,15 @@ public class MemberProfileAdvisor implements Advisor {
         sb.append("귀국 예정일: ").append(returnDate)
                 .append(" (약 ").append(monthsLeft).append("개월, ")
                 .append(daysLeft).append("일 남음)").append("\n");
+    }
+
+    private void appendRoadmap(StringBuilder sb, boolean hasRoadmap) {
+        if (hasRoadmap) {
+            sb.append("저축 로드맵: 이미 있음").append("\n");
+            sb.append("로드맵은 회원당 하나뿐이라 새로 만들 수 없습니다.")
+                    .append(" 만들어 달라고 하면 이미 있다고 답하고 startRoadmap 을 부르지 마세요.\n");
+            return;
+        }
+        sb.append("저축 로드맵: 아직 없음\n");
     }
 }
