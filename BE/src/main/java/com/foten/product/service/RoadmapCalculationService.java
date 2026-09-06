@@ -1,5 +1,6 @@
 package com.foten.product.service;
 
+import com.foten.product.domain.FirstSegmentPlan;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
@@ -30,4 +31,13 @@ public interface RoadmapCalculationService {
     // "이미 끝난 개월수"만 채점 대상이라 아직 결정 전인 이번 달(cycleNo)은 포함하지 않는다 —
     // 당월저축액 공식(§5-2, cycleNo 그대로 곱함)과는 보는 시점이 다르다.
     BigDecimal calculateShortfall(BigDecimal baselineAmount, int completedCycles, BigDecimal cumulativeSavingPerformance);
+
+    // 최초 구간(1번째 구간) 분해 (§3-2). 총 개월수 12 이하면 그 값 그대로 단일(=마지막) 구간,
+    // 초과하면 잔여와 상관없이 무조건 12개월로 시작한다("첫 12개월 구간을 생성한 뒤").
+    FirstSegmentPlan calculateFirstSegment(int totalMonths);
+
+    // 구간 종료일. 마지막 구간이면 total_months 어림 계산으로 생긴 며칠 오차를 없애기 위해
+    // roadmapEndDate 를 그대로 쓰고, 아니면 시작일 + 계획개월수로 계산한다.
+    LocalDate calculateSegmentEndDate(
+            LocalDate segmentStartDate, int plannedMonths, boolean isLastSegment, LocalDate roadmapEndDate);
 }

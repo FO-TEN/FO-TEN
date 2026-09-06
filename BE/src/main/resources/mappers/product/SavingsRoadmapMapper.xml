@@ -15,4 +15,10 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <insert id="insert" parameterType="com.foten.product.domain.SavingsRoadmapVO"
+            useGeneratedKeys="true" keyProperty="savingsRoadmapId">
+        INSERT INTO savings_roadmap (member_id, start_date, end_date, total_months)
+        VALUES (#{memberId}, #{startDate}, #{endDate}, #{totalMonths})
+    </insert>
+
 </mapper>
