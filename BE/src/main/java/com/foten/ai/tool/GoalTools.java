@@ -23,7 +23,8 @@ public class GoalTools implements ToolProvider{
                 "diagnoseGoal",
                 """
                 회원의 목표 저축 달성 가능성을 진단합니다.
-                목표 달성 여부, 이번 달 필요한 저축액, 지금까지 밀린 금액,
+                목표 달성 여부, 매달 모으기로 한 금액과 이번 달에 모아야 하는 금액,
+                지금까지 밀린 금액,
                 목표를 세운 지 몇 개월째인지, 그동안 모았어야 할 금액과 실제로 모은 금액,
                 소비 항목마다 한 달에 얼마까지 줄일 수 있는지를 알려줍니다.
                 사용자가 목표 달성 여부·저축 현황·절약 방법을 물을 때 사용합니다.
@@ -40,7 +41,7 @@ public class GoalTools implements ToolProvider{
         sb.append("판정: ").append(r.judgeResult())
                 .append(" - 지금 소비 속도를 기준으로 한 진단입니다. 사용자가 세운 계획은 없으므로")
                 .append(" '계획대로' 라는 표현을 쓰지 말고 '지금처럼 쓰면' 이라고 말하세요.\n");
-        sb.append("이번 달 목표 저축액: ").append(money(r.monthlyBaseline())).append("원").append("\n");
+        appendTargets(sb, r);
         sb.append("지금 소비 속도로 예상되는 저축액: ")
                 .append(money(r.currentExpectedSaving())).append("원").append("\n");
 
@@ -53,14 +54,31 @@ public class GoalTools implements ToolProvider{
         return sb.toString();
     }
 
+    // 매달 모으기로 한 금액은 고정이고, 이번 달에 모아야 하는 금액은 밀린 만큼 커진다.
+    // 로드맵 도구와 같은 이름을 쓴다. 이름이 다르면 같은 달을 두 금액으로 답하게 된다.
+    private void appendTargets(StringBuilder sb, GoalDiagnosisResponse r) {
+        sb.append("매달 모으기로 한 금액: ").append(money(r.monthlyBaseline())).append("원\n");
+
+        // 로드맵이 없는 회원은 이 값이 0으로 온다. 그대로 말하면 안 모아도 된다는 뜻이 된다.
+        if (!isPositive(r.monthlyRequired()) || r.monthlyRequired().compareTo(r.monthlyBaseline()) == 0) {
+            return;
+        }
+        sb.append("이번 달에 모아야 하는 금액: ").append(money(r.monthlyRequired())).append("원\n");
+        sb.append("이번 달 이야기는 이 금액으로 하세요. 밀린 만큼 커진 금액입니다.\n");
+    }
+
     private void appendGap(StringBuilder sb, GoalDiagnosisResponse r) {
         BigDecimal gap = r.additionalNeeded();
+        // 아래 금액은 매달 모으기로 한 금액에서 뺀 값이다. 기준을 안 밝히면
+        // 이번 달에 모아야 하는 금액에서 뺀 것으로 읽힌다.
         if (gap == null || gap.signum() == 0) {
-            sb.append("목표까지 부족한 금액: 없음\n");
+            sb.append("매달 모으기로 한 금액까지 부족한 금액: 없음\n");
         } else if (gap.signum() > 0) {
-            sb.append("목표까지 부족한 금액: ").append(money(gap)).append("원").append("\n");
+            sb.append("매달 모으기로 한 금액까지 부족한 금액: ")
+                    .append(money(gap)).append("원").append("\n");
         } else {
-            sb.append("목표를 넘어선 여유 금액: ").append(money(gap.negate())).append("원").append("\n");
+            sb.append("매달 모으기로 한 금액을 넘어선 여유 금액: ")
+                    .append(money(gap.negate())).append("원").append("\n");
         }
     }
 
