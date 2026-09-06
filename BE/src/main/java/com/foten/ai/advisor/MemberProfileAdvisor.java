@@ -58,10 +58,7 @@ public class MemberProfileAdvisor implements Advisor {
                 .append(daysLeft).append("일 남음)").append("\n");
     }
 
-    /**
-     * 이미 제출했는데 또 제출하겠다고 나서면 서버가 막고, 모델은 그제서야 안 된다고 말한다.
-     * 미리 알려주면 그 왕복이 없어진다. 로드맵 유무와 같은 이유다.
-     */
+    // 미리 알려주면 제출하겠다고 나섰다가 서버에 막히는 왕복이 없어진다.
     private void appendRateConditions(StringBuilder sb, boolean answered) {
         if (!answered) {
             return;

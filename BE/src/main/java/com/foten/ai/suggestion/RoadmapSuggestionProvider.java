@@ -9,12 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-/**
- * 대화형 로드맵 UI 흐름 v5 의 사용자 버튼을 칩으로 만든다.
- * 흐름 순서대로 다음 한 걸음만 권한다 — 로드맵 만들기 → 우대조건 확인 → 상품 구성 보기.
- *
- * 전체 로드맵 그래프·구간 상세·만회 방식 선택은 아직 부를 도구가 없어 붙이지 않는다.
- */
+// UI 흐름 v5 의 사용자 버튼을 칩으로. 부를 도구가 있는 단계만 붙인다.
 @Component
 @RequiredArgsConstructor
 public class RoadmapSuggestionProvider implements SuggestionProvider {
