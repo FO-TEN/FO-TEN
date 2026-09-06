@@ -3,6 +3,7 @@ package com.foten.ai.service;
 import com.foten.ai.advisor.Advisor;
 import com.foten.ai.advisor.AdvisorChain;
 import com.foten.ai.advisor.ChatContext;
+import com.foten.ai.dto.ChatCard;
 import com.foten.ai.dto.ChatReply;
 import com.foten.ai.dto.Suggestion;
 import com.foten.ai.llm.LlmChatResponse;
@@ -44,10 +45,14 @@ public class ChatService {
         String contentKo = AdvisorChain.of(advisors, this::runToolLoop).next(ctx);
         String contentLocal = translator.translate(contentKo, languageCode);
 
-        chatMemory.addUserMessage(memberId, null, message, languageCode);
-        chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode);
+        // 로드맵 그래프·추천 조합 도구가 생기면 툴 결과에서 꺼내 여기에 싣는다.
+        // 그때까지는 항상 null 이고, 응답에도 null 로 나간다.
+        ChatCard card = null;
 
-        return new ChatReply(contentKo, contentLocal, suggestions(ctx, contentKo, languageCode));
+        chatMemory.addUserMessage(memberId, null, message, languageCode);
+        chatMemory.addAssistantMessage(memberId, contentKo, contentLocal, languageCode, card);
+
+        return new ChatReply(contentKo, contentLocal, card, suggestions(ctx, contentKo, languageCode));
     }
 
     private String runToolLoop(ChatContext ctx) {
