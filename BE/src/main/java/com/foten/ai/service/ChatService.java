@@ -9,7 +9,7 @@ import com.foten.ai.llm.LlmChatResponse;
 import com.foten.ai.llm.LlmClient;
 import com.foten.ai.llm.LlmMessage;
 import com.foten.ai.llm.LlmToolCall;
-import com.foten.ai.mapper.MemberLanguageMapper;
+import com.foten.member.mapper.MemberLanguageMapper;
 import com.foten.ai.prompt.SystemPrompt;
 import com.foten.ai.suggestion.SuggestionProvider;
 import com.foten.ai.tool.ToolContext;
