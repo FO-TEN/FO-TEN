@@ -1,4 +1,5 @@
 <script setup>
+import { useRouter } from 'vue-router'
 import { useLocaleStore } from '../../stores/locale'
 import { won } from '../../utils/format'
 
@@ -7,6 +8,7 @@ import { won } from '../../utils/format'
 const props = defineProps({
   payload: { type: Object, required: true },
 })
+const router = useRouter()
 const locale = useLocaleStore()
 const t = (k, v) => locale.t(k, v)
 
@@ -15,7 +17,8 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
 </script>
 
 <template>
-  <section class="reco">
+  <!-- 누르면 상품 추천 상세로. 카드는 요약이고 자세한 건 그 화면이 보여준다 -->
+  <section class="reco" role="button" tabindex="0" @click="router.push({ name: 'products' })" @keydown.enter="router.push({ name: 'products' })">
     <p class="rt">{{ t('card.reco_title') }}</p>
 
     <div class="base">
@@ -53,6 +56,7 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
 
 <style scoped>
 .reco {
+  cursor: pointer;
   margin-top: 6px;
   padding: 14px 16px;
   border-radius: var(--r-card);
