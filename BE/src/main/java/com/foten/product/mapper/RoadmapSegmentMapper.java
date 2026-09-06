@@ -12,4 +12,7 @@ public interface RoadmapSegmentMapper {
 
     // 생성된 segment_id 를 segment.segmentId 에 다시 채워 넣는다.
     void insert(RoadmapSegmentVO segment);
+
+    // 구간 마감 (NEW_SEGMENT 전환 시 직전 구간을 COMPLETED 로 바꾼다).
+    void complete(@Param("segmentId") Long segmentId);
 }

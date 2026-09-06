@@ -4,6 +4,8 @@ import com.foten.product.domain.AllocationPlan;
 import com.foten.product.domain.AllocationPlan.AllocationEntry;
 import com.foten.product.domain.FirstSegmentPlan;
 import com.foten.product.domain.ProductAllocationCandidate;
+import com.foten.product.domain.RatedDepositCandidate;
+import com.foten.product.domain.SavingsPaymentRecord;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -11,12 +13,15 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
 public class RoadmapCalculationServiceImpl implements RoadmapCalculationService {
 
     private static final int GENERAL_SEGMENT_MONTHS = 12;
+    private static final BigDecimal MONTHS_PER_YEAR_TIMES_PERCENT = BigDecimal.valueOf(1200); // rate(%) × 개월/12 를 나눗셈 한 번으로
+    private static final BigDecimal INTEREST_TAX_RATE = new BigDecimal("0.154"); // 이자소득세 14% + 지방소득세 1.4% (이자_계산식_결정.md)
 
     @Override
     public BigDecimal reverseTargetAmount(BigDecimal baselineAmount, int totalMonths, BigDecimal initialAccumulatedFund) {
@@ -96,5 +101,37 @@ public class RoadmapCalculationServiceImpl implements RoadmapCalculationService 
 
         BigDecimal recommendedCashSaving = remaining.max(BigDecimal.ZERO);
         return new AllocationPlan(allocations, recommendedCashSaving);
+    }
+
+    @Override
+    public BigDecimal calculateDepositInterest(BigDecimal principal, BigDecimal rate, int termMonths) {
+        return principal.multiply(rate).multiply(BigDecimal.valueOf(termMonths))
+                .divide(MONTHS_PER_YEAR_TIMES_PERCENT, 0, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public BigDecimal calculateSavingsInterest(List<SavingsPaymentRecord> payments, BigDecimal rate, LocalDate maturityDate) {
+        BigDecimal total = BigDecimal.ZERO;
+        YearMonth maturityMonth = YearMonth.from(maturityDate);
+        for (SavingsPaymentRecord payment : payments) {
+            long monthsRemaining = ChronoUnit.MONTHS.between(
+                    YearMonth.from(payment.transactionAt()), maturityMonth);
+            BigDecimal interest = payment.amount().multiply(rate).multiply(BigDecimal.valueOf(monthsRemaining))
+                    .divide(MONTHS_PER_YEAR_TIMES_PERCENT, 0, RoundingMode.HALF_UP);
+            total = total.add(interest);
+        }
+        return total;
+    }
+
+    @Override
+    public BigDecimal calculateAfterTaxInterest(BigDecimal preTaxInterest) {
+        return preTaxInterest.multiply(BigDecimal.ONE.subtract(INTEREST_TAX_RATE)).setScale(0, RoundingMode.HALF_UP);
+    }
+
+    @Override
+    public Optional<RatedDepositCandidate> selectDeposit(List<RatedDepositCandidate> candidates, BigDecimal lumpSum) {
+        return candidates.stream()
+                .filter(c -> lumpSum.compareTo(c.minSubscriptionAmount()) >= 0)
+                .findFirst();
     }
 }

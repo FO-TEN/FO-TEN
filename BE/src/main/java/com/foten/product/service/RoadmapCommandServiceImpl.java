@@ -1,12 +1,16 @@
 package com.foten.product.service;
 
+import com.foten.common.InvalidRequestException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.goal.domain.Goal;
 import com.foten.goal.domain.StayInfo;
 import com.foten.goal.mapper.GoalMapper;
 import com.foten.goal.mapper.StayInfoMapper;
 import com.foten.product.domain.AllocationPlan;
+import com.foten.product.domain.AllocationPlan.AllocationEntry;
+import com.foten.product.domain.AssetSnapshotVO;
 import com.foten.product.domain.CreatedRoadmap;
+import com.foten.product.domain.DepositRateCandidate;
 import com.foten.product.domain.FirstSegmentPlan;
 import com.foten.product.domain.MemberRateConditionResponseVO;
 import com.foten.product.domain.MonthlySavingAllocationVO;
@@ -15,11 +19,15 @@ import com.foten.product.domain.ProductAllocationCandidate;
 import com.foten.product.domain.ProductPreferentialRateVO;
 import com.foten.product.domain.ProductRateCandidate;
 import com.foten.product.domain.ProductSubscriptionVO;
+import com.foten.product.domain.ProductVO;
 import com.foten.product.domain.RateConditionAnswer;
+import com.foten.product.domain.RatedDepositCandidate;
 import com.foten.product.domain.RoadmapSegmentVO;
 import com.foten.product.domain.RoadmapStatus;
+import com.foten.product.domain.SavingsPaymentRecord;
 import com.foten.product.domain.SavingsRoadmapVO;
 import com.foten.product.domain.SegmentComposition;
+import com.foten.product.mapper.AssetSnapshotMapper;
 import com.foten.product.mapper.MemberRateConditionResponseMapper;
 import com.foten.product.mapper.MonthlySavingAllocationMapper;
 import com.foten.product.mapper.MonthlySavingPlanMapper;
@@ -28,14 +36,19 @@ import com.foten.product.mapper.ProductPreferentialRateMapper;
 import com.foten.product.mapper.ProductSubscriptionMapper;
 import com.foten.product.mapper.RoadmapSegmentMapper;
 import com.foten.product.mapper.SavingsRoadmapMapper;
+import com.foten.product.mapper.TransactionHistoryMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -46,10 +59,13 @@ import org.springframework.transaction.annotation.Transactional;
 public class RoadmapCommandServiceImpl implements RoadmapCommandService {
 
     private static final int FIRST_SEGMENT_NO = 1;
-    private static final int FIRST_CYCLE_NO = 1;
     private static final String ONBOARDING = "ONBOARDING";
+    private static final String NEW_SEGMENT = "NEW_SEGMENT";
     private static final String NEW_SAVINGS = "NEW_SAVINGS";
+    private static final String ROLLOVER_DEPOSIT = "ROLLOVER_DEPOSIT";
     private static final String NO_DEFICIT = "NONE";
+    private static final String FULL_RECOVERY = "FULL_RECOVERY";
+    private static final String SPREAD = "SPREAD";
 
     private final SavingsRoadmapMapper savingsRoadmapMapper;
     private final RoadmapSegmentMapper roadmapSegmentMapper;
@@ -59,6 +75,8 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
     private final ProductSubscriptionMapper productSubscriptionMapper;
     private final MonthlySavingPlanMapper monthlySavingPlanMapper;
     private final MonthlySavingAllocationMapper monthlySavingAllocationMapper;
+    private final AssetSnapshotMapper assetSnapshotMapper;
+    private final TransactionHistoryMapper transactionHistoryMapper;
     private final GoalMapper goalMapper; // 교차 도메인, 읽기 전용
     private final StayInfoMapper stayInfoMapper; // 교차 도메인, 읽기 전용
     private final RoadmapQueryService roadmapQueryService;
@@ -127,13 +145,19 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
 
     @Override
     @Transactional
-    public SegmentComposition submitRateConditionResponses(long memberId, List<RateConditionAnswer> responses) {
-        // STEP 1. 지금은 온보딩만 지원한다. NEW_SEGMENT 는 만기 이자 계산식이 아직 없어
-        // REGULAR_MONTH 와 똑같이 막아둔다 — 별도 브랜치에서 채운다.
+    public SegmentComposition submitRateConditionResponses(
+            long memberId, List<RateConditionAnswer> responses, String deficitChoice) {
+        // STEP 1. ONBOARDING 또는 NEW_SEGMENT 만 허용한다. REGULAR_MONTH 는 우대조건을 다시
+        // 확인할 시점이 아니라 막는다.
         RoadmapStatus status = roadmapQueryService.getStatus(memberId);
-        if (!ONBOARDING.equals(status.flowType())) {
+        boolean isNewSegment = NEW_SEGMENT.equals(status.flowType());
+        if (!ONBOARDING.equals(status.flowType()) && !isNewSegment) {
             throw new RoadmapStateConflictException(
                     "NOT_APPLICABLE", "우대조건을 다시 확인할 시점이 아닙니다. flowType=" + status.flowType());
+        }
+        if (isNewSegment && Boolean.TRUE.equals(status.hasShortfall()) && deficitChoice == null) {
+            throw new InvalidRequestException(
+                    "DEFICIT_CHOICE_REQUIRED", "부족액이 있는 구간 전환에는 deficitChoice가 필요합니다.");
         }
 
         // STEP 2. 우대조건 응답 UPSERT (§4-3). 최신 응답만 유지한다.
@@ -145,10 +169,12 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                         .build())
                 .toList();
         memberRateConditionResponseMapper.upsertAll(responseVOs);
+        Map<String, Boolean> willMeetByCondition = responses.stream()
+                .collect(Collectors.toMap(RateConditionAnswer::conditionCode, RateConditionAnswer::willMeet));
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
                 .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
-        RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
+        RoadmapSegmentVO activeSegment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
         BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
@@ -156,80 +182,188 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                 .orElseThrow(() -> new RoadmapStateConflictException(
                         "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다. memberId=" + memberId));
 
-        // STEP 3. 이 구간 기간(planned_months)에 맞는 자유적립식 적금 후보 조회 (§4-2).
-        List<ProductRateCandidate> candidates = productMapper.selectSavingsCandidates(segment.getPlannedMonths());
+        RoadmapSegmentVO targetSegment = activeSegment; // ONBOARDING 이면 상품을 가입시킬 구간이 곧 activeSegment
+        BigDecimal rolloverAmount = null;
+        SegmentComposition.DepositSummary depositSummary = null;
+        BigDecimal newSegmentDepositPrincipal = BigDecimal.ZERO; // 새 구간에 예금을 열었으면 그 원금
 
-        // STEP 4. 우대금리 합산 — 이번에 will_meet=true 로 응답한 조건만 반영한다 (§4-3, §4-4).
-        Map<String, Boolean> willMeetByCondition = responses.stream()
-                .collect(Collectors.toMap(RateConditionAnswer::conditionCode, RateConditionAnswer::willMeet));
-        Map<Long, BigDecimal> bonusByProductId = new HashMap<>();
-        if (!candidates.isEmpty()) {
-            List<Long> productIds = candidates.stream().map(ProductRateCandidate::productId).toList();
-            for (ProductPreferentialRateVO rate : productPreferentialRateMapper.selectByProductIds(productIds)) {
-                if (Boolean.TRUE.equals(willMeetByCondition.get(rate.getConditionCode()))) {
-                    bonusByProductId.merge(rate.getProductId(), rate.getRateBonus(), BigDecimal::add);
-                }
+        if (isNewSegment) {
+            // STEP 3-A. 직전 구간(activeSegment) 마감 — 구독별 만기 이자 계산 → MATURED,
+            // 구간 자체도 COMPLETED. 적금이 여러 개일 수 있어 전부 순회한다.
+            BigDecimal lumpSum = BigDecimal.ZERO;
+            for (ProductSubscriptionVO subscription : productSubscriptionMapper.selectActiveBySegment(activeSegment.getSegmentId())) {
+                BigDecimal maturityAmount = calculateMaturityAmount(subscription);
+                productSubscriptionMapper.matureAndClose(subscription.getProductSubscriptionId(), maturityAmount);
+                lumpSum = lumpSum.add(maturityAmount);
             }
+            // 목돈 합산(§7-2) = 위 만기금 합 + 그 구간 마지막 실제 현금성 저축액.
+            BigDecimal cashSavingBalance = assetSnapshotMapper.selectLatest(roadmap.getSavingsRoadmapId())
+                    .map(AssetSnapshotVO::getCashSavingBalance)
+                    .orElse(BigDecimal.ZERO);
+            lumpSum = lumpSum.add(cashSavingBalance);
+            roadmapSegmentMapper.complete(activeSegment.getSegmentId());
+            rolloverAmount = lumpSum;
+
+            // STEP 3-B. 새 구간 생성 (§3-2 규칙을 "남은 개월수"에 재적용). 직전 구간이 끝난
+            // 시점부터 이어서 시작한다(대화한 날짜가 아니라 — 목돈이 노는 공백을 두지 않음).
+            int remainingMonths = roadmapCalculationService.calculateRemainingMonths(
+                    activeSegment.getEndDate(), roadmap.getEndDate());
+            FirstSegmentPlan nextSegmentPlan = roadmapCalculationService.calculateFirstSegment(remainingMonths);
+            LocalDate newSegmentEndDate = roadmapCalculationService.calculateSegmentEndDate(
+                    activeSegment.getEndDate(), nextSegmentPlan.plannedMonths(),
+                    nextSegmentPlan.isLastSegment(), roadmap.getEndDate());
+            RoadmapSegmentVO newSegment = RoadmapSegmentVO.builder()
+                    .savingsRoadmapId(roadmap.getSavingsRoadmapId())
+                    .segmentNo(activeSegment.getSegmentNo() + 1)
+                    .plannedMonths(nextSegmentPlan.plannedMonths())
+                    .startDate(activeSegment.getEndDate())
+                    .endDate(newSegmentEndDate)
+                    .isLastSegment(nextSegmentPlan.isLastSegment())
+                    .build();
+            roadmapSegmentMapper.insert(newSegment);
+            targetSegment = newSegment;
+
+            // STEP 3-C. 예금 판단 (§6-2~6-4) — 목돈이 최소가입금액 이상인 최고금리 후보 하나만.
+            List<DepositRateCandidate> depositCandidates =
+                    productMapper.selectDepositCandidates(newSegment.getPlannedMonths());
+            Map<Long, BigDecimal> depositBonusByProductId = computeBonusByProductId(
+                    depositCandidates.stream().map(DepositRateCandidate::productId).toList(), willMeetByCondition);
+            List<RatedDepositCandidate> rankedDeposits = depositCandidates.stream()
+                    .map(c -> new RatedDepositCandidate(
+                            c.productId(),
+                            roadmapCalculationService.calculateExpectedAppliedRate(
+                                    c.maxRate(), c.baseRate(), depositBonusByProductId.getOrDefault(c.productId(), BigDecimal.ZERO)),
+                            c.minSubscriptionAmount()))
+                    .sorted(Comparator.comparing(RatedDepositCandidate::appliedRate).reversed())
+                    .toList();
+
+            Optional<RatedDepositCandidate> chosenDeposit = roadmapCalculationService.selectDeposit(rankedDeposits, lumpSum);
+            if (chosenDeposit.isPresent()) {
+                RatedDepositCandidate chosen = chosenDeposit.get();
+                ProductSubscriptionVO depositSubscription = ProductSubscriptionVO.builder()
+                        .memberId(memberId)
+                        .productId(chosen.productId())
+                        .segmentId(newSegment.getSegmentId())
+                        .subscriptionRole(ROLLOVER_DEPOSIT)
+                        .termMonths(newSegment.getPlannedMonths())
+                        .startDate(newSegment.getStartDate())
+                        .maturityDate(newSegment.getEndDate())
+                        .expectedAppliedRate(chosen.appliedRate())
+                        .initialPrincipal(lumpSum)
+                        .build();
+                productSubscriptionMapper.insert(depositSubscription);
+                newSegmentDepositPrincipal = lumpSum;
+
+                BigDecimal depositInterest = roadmapCalculationService.calculateDepositInterest(
+                        lumpSum, chosen.appliedRate(), newSegment.getPlannedMonths());
+                BigDecimal afterTaxInterest = roadmapCalculationService.calculateAfterTaxInterest(depositInterest);
+                String depositProductName = productMapper.selectByIds(List.of(chosen.productId())).stream()
+                        .findFirst().map(ProductVO::getProductName).orElse(null);
+                depositSummary = new SegmentComposition.DepositSummary(
+                        depositProductName, newSegment.getPlannedMonths(), chosen.appliedRate(),
+                        lumpSum, lumpSum.add(afterTaxInterest), afterTaxInterest);
+            }
+            // chosenDeposit 이 없으면(최소가입금액 미달 또는 후보 없음) 예금 미가입 — lumpSum 은
+            // rolloverAmount 로만 안내되고 현금성으로 이월된다(자산 스냅샷 반영은 별도 배치 영역).
         }
 
-        // STEP 5. 상품별 예상 적용금리 계산 후 내림차순 정렬 (§4-4, §4-5).
-        List<RatedCandidate> rankedCandidates = candidates.stream()
+        // STEP 4 (공통). 이 구간 기간에 맞는 자유적립식 적금 후보 조회 + 예상 적용금리 계산 후 정렬
+        // (§4-2, §4-4, §4-5). "마지막 구간이라 상품 1개만" 같은 특별 취급은 없다 — 후보 자체가
+        // 이 기간을 커버하는 상품만 걸러진 결과라 allocate() 가 그대로 여러 상품에 나눠 채운다.
+        List<ProductRateCandidate> savingsCandidates = productMapper.selectSavingsCandidates(targetSegment.getPlannedMonths());
+        Map<Long, BigDecimal> savingsBonusByProductId = computeBonusByProductId(
+                savingsCandidates.stream().map(ProductRateCandidate::productId).toList(), willMeetByCondition);
+        List<RatedCandidate> rankedSavings = savingsCandidates.stream()
                 .map(c -> new RatedCandidate(c, roadmapCalculationService.calculateExpectedAppliedRate(
-                        c.maxRate(), c.baseRate(), bonusByProductId.getOrDefault(c.productId(), BigDecimal.ZERO))))
+                        c.maxRate(), c.baseRate(), savingsBonusByProductId.getOrDefault(c.productId(), BigDecimal.ZERO))))
                 .sorted(Comparator.comparing(RatedCandidate::appliedRate).reversed())
                 .toList();
-        List<ProductAllocationCandidate> allocationCandidates = rankedCandidates.stream()
+        List<ProductAllocationCandidate> allocationCandidates = rankedSavings.stream()
                 .map(rc -> new ProductAllocationCandidate(
                         rc.product().productId(), rc.appliedRate(), rc.product().monthlyPaymentLimit()))
                 .toList();
 
-        // STEP 6. 목표기준액을 상품별로 배분 (§4-6/§5-3). ONBOARDING 이라 기준액=목표기준액.
-        AllocationPlan plan = roadmapCalculationService.allocate(allocationCandidates, baselineAmount);
+        // STEP 5 (공통). 구성 기준액/당월저축액 결정 (§4-7, §5-2). ONBOARDING 은 부족액이 있을 수
+        // 없어 둘 다 목표기준액과 같다 — 그래서 아래를 분기 없이 그냥 태워도 결과가 같다.
+        BigDecimal compositionBasis = SPREAD.equals(deficitChoice) ? status.requiredAmount() : baselineAmount;
+        BigDecimal monthlySavingAmount = FULL_RECOVERY.equals(deficitChoice)
+                ? baselineAmount.add(status.shortfallAmount() != null ? status.shortfallAmount() : BigDecimal.ZERO)
+                : status.requiredAmount();
 
-        // STEP 7. 배분된 상품마다 구독(NEW_SAVINGS) 생성.
-        Map<Long, RatedCandidate> rankedById = rankedCandidates.stream()
+        // STEP 6. 1차 배분 — "구성 기준액"으로 이번 구간에 실제 가입할 상품 집합을 확정한다.
+        // (4-5 GET .../composition 이 나중에 이 기준액으로 다시 계산해서 "앞으로 유지할 기준"을
+        // 보여줄 것이므로, 여기서 만드는 구독 자체도 이 기준에 맞아야 한다.)
+        AllocationPlan basisPlan = roadmapCalculationService.allocate(allocationCandidates, compositionBasis);
+        Set<Long> selectedProductIds = basisPlan.allocations().stream()
+                .map(AllocationEntry::productId).collect(Collectors.toCollection(HashSet::new));
+        List<ProductAllocationCandidate> selectedCandidates = allocationCandidates.stream()
+                .filter(c -> selectedProductIds.contains(c.productId()))
+                .toList(); // allocationCandidates 가 이미 정렬돼 있어 필터링해도 순서가 유지된다
+
+        // STEP 7. 선택된 상품마다 구독(NEW_SAVINGS) 생성.
+        Map<Long, RatedCandidate> rankedById = rankedSavings.stream()
                 .collect(Collectors.toMap(rc -> rc.product().productId(), rc -> rc));
         Map<Long, Long> subscriptionIdByProductId = new HashMap<>();
-        List<SegmentComposition.SavingsSummary> savingsSummaries = new ArrayList<>();
-
-        for (AllocationPlan.AllocationEntry entry : plan.allocations()) {
-            RatedCandidate ranked = rankedById.get(entry.productId());
+        for (ProductAllocationCandidate candidate : selectedCandidates) {
+            RatedCandidate ranked = rankedById.get(candidate.productId());
             ProductSubscriptionVO subscription = ProductSubscriptionVO.builder()
                     .memberId(memberId)
-                    .productId(entry.productId())
-                    .segmentId(segment.getSegmentId())
+                    .productId(candidate.productId())
+                    .segmentId(targetSegment.getSegmentId())
                     .subscriptionRole(NEW_SAVINGS)
-                    .termMonths(segment.getPlannedMonths())
-                    .startDate(segment.getStartDate())
-                    .maturityDate(segment.getEndDate())
+                    .termMonths(targetSegment.getPlannedMonths())
+                    .startDate(targetSegment.getStartDate())
+                    .maturityDate(targetSegment.getEndDate())
                     .expectedAppliedRate(ranked.appliedRate())
                     .monthlyPaymentLimitSnapshot(ranked.product().monthlyPaymentLimit())
                     .build();
             productSubscriptionMapper.insert(subscription); // insert 후 productSubscriptionId 채워짐
-            subscriptionIdByProductId.put(entry.productId(), subscription.getProductSubscriptionId());
+            subscriptionIdByProductId.put(candidate.productId(), subscription.getProductSubscriptionId());
+        }
 
+        // STEP 8. 2차 배분 — 선택된 상품들(만)로, 이번 달 실제 저축액(당월저축액)을 다시 채운다.
+        // 구성 기준액보다 당월저축액이 크면(만회분 포함) 같은 상품 한도 안에서 더 채워지고,
+        // 그래도 남으면 그때 추천 현금성 저축액으로 빠진다.
+        AllocationPlan actualPlan = roadmapCalculationService.allocate(selectedCandidates, monthlySavingAmount);
+        List<SegmentComposition.SavingsSummary> savingsSummaries = new ArrayList<>();
+        for (AllocationEntry entry : actualPlan.allocations()) {
+            RatedCandidate ranked = rankedById.get(entry.productId());
             savingsSummaries.add(new SegmentComposition.SavingsSummary(
-                    ranked.product().productName(), segment.getPlannedMonths(), ranked.appliedRate(),
+                    ranked.product().productName(), targetSegment.getPlannedMonths(), ranked.appliedRate(),
                     ranked.product().monthlyPaymentLimit(), entry.allocatedAmount()));
         }
 
-        // STEP 8. 이번 달(cycle_no=1) 저축 제안 생성. 목돈 없는 온보딩이라 누적값은 전부 0.
+        // STEP 9. 당월 저축 계획 생성. NEW_SEGMENT 는 로드맵 시작일부터의 실제 회차(status.cycleNo)를
+        // 그대로 잇는다 — 구간이 바뀌어도 cycle_no 는 로드맵 전체 기준이라 새로 1부터 세지 않는다.
+        BigDecimal currentAccumulatedFund = isNewSegment
+                ? roadmapCalculationService.calculateCurrentAccumulatedFund(
+                        newSegmentDepositPrincipal, BigDecimal.ZERO, BigDecimal.ZERO)
+                : BigDecimal.ZERO;
+        BigDecimal cumulativeSavingPerformance = isNewSegment
+                ? calculateCumulativeSavingPerformanceNow(memberId, roadmap)
+                : BigDecimal.ZERO;
+        int cycleNo = isNewSegment ? status.cycleNo() : 1;
+
+        // planMonth: NEW_SEGMENT는 cycleNo 자체가 "오늘" 기준(calculateCycleNo)이라 오늘 달을 쓰고,
+        // ONBOARDING은 cycleNo=1이 "구간 시작월" 기준이라 로드맵 생성일과 응답 제출일이 다른 달에
+        // 걸쳐도 어긋나지 않게 구간 시작일 기준을 쓴다.
+        LocalDate planMonthBasis = isNewSegment ? LocalDate.now() : targetSegment.getStartDate();
         MonthlySavingPlanVO monthlySavingPlan = MonthlySavingPlanVO.builder()
                 .savingsRoadmapId(roadmap.getSavingsRoadmapId())
-                .segmentId(segment.getSegmentId())
-                .planMonth(YearMonth.from(segment.getStartDate()).atDay(1))
-                .cycleNo(FIRST_CYCLE_NO)
-                .deficitChoice(NO_DEFICIT)
-                .monthlySavingAmount(baselineAmount)
-                .recommendedCashSaving(plan.recommendedCashSaving())
-                .currentAccumulatedFund(BigDecimal.ZERO)
-                .cumulativeSavingPerformance(BigDecimal.ZERO)
+                .segmentId(targetSegment.getSegmentId())
+                .planMonth(YearMonth.from(planMonthBasis).atDay(1))
+                .cycleNo(cycleNo)
+                .deficitChoice(deficitChoice != null ? deficitChoice : NO_DEFICIT)
+                .monthlySavingAmount(monthlySavingAmount)
+                .recommendedCashSaving(actualPlan.recommendedCashSaving())
+                .currentAccumulatedFund(currentAccumulatedFund)
+                .cumulativeSavingPerformance(cumulativeSavingPerformance)
                 .baselineSnapshot(baselineAmount)
-                .requiredSnapshot(baselineAmount)
+                .requiredSnapshot(monthlySavingAmount)
                 .build();
         monthlySavingPlanMapper.insert(monthlySavingPlan); // insert 후 monthlySavingPlanId 채워짐
 
-        for (AllocationPlan.AllocationEntry entry : plan.allocations()) {
+        for (AllocationEntry entry : actualPlan.allocations()) {
             MonthlySavingAllocationVO allocation = MonthlySavingAllocationVO.builder()
                     .monthlySavingPlanId(monthlySavingPlan.getMonthlySavingPlanId())
                     .productSubscriptionId(subscriptionIdByProductId.get(entry.productId()))
@@ -239,14 +373,58 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
             monthlySavingAllocationMapper.insert(allocation);
         }
 
-        // STEP 9. 필요저축액 컬럼 갱신 — 이 트랜잭션이 이번 달 필요저축액을 확정하는 유일한 지점
+        // STEP 10. 필요저축액 컬럼 갱신 — 이 트랜잭션이 이번 달 필요저축액을 확정하는 유일한 지점
         // (설계 원칙 7). target_baseline_amount 는 여기서도 건드리지 않는다.
-        goalMapper.updateMonthlyRequiredSaving(memberId, baselineAmount);
+        goalMapper.updateMonthlyRequiredSaving(memberId, monthlySavingAmount);
 
-        // deposit/rolloverAmount 는 목돈이 없는 온보딩이라 항상 null. expectedInterestTotal/achievementRate 는
-        // 만기 이자 계산식이 확정 전이라 항상 null (§15 추후 확정, NEW_SEGMENT 브랜치에서 함께 채운다).
+        // expectedInterestTotal/achievementRate(§10, 로드맵 전체 투영)는 이 브랜치 범위 밖 —
+        // 4-7 GET /api/roadmap/graph 와 같은 투영 로직이 필요해서 그때 함께 채운다.
         return new SegmentComposition(
-                baselineAmount, null, null, savingsSummaries, plan.recommendedCashSaving(), null, null);
+                baselineAmount, rolloverAmount, depositSummary, savingsSummaries,
+                actualPlan.recommendedCashSaving(), null, null);
+    }
+
+    // 구독 하나의 만기금(세전, 원금+이자 합산) 계산 — 이자_계산식_결정.md 공식.
+    private BigDecimal calculateMaturityAmount(ProductSubscriptionVO subscription) {
+        if (ROLLOVER_DEPOSIT.equals(subscription.getSubscriptionRole())) {
+            BigDecimal interest = roadmapCalculationService.calculateDepositInterest(
+                    subscription.getInitialPrincipal(), subscription.getExpectedAppliedRate(), subscription.getTermMonths());
+            return subscription.getInitialPrincipal().add(interest);
+        }
+        List<SavingsPaymentRecord> payments =
+                transactionHistoryMapper.selectSavingsPaymentsBySubscription(subscription.getProductSubscriptionId());
+        BigDecimal principal = payments.stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal interest = roadmapCalculationService.calculateSavingsInterest(
+                payments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate());
+        return principal.add(interest);
+    }
+
+    // 로드맵 전체 기준 누적 저축실적(§2-5) — 지금 이 순간(구간 전환 커밋 시점) 기준으로 다시 계산한다.
+    // RoadmapQueryService.getStatus() 의 STEP8과 같은 계산이지만, 그쪽은 RoadmapStatus 에
+    // 이 중간값을 노출하지 않아서 이 트랜잭션에 얼려 저장할 값이 필요한 여기서 한 번 더 구한다.
+    private BigDecimal calculateCumulativeSavingPerformanceNow(long memberId, SavingsRoadmapVO roadmap) {
+        LocalDateTime roadmapStart = roadmap.getStartDate().atStartOfDay();
+        LocalDateTime thisMonthStart = YearMonth.now().atDay(1).atStartOfDay();
+        BigDecimal savingsPaymentSum = transactionHistoryMapper.sumSavingsPaymentBetween(memberId, roadmapStart, thisMonthStart);
+        BigDecimal cashSavingBalance = assetSnapshotMapper.selectLatest(roadmap.getSavingsRoadmapId())
+                .map(AssetSnapshotVO::getCashSavingBalance)
+                .orElse(BigDecimal.ZERO);
+        return roadmapCalculationService.calculateCumulativeSavingPerformance(savingsPaymentSum, cashSavingBalance);
+    }
+
+    // 우대조건 응답 중 will_meet=true 인 것만 반영해 상품별 우대금리 합을 구한다 (§4-3, §4-4).
+    // 적금·예금 후보 모두 같은 로직이라 공통으로 뺐다.
+    private Map<Long, BigDecimal> computeBonusByProductId(List<Long> productIds, Map<String, Boolean> willMeetByCondition) {
+        Map<Long, BigDecimal> bonusByProductId = new HashMap<>();
+        if (productIds.isEmpty()) {
+            return bonusByProductId;
+        }
+        for (ProductPreferentialRateVO rate : productPreferentialRateMapper.selectByProductIds(productIds)) {
+            if (Boolean.TRUE.equals(willMeetByCondition.get(rate.getConditionCode()))) {
+                bonusByProductId.merge(rate.getProductId(), rate.getRateBonus(), BigDecimal::add);
+            }
+        }
+        return bonusByProductId;
     }
 
     // 후보 상품 + 계산된 예상 적용금리를 함께 들고 다니기 위한 내부 전용 레코드.

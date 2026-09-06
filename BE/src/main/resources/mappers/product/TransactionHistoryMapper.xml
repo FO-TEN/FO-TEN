@@ -21,4 +21,12 @@
           AND th.transaction_type = 'SAVINGS_PAYMENT'
     </select>
 
+    <select id="selectSavingsPaymentsBySubscription" resultType="com.foten.product.domain.SavingsPaymentRecord">
+        SELECT amount, transaction_at
+        FROM transaction_history
+        WHERE product_subscription_id = #{productSubscriptionId}
+          AND transaction_type = 'SAVINGS_PAYMENT'
+        ORDER BY transaction_at
+    </select>
+
 </mapper>

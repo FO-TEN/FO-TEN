@@ -51,7 +51,9 @@ public class ExceptionAdvice {
 
     @ExceptionHandler(InvalidRequestException.class)
     public ResponseEntity<Map<String, String>> handleInvalidRequest(InvalidRequestException e) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(Map.of("message", e.getMessage()));
+        Map<String, String> body = e.getErrorCode() == null
+                ? Map.of("message", e.getMessage())
+                : Map.of("errorCode", e.getErrorCode(), "message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 }

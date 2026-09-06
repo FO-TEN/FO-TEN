@@ -39,7 +39,8 @@ public class RateConditionController {
         List<RateConditionAnswer> answers = request.responses().stream()
                 .map(item -> new RateConditionAnswer(item.conditionCode(), item.willMeet()))
                 .toList();
-        SegmentComposition composition = roadmapCommandService.submitRateConditionResponses(memberId, answers);
+        SegmentComposition composition =
+                roadmapCommandService.submitRateConditionResponses(memberId, answers, request.deficitChoice());
         return ResponseEntity.ok(SegmentCompositionResponse.from(composition));
     }
 }

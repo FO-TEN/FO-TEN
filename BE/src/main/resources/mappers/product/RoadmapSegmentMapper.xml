@@ -27,4 +27,10 @@
             (#{savingsRoadmapId}, #{segmentNo}, #{plannedMonths}, #{startDate}, #{endDate}, #{isLastSegment})
     </insert>
 
+    <update id="complete">
+        UPDATE roadmap_segment
+        SET status = 'COMPLETED'
+        WHERE segment_id = #{segmentId}
+    </update>
+
 </mapper>
