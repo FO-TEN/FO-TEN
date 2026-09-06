@@ -17,4 +17,12 @@
         WHERE member_id = #{memberId}
     </select>
 
+    <insert id="upsert" parameterType="com.foten.goal.domain.Goal">
+        INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount)
+        VALUES (#{memberId}, #{targetAmount}, #{targetCurrency}, #{targetBaselineAmount}) AS newrow
+        ON DUPLICATE KEY UPDATE
+                             target_amount = newrow.target_amount,
+                             target_currency = newrow.target_currency,
+                             target_baseline_amount = newrow.target_baseline_amount
+    </insert>
 </mapper>

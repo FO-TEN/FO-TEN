@@ -8,4 +8,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface FinancialInfoMapper {
     Optional<FinancialInfo> selectByMemberId(@Param("memberId") Long memberId);
+
+    void upsert(FinancialInfo financialInfo);
 }

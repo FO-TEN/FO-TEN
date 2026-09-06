@@ -8,4 +8,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface GoalMapper {
     Optional<Goal> selectByMemberId(@Param("memberId") Long memberId);
+
+    void upsert(Goal goal);
 }
