@@ -14,7 +14,9 @@ const t = (k, v) => locale.t(k, v)
 
 // 시안 치수 (375 프레임 기준). 막대 영역 높이와 가장 높은 막대의 높이.
 const CHART_H = 160
-const MAX_BAR_H = 136
+const TOP_LABEL_H = 21 // total label above the last bar
+const BADGE_H = 28 // in-progress badge above the active bar
+const BASE_RESERVE = 24 // Figma: 160 - 136
 const THIN = 4 // 값이 있는데 너무 얇으면 보이게 하는 최소 두께
 const LABEL_MIN_H = 18 // 이보다 낮은 층에는 글자를 넣지 않는다
 
@@ -42,7 +44,7 @@ function label(s, i) {
 const bars = computed(() =>
   segments.value.map((s, i) => {
     const total = n(s.savingsAmount) + n(s.depositAmount) + n(s.cashAmount) + n(s.interestAmount)
-    const scale = MAX_BAR_H / tallest.value
+    const scale = (CHART_H - reserve.value) / tallest.value
     const h = (v) => (n(v) > 0 ? Math.max(THIN, Math.round(n(v) * scale)) : 0)
     return {
       key: s.segmentNo,
@@ -60,6 +62,21 @@ const bars = computed(() =>
     }
   }),
 )
+
+// Figma never puts the badge and the total on one bar. A one-segment roadmap does,
+// so reserve room for both or the bar overflows into the subtitle.
+const reserve = computed(() => {
+  const segs = segments.value
+  const tallestIdx = segs.reduce((best, s, i, arr) => {
+    const tot = (x) => n(x.savingsAmount) + n(x.depositAmount) + n(x.cashAmount) + n(x.interestAmount)
+    return tot(s) > tot(arr[best]) ? i : best
+  }, 0)
+  const s = segs[tallestIdx]
+  if (!s) return BASE_RESERVE
+  const last = tallestIdx === segs.length - 1
+  const active = s.status === 'ACTIVE'
+  return Math.max(BASE_RESERVE, (last ? TOP_LABEL_H : 0) + (active ? BADGE_H : 0))
+})
 
 const subtitle = computed(() =>
   t('card.roadmap_sub', { n: totalMonths.value, segs: segments.value.map((s) => s.months).join(' + ') }),
