@@ -33,13 +33,14 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
 
         List<String> tools = ctx.calledTools();
 
+        // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
+        // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
+        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
+            return List.of();
+        }
         // 질문을 보여준 턴에는 고를 수 있게 조건을 칩으로 낸다.
         if (tools.contains(CONDITION_TOOL)) {
             return conditionChips(ctx.memberId());
-        }
-        // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
-        if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
-            return List.of();
         }
         if (!tools.contains(STATUS_TOOL) && !tools.contains(START_TOOL)) {
             return List.of();
@@ -60,8 +61,12 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         return List.of(Suggestion.ask("상품 구성 알려줘"));
     }
 
-    // 이미 제출했으면 도구가 질문 대신 안내를 돌려주므로 칩도 내지 않는다.
+    // 이미 제출했으면 도구가 질문 대신 안내를 돌려준다. 고를 것이 없으니 칩도 내지 않는다.
     private List<Suggestion> conditionChips(long memberId) {
+        MemberProfile profile = memberProfileMapper.findProfile(memberId).orElse(null);
+        if (profile == null || !profile.isRoadmapExists() || profile.isRateConditionsAnswered()) {
+            return List.of();
+        }
         List<RateConditionVO> conditions = roadmapQueryService.getRateConditions();
         if (conditions == null || conditions.isEmpty()) {
             return List.of();
