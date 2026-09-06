@@ -107,6 +107,13 @@ jobs:
         working-directory: FE
         run: npm run lint --if-present
 
+      # "test" 스크립트는 로컬 watch 모드용(vitest)이라 CI 에서 그대로 쓰면 안 멈춘다.
+      # "test:ci"(vitest run)를 따로 두고 그것만 부른다.
+      - name: 테스트
+        if: steps.check.outputs.exists == 'true'
+        working-directory: FE
+        run: npm run test:ci --if-present
+
       - name: 빌드
         if: steps.check.outputs.exists == 'true'
         working-directory: FE
