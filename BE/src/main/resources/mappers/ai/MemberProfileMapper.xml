@@ -7,7 +7,8 @@
         SELECT m.name,
                m.nationality,
                s.expected_return_date,
-               g.target_currency
+               g.target_currency,
+               EXISTS (SELECT 1 FROM savings_roadmap r WHERE r.member_id = m.member_id) AS roadmap_exists
         FROM member m
                  LEFT JOIN stay_info s ON s.member_id = m.member_id
                  LEFT JOIN goal g ON g.member_id = m.member_id
