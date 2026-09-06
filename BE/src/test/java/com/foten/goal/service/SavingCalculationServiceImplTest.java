@@ -5,6 +5,7 @@ import com.foten.goal.domain.CategorySpendingInput;
 import com.foten.goal.domain.SavingCalculationOutput;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -123,6 +124,34 @@ class SavingCalculationServiceImplTest {
         assertEquals(
                 List.of(new CategorySavingPotential("쇼핑", 60000), new CategorySavingPotential("식비", 47500)),
                 result);
+    }
+
+    @Test
+    void calculateMonthlySavingAmount_FULL_RECOVERY면_이번_회차까지_밀린_전액을_만회한다() {
+        // 로직 최종안 §5-2 예시: 목표기준액 100만원, cycleNo=2, 누적저축실적 70만원 → 130만원
+        BigDecimal result = service.calculateMonthlySavingAmount(
+                "FULL_RECOVERY", BigDecimal.valueOf(1_000_000), 2, BigDecimal.valueOf(700_000),
+                BigDecimal.valueOf(1_005_000));
+
+        assertEquals(0, BigDecimal.valueOf(1_300_000).compareTo(result));
+    }
+
+    @Test
+    void calculateMonthlySavingAmount_SPREAD이면_필요저축액을_그대로_반환한다() {
+        BigDecimal result = service.calculateMonthlySavingAmount(
+                "SPREAD", BigDecimal.valueOf(1_000_000), 2, BigDecimal.valueOf(700_000),
+                BigDecimal.valueOf(1_005_000));
+
+        assertEquals(0, BigDecimal.valueOf(1_005_000).compareTo(result));
+    }
+
+    @Test
+    void calculateMonthlySavingAmount_NONE이면_SPREAD와_동일하게_필요저축액을_그대로_반환한다() {
+        BigDecimal result = service.calculateMonthlySavingAmount(
+                "NONE", BigDecimal.valueOf(1_000_000), 2, BigDecimal.valueOf(700_000),
+                BigDecimal.valueOf(1_005_000));
+
+        assertEquals(0, BigDecimal.valueOf(1_005_000).compareTo(result));
     }
 
     @Test
