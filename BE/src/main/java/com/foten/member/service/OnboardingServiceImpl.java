@@ -43,7 +43,7 @@ public class OnboardingServiceImpl implements OnboardingService{
         // 이미 가입된 적금 상품 구성·로드맵 판정이 통째로 어긋난다 (기획서 §15).
         if (savingsRoadmapMapper.selectByMemberId(memberId).isPresent()) {
             throw new RoadmapStateConflictException(
-                    "ROADMAP_ALREADY_EXISTS", "이미 로드맵이 시작된 목표는 수정할 수 없습니다. memberId=" + memberId);
+                    "ROADMAP_ALREADY_EXISTS", "이미 로드맵이 시작된 목표는 수정할 수 없습니다.");
         }
 
         String currencyCode = request.targetCurrency().trim().toUpperCase();
