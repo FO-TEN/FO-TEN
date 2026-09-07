@@ -98,4 +98,10 @@
              #{baselineSnapshot}, #{requiredSnapshot}, #{projectedTotalInterest})
     </insert>
 
+    <update id="updateProjectedTotalInterest">
+        UPDATE monthly_saving_plan
+        SET projected_total_interest = #{projectedTotalInterest}
+        WHERE monthly_saving_plan_id = #{monthlySavingPlanId}
+    </update>
+
 </mapper>

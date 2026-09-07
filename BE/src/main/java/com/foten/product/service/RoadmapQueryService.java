@@ -3,6 +3,7 @@ package com.foten.product.service;
 import com.foten.product.domain.MonthlyPlanSummary;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapGraph;
+import com.foten.product.domain.RoadmapProjection;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
 import com.foten.product.domain.SegmentDetail;
@@ -28,4 +29,8 @@ public interface RoadmapQueryService {
     // "이번 달 배분 계획"(§4-9) — 이미 확정된 monthly_saving_plan/allocation을 그대로
     // 보여주기만 한다. 새 계산 없음, 실제 납입 여부도 구분하지 않는다.
     MonthlyPlanSummary getCurrentMonthlyPlan(long memberId);
+
+    // "전체 로드맵 투영"(§10) — getGraph() 를 재사용해 expectedInterestTotal/achievementRate 를
+    // 계산한다. 4-4/4-5 응답과 monthly_saving_plan.projected_total_interest 가 전부 이 값을 쓴다.
+    RoadmapProjection getProjection(long memberId);
 }

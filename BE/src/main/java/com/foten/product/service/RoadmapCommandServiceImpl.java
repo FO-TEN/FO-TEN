@@ -23,6 +23,7 @@ import com.foten.product.domain.ProductSubscriptionVO;
 import com.foten.product.domain.ProductVO;
 import com.foten.product.domain.RateConditionAnswer;
 import com.foten.product.domain.RatedDepositCandidate;
+import com.foten.product.domain.RoadmapProjection;
 import com.foten.product.domain.RoadmapSegmentVO;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SavingsPaymentRecord;
@@ -376,11 +377,16 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         // (설계 원칙 7). target_baseline_amount 는 여기서도 건드리지 않는다.
         goalMapper.updateMonthlyRequiredSaving(memberId, monthlySavingAmount);
 
-        // expectedInterestTotal/achievementRate(§10, 로드맵 전체 투영)는 이 브랜치 범위 밖 —
-        // 4-7 GET /api/roadmap/graph 와 같은 투영 로직이 필요해서 그때 함께 채운다.
+        // STEP 11. 전체 로드맵 투영(§10) — 방금 커밋한 이 행이 반영된 값이어야 해서 insert
+        // 이후에 계산한다(getGraph() 가 "가장 최근 회차"를 다시 조회하기 때문). 같은 값을
+        // 응답과 이 행(projected_total_interest) 양쪽에 채운다.
+        RoadmapProjection projection = roadmapQueryService.getProjection(memberId);
+        monthlySavingPlanMapper.updateProjectedTotalInterest(
+                monthlySavingPlan.getMonthlySavingPlanId(), projection.expectedInterestTotal());
+
         return new SegmentComposition(
                 baselineAmount, rolloverAmount, depositSummary, savingsSummaries,
-                actualPlan.recommendedCashSaving(), null, null);
+                actualPlan.recommendedCashSaving(), projection.expectedInterestTotal(), projection.achievementRate());
     }
 
     @Override
@@ -486,6 +492,13 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
 
         // STEP 5. 필요저축액 컬럼 갱신 — 설계 원칙 7, 이 트랜잭션이 이번 달 값을 확정하는 지점.
         goalMapper.updateMonthlyRequiredSaving(memberId, monthlySavingAmount);
+
+        // STEP 6. projected_total_interest 갱신 — 4-6 응답 자체엔 이 필드가 없어 DB에만 채운다.
+        // 4-4와 같은 이유로 insert 이후에 계산해야 한다(getGraph() 가 방금 넣은 이 행을
+        // "가장 최근 회차"로 다시 조회해서 구성 기준액을 정하기 때문).
+        RoadmapProjection projection = roadmapQueryService.getProjection(memberId);
+        monthlySavingPlanMapper.updateProjectedTotalInterest(
+                newPlan.getMonthlySavingPlanId(), projection.expectedInterestTotal());
 
         return new DeficitChoiceResult(monthlySavingAmount, productBaselineAmount, true);
     }

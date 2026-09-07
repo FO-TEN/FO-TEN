@@ -16,6 +16,7 @@ import com.foten.product.domain.ProductVO;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RatedDepositCandidate;
 import com.foten.product.domain.RoadmapGraph;
+import com.foten.product.domain.RoadmapProjection;
 import com.foten.product.domain.RoadmapSegmentVO;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SavingsPaymentRecord;
@@ -37,6 +38,7 @@ import com.foten.product.mapper.RoadmapSegmentMapper;
 import com.foten.product.mapper.SavingsRoadmapMapper;
 import com.foten.product.mapper.TransactionHistoryMapper;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
@@ -231,21 +233,29 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                         allocatedByProductId.getOrDefault(s.getProductId(), BigDecimal.ZERO)))
                 .toList();
 
-        // 이자 관련 필드(maturityAmount/expectedInterest)는 이자_계산식_결정.md 로 공식만 정해졌고
-        // 코드는 아직 없다 — NEW_SEGMENT 브랜치에서 함께 채운다.
-        SegmentComposition.DepositSummary depositSummary = depositSubscription == null ? null
-                : new SegmentComposition.DepositSummary(
-                        productById.get(depositSubscription.getProductId()).getProductName(),
-                        depositSubscription.getTermMonths(),
-                        depositSubscription.getExpectedAppliedRate(),
-                        depositSubscription.getInitialPrincipal(),
-                        depositSubscription.getMaturityAmount(),
-                        null);
+        // 예금은 아직 만기 전이라 product_subscription.maturity_amount 는 항상 NULL(만기 시에만
+        // 채워짐) — 4-4 NEW_SEGMENT 커밋 때와 똑같이 원금·스냅샷 금리로 예상 만기금을 직접
+        // 계산한다. 세후 변환까지 포함(이자_계산식_결정.md).
+        SegmentComposition.DepositSummary depositSummary = null;
+        if (depositSubscription != null) {
+            BigDecimal depositInterest = roadmapCalculationService.calculateDepositInterest(
+                    depositSubscription.getInitialPrincipal(), depositSubscription.getExpectedAppliedRate(),
+                    depositSubscription.getTermMonths());
+            BigDecimal afterTaxInterest = roadmapCalculationService.calculateAfterTaxInterest(depositInterest);
+            depositSummary = new SegmentComposition.DepositSummary(
+                    productById.get(depositSubscription.getProductId()).getProductName(),
+                    depositSubscription.getTermMonths(),
+                    depositSubscription.getExpectedAppliedRate(),
+                    depositSubscription.getInitialPrincipal(),
+                    depositSubscription.getInitialPrincipal().add(afterTaxInterest),
+                    afterTaxInterest);
+        }
         BigDecimal rolloverAmount = depositSubscription == null ? null : depositSubscription.getInitialPrincipal();
 
+        RoadmapProjection projection = getProjection(memberId);
         return new SegmentComposition(
                 baselineAmount, rolloverAmount, depositSummary, savingsSummaries,
-                plan.recommendedCashSaving(), null, null);
+                plan.recommendedCashSaving(), projection.expectedInterestTotal(), projection.achievementRate());
     }
 
     // §2-2 현재 누적자금의 "현재 예금 금액" 항목 — 이 구간의 ACTIVE ROLLOVER_DEPOSIT 구독 원금 합
@@ -282,12 +292,27 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         BigDecimal compositionBasis = SPREAD.equals(latestPlan.getDeficitChoice())
                 ? latestPlan.getRequiredSnapshot() : baselineAmount;
 
+        // 가장 최근에 커밋된 회차(latestPlan)가 아직 실제 거래(transaction_history)로 안 잡혔을 수
+        // 있다 — 예: FULL_RECOVERY로 이번 달 확정만 해두고 실제 납입은 아직 안 한 상태. 그 한 달은
+        // 구성 기준액이 아니라 그때 확정된 실제 배분액을 써야 한다(안 그러면 부족액을 만회하기로
+        // 확정해놓고도 그래프·달성률에 전혀 반영되지 않는다). 이 구간에서 지금까지 몇 회차가
+        // "커밋"됐는지(cycle_no 차이로 계산)를 여기서 한 번만 구해 전달한다.
+        MonthlySavingPlanVO firstPlanOfActiveSegment = monthlySavingPlanMapper.selectFirstBySegment(activeSegment.getSegmentId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "이 구간의 저축 제안이 아직 없습니다. segmentId=" + activeSegment.getSegmentId()));
+        int committedCyclesInSegment = latestPlan.getCycleNo() - firstPlanOfActiveSegment.getCycleNo() + 1;
+        Map<Long, BigDecimal> committedAllocationBySubscriptionId = monthlySavingAllocationMapper
+                .selectByPlanId(latestPlan.getMonthlySavingPlanId()).stream()
+                .collect(Collectors.toMap(
+                        MonthlySavingAllocationVO::getProductSubscriptionId, MonthlySavingAllocationVO::getAllocatedAmount));
+
         List<RoadmapGraph.SegmentSummary> summaries = new ArrayList<>();
         int monthsSoFar = 0;
         for (RoadmapSegmentVO segment : realSegments) {
             RoadmapGraph.SegmentSummary summary = COMPLETED.equals(segment.getStatus())
                     ? summarizeCompletedSegment(segment)
-                    : summarizeActiveSegment(segment, compositionBasis);
+                    : summarizeActiveSegment(segment, compositionBasis, committedCyclesInSegment,
+                            latestPlan.getRecommendedCashSaving(), committedAllocationBySubscriptionId);
             summaries.add(summary);
             monthsSoFar += segment.getPlannedMonths();
         }
@@ -370,9 +395,12 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                 savingsAmount, depositAmount, cashAmount, interestAmount);
     }
 
-    // 현재 구간 — 이미 낸 달은 실적, 남은 달은 "구성 기준액대로 계속 냈다면"을 가정.
-    // 새 상품을 고르지 않는다 — 이미 가입된 구독들에 allocate() 로 매달 패턴만 구한다.
-    private RoadmapGraph.SegmentSummary summarizeActiveSegment(RoadmapSegmentVO segment, BigDecimal compositionBasis) {
+    // 현재 구간 — 이미 낸 달은 실적, 이미 확정만 되고 아직 안 낸 한 달은 그 확정 배분액,
+    // 그 뒤 남은 달은 "구성 기준액대로 계속 냈다면"을 가정. 새 상품을 고르지 않는다 — 이미
+    // 가입된 구독들에 allocate() 로 매달 패턴만 구한다.
+    private RoadmapGraph.SegmentSummary summarizeActiveSegment(
+            RoadmapSegmentVO segment, BigDecimal compositionBasis, int committedCyclesInSegment,
+            BigDecimal committedCashSaving, Map<Long, BigDecimal> committedAllocationBySubscriptionId) {
         List<ProductSubscriptionVO> subscriptions = productSubscriptionMapper.selectBySegment(segment.getSegmentId());
         ProductSubscriptionVO depositSubscription = subscriptions.stream()
                 .filter(s -> ROLLOVER_DEPOSIT.equals(s.getSubscriptionRole()))
@@ -405,25 +433,39 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                     transactionHistoryMapper.selectSavingsPaymentsBySubscription(subscription.getProductSubscriptionId());
             monthsAlreadyPaid = Math.max(monthsAlreadyPaid, pastPayments.size());
             int monthsRemaining = Math.max(0, subscription.getTermMonths() - pastPayments.size());
+            // 이 구독이 실제로 낸 달수(pastPayments.size())보다 이 구간에 커밋된 회차수가 많으면,
+            // 그 차이(항상 1개월)는 "확정은 됐지만 아직 거래는 안 잡힌 이번 달"이다 — 구성
+            // 기준액이 아니라 그때 확정된 실제 배분액을 그대로 써야 한다.
+            boolean hasCommittedUnpaidMonth = committedCyclesInSegment > pastPayments.size();
+            BigDecimal committedMonthAmount = committedAllocationBySubscriptionId
+                    .getOrDefault(subscription.getProductSubscriptionId(), BigDecimal.ZERO);
             BigDecimal futureMonthlyAmount = monthlyByProductId.getOrDefault(subscription.getProductId(), BigDecimal.ZERO);
 
             List<SavingsPaymentRecord> allPayments = new ArrayList<>(pastPayments);
+            BigDecimal futureSavingsAmount = BigDecimal.ZERO;
             for (int i = 0; i < monthsRemaining; i++) {
-                allPayments.add(new SavingsPaymentRecord(futureMonthlyAmount,
+                BigDecimal amount = (hasCommittedUnpaidMonth && i == 0) ? committedMonthAmount : futureMonthlyAmount;
+                allPayments.add(new SavingsPaymentRecord(amount,
                         subscription.getStartDate().plusMonths((long) pastPayments.size() + i).atStartOfDay()));
+                futureSavingsAmount = futureSavingsAmount.add(amount);
             }
             BigDecimal pastPrincipal = pastPayments.stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
-            savingsAmount = savingsAmount.add(pastPrincipal).add(futureMonthlyAmount.multiply(BigDecimal.valueOf(monthsRemaining)));
+            savingsAmount = savingsAmount.add(pastPrincipal).add(futureSavingsAmount);
             interestAmount = interestAmount.add(roadmapCalculationService.calculateSavingsInterest(
                     allPayments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate()));
         }
 
         int remainingMonthsInSegment = Math.max(0, segment.getPlannedMonths() - monthsAlreadyPaid);
+        boolean hasCommittedUnpaidMonth = committedCyclesInSegment > monthsAlreadyPaid;
+        int compositionBasisMonths = hasCommittedUnpaidMonth ? remainingMonthsInSegment - 1 : remainingMonthsInSegment;
+        BigDecimal futureCash = plan.recommendedCashSaving().multiply(BigDecimal.valueOf(Math.max(0, compositionBasisMonths)));
+        if (hasCommittedUnpaidMonth && remainingMonthsInSegment > 0) {
+            futureCash = futureCash.add(committedCashSaving);
+        }
         BigDecimal lastKnownCash = assetSnapshotMapper.selectLatestBySegment(segment.getSegmentId())
                 .map(AssetSnapshotVO::getCashSavingBalance)
                 .orElse(BigDecimal.ZERO);
-        BigDecimal cashAmount = lastKnownCash.add(
-                plan.recommendedCashSaving().multiply(BigDecimal.valueOf(remainingMonthsInSegment)));
+        BigDecimal cashAmount = lastKnownCash.add(futureCash);
 
         return new RoadmapGraph.SegmentSummary(
                 segment.getSegmentNo(), segment.getPlannedMonths(), ACTIVE,
@@ -576,5 +618,28 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         return new MonthlyPlanSummary(
                 plan.getPlanMonth(), plan.getMonthlySavingAmount(), allocationSummaries,
                 plan.getRecommendedCashSaving(), plan.getMonthlySavingAmount());
+    }
+
+    @Override
+    public RoadmapProjection getProjection(long memberId) {
+        // getGraph() 를 그대로 재사용 — "원금 합계(finalAmount) + 예상 이자" 가 곧 마지막
+        // 구간의 총자산과 같다는 걸 이미 그쪽에서 검증해뒀다.
+        RoadmapGraph graph = getGraph(memberId);
+
+        SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+        MonthlySavingPlanVO firstPlan = monthlySavingPlanMapper.selectFirst(roadmap.getSavingsRoadmapId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "최초 저축 계획이 아직 없습니다. memberId=" + memberId));
+        // 목표저축액(KRW) — §2-3 역산 공식, getStatus() STEP6과 동일한 계산.
+        BigDecimal targetAmount = roadmapCalculationService.reverseTargetAmount(
+                firstPlan.getBaselineSnapshot(), roadmap.getTotalMonths(), firstPlan.getCurrentAccumulatedFund());
+
+        // 목표 달성률(%) = (원금 합계 + 예상 이자) ÷ 목표저축액(KRW) × 100
+        BigDecimal totalAsset = graph.finalAmount().add(graph.expectedInterestTotal());
+        BigDecimal achievementRate = totalAsset.multiply(BigDecimal.valueOf(100))
+                .divide(targetAmount, 0, RoundingMode.HALF_UP);
+
+        return new RoadmapProjection(graph.expectedInterestTotal(), achievementRate);
     }
 }
