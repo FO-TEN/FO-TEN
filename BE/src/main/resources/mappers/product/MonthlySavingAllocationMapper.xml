@@ -12,4 +12,15 @@
             (#{monthlySavingPlanId}, #{productSubscriptionId}, #{allocatedAmount}, #{allocationOrder})
     </insert>
 
+    <select id="selectByPlanId" resultType="com.foten.product.domain.MonthlySavingAllocationVO">
+        SELECT monthly_saving_allocation_id,
+               monthly_saving_plan_id,
+               product_subscription_id,
+               allocated_amount,
+               allocation_order
+        FROM monthly_saving_allocation
+        WHERE monthly_saving_plan_id = #{monthlySavingPlanId}
+        ORDER BY allocation_order ASC
+    </select>
+
 </mapper>

@@ -6,10 +6,12 @@ import com.foten.product.domain.DeficitChoiceResult;
 import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
+import com.foten.product.domain.MonthlyPlanSummary;
 import com.foten.product.domain.SegmentDetail;
 import com.foten.product.dto.CreateRoadmapResponse;
 import com.foten.product.dto.DeficitChoiceRequest;
 import com.foten.product.dto.DeficitChoiceResponse;
+import com.foten.product.dto.MonthlyPlanSummaryResponse;
 import com.foten.product.dto.RoadmapGraphResponse;
 import com.foten.product.dto.RoadmapStatusResponse;
 import com.foten.product.dto.SegmentCompositionResponse;
@@ -68,5 +70,11 @@ public class RoadmapController {
     public ResponseEntity<SegmentDetailResponse> currentSegmentDetail(@LoginMember long memberId) {
         SegmentDetail detail = roadmapQueryService.getSegmentDetail(memberId);
         return ResponseEntity.ok(SegmentDetailResponse.from(detail));
+    }
+
+    @GetMapping("/api/roadmap/monthly-plan/current")
+    public ResponseEntity<MonthlyPlanSummaryResponse> currentMonthlyPlan(@LoginMember long memberId) {
+        MonthlyPlanSummary summary = roadmapQueryService.getCurrentMonthlyPlan(memberId);
+        return ResponseEntity.ok(MonthlyPlanSummaryResponse.from(summary));
     }
 }
