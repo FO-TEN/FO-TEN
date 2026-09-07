@@ -42,6 +42,12 @@ export const exchangeApi = {
     http.get(`/exchange-rates/${currencyCode}/krw`, { params: { amount } }).then((r) => r.data),
 }
 
+export const roadmapApi = {
+  // 상품이 아직 없으면 서버가 오류로 답한다. 화면이 빈 상태로 처리한다.
+  composition: () => http.get('/roadmap/segments/current/composition').then((r) => r.data),
+  graph: () => http.get('/roadmap/graph').then((r) => r.data),
+}
+
 export const chatApi = {
   // { contentKo, contentLocal, suggestions[] } · 500자 초과는 400
   send: (message) => http.post('/chat', { message }).then((r) => r.data),

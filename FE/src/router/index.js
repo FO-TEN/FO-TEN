@@ -11,6 +11,7 @@ import { useAuthStore } from '../stores/auth'
  *   /chat        05_대화 · 홈
  *   /spending    09_소비 내역
  *   /me          12_내 정보
+ *   /products    10i_상품 추천 상세
  */
 const routes = [
   { path: '/', name: 'splash', component: () => import('../pages/SplashPage.vue') },
@@ -26,6 +27,7 @@ const routes = [
   { path: '/chat', name: 'chat', component: () => import('../pages/ChatPage.vue'), meta: { auth: true, onboarded: true, nav: 'chat' } },
   { path: '/spending', name: 'spending', component: () => import('../pages/SpendingPage.vue'), meta: { auth: true, onboarded: true, nav: 'chat' } },
   { path: '/me', name: 'me', component: () => import('../pages/MePage.vue'), meta: { auth: true, onboarded: true, nav: 'me' } },
+  { path: '/products', name: 'products', component: () => import('../pages/ProductsPage.vue'), meta: { auth: true, onboarded: true, nav: 'home' } },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 

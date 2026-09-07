@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted, nextTick, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useChatStore } from '../stores/chat'
@@ -36,7 +36,7 @@ onMounted(async () => {
   } catch {
     /* 이력이 없어도 대화는 시작할 수 있다 */
   }
-  await scrollBottom()
+  await restoreOrBottom()
   if (chat.pendingQuestion) {
     const q = chat.pendingQuestion
     chat.pendingQuestion = ''
@@ -44,6 +44,25 @@ onMounted(async () => {
   }
 })
 
+// 카드를 눌러 다른 화면에 갔다 돌아오면 있던 자리로. 매번 맨 아래로 내려가버리면 보던 곳을 잃는다.
+onBeforeUnmount(() => {
+  if (scroller.value) chat.scrollTop = scroller.value.scrollTop
+})
+async function restoreOrBottom() {
+  if (chat.scrollTop === null) return scrollBottom()
+  const top = chat.scrollTop
+  chat.scrollTop = null
+  await nextTick()
+  // 글꼴·이미지가 늘게 자리를 잡으믄 높이가 바뀜다. 바로 한 번, 잠시 뒤 한 번 더 놓는다.
+  const apply = () => {
+    if (scroller.value) scroller.value.scrollTop = top
+  }
+  apply()
+  setTimeout(apply, 50)
+  setTimeout(apply, 250)
+}
+
+// 새 말풍선이 붙을 때만 맨 아래로
 watch(() => chat.messages.length, scrollBottom)
 async function scrollBottom() {
   await nextTick()

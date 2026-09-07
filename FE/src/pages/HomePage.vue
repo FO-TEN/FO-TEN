@@ -173,6 +173,17 @@ function goChat() {
       <p v-if="dash.error && !dx" class="err">{{ dash.error }}</p>
 
       <!-- CTA -->
+      <button type="button" class="cta light" @click="router.push({ name: 'products' })">
+        <span class="cta-l">
+          <PotenAvatar :size="36" />
+          <span class="cta-t">
+            <span class="c1">{{ t('home.products_title') }}</span>
+            <span class="c2">{{ t('home.products_sub') }}</span>
+          </span>
+        </span>
+        <img :src="chev" alt="" width="16" height="16" />
+      </button>
+
       <button type="button" class="cta" @click="goChat">
         <span class="cta-l">
           <PotenAvatar :size="36" />
@@ -484,6 +495,11 @@ function goChat() {
   border-radius: var(--r-cta);
   background: var(--yellow-100);
   text-align: left;
+}
+/* 추천 조합 행은 흰 카드로, 대화 행(노랑)과 구분한다 */
+.cta.light {
+  background: #fff;
+  border: 1px solid var(--border-soft);
 }
 .cta-l {
   display: flex;
