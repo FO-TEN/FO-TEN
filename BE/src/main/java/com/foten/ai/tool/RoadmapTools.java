@@ -293,7 +293,13 @@ public class RoadmapTools implements ToolProvider{
             sb.append("밀린 금액이 없어 고를 것은 없고, 이번 달 계획을 세우면 됩니다.\n");
             sb.append("계획을 세울지 물어보고, 하겠다고 답하면 confirmMonthlySaving 을 choice 없이 부르세요.\n");
             sb.append("사용자가 이미 하겠다고 말했으면 다시 묻지 말고 그 자리에서 부르세요.\n");
+            return;
         }
+        sb.append("이번 달 금액은 이미 정해졌습니다.\n");
+        sb.append("정해져 있다는 것을 반드시 알려주세요. 빼먹으면 아직 안 한 것처럼 보입니다.\n");
+        sb.append("확정하겠냐고 다시 묻지 마세요.\n");
+        sb.append("'모아야 한다' 가 아니라 '모으기로 했다' 처럼 이미 정한 일로 말하세요.\n");
+        sb.append("어디에 얼마씩 넣는지 궁금해하면 getMonthlyPlan 을 부르세요.\n");
     }
 
     private String startRoadmap(long memberId) {
