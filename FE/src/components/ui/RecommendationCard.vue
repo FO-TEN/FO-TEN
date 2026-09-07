@@ -135,7 +135,7 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
 .more {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 2px;
   margin-top: 12px;
   padding-top: 10px;
