@@ -90,7 +90,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         // STEP 1. 이미 로드맵이 있으면 재생성하지 않는다 (savings_roadmap 은 회원당 1건).
         if (savingsRoadmapMapper.selectByMemberId(memberId).isPresent()) {
             throw new RoadmapStateConflictException(
-                    "ROADMAP_ALREADY_EXISTS", "이미 로드맵이 있습니다. memberId=" + memberId);
+                    "ROADMAP_ALREADY_EXISTS", "이미 로드맵이 있습니다.");
         }
 
         // STEP 2. 목표기준액·체류정보는 이 도메인이 계산하지 않고 이미 확정돼 있어야 하는
@@ -98,11 +98,11 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
                 .map(Goal::getTargetBaselineAmount)
                 .orElseThrow(() -> new RoadmapStateConflictException(
-                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다. memberId=" + memberId));
+                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다."));
         LocalDate expectedReturnDate = stayInfoMapper.selectByMemberId(memberId)
                 .map(StayInfo::getExpectedReturnDate)
                 .orElseThrow(() -> new RoadmapStateConflictException(
-                        "GOAL_NOT_READY", "체류 정보가 아직 확정되지 않았습니다. memberId=" + memberId));
+                        "GOAL_NOT_READY", "체류 정보가 아직 확정되지 않았습니다."));
 
         // STEP 3. 로드맵 기간 계산 (로직 v3 §3-1) — 오늘부터 "예상 귀국일 - 1개월"까지.
         LocalDate startDate = LocalDate.now();
@@ -175,14 +175,14 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                 .collect(Collectors.toMap(RateConditionAnswer::conditionCode, RateConditionAnswer::willMeet));
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
         RoadmapSegmentVO activeSegment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
         BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
                 .map(Goal::getTargetBaselineAmount)
                 .orElseThrow(() -> new RoadmapStateConflictException(
-                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다. memberId=" + memberId));
+                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다."));
 
         RoadmapSegmentVO targetSegment = activeSegment; // ONBOARDING 이면 상품을 가입시킬 구간이 곧 activeSegment
         BigDecimal rolloverAmount = null;
@@ -408,7 +408,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
                 .map(Goal::getTargetBaselineAmount)
                 .orElseThrow(() -> new RoadmapStateConflictException(
-                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다. memberId=" + memberId));
+                        "GOAL_NOT_READY", "목표가 아직 확정되지 않았습니다."));
         BigDecimal monthlySavingAmount = computeMonthlySavingAmount(status, baselineAmount, effectiveChoice);
         BigDecimal productBaselineAmount = computeProductBaselineAmount(status, baselineAmount, effectiveChoice);
 
@@ -419,7 +419,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         }
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다. memberId=" + memberId));
+                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
         RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
