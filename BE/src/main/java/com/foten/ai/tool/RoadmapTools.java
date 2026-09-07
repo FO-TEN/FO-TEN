@@ -9,6 +9,7 @@ import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.product.domain.CreatedRoadmap;
 import com.foten.product.domain.DeficitChoiceResult;
+import com.foten.product.domain.MonthlyPlanSummary;
 import com.foten.product.domain.RateConditionAnswer;
 import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapGraph;
@@ -135,6 +136,18 @@ public class RoadmapTools implements ToolProvider{
                         아직이면 getRoadmapStatus 로 어느 단계인지 먼저 확인하세요.
                         """,
                         (arguments, context) -> describeComposition(context)),
+
+                ToolSpec.noArgs(
+                        "getMonthlyPlan",
+                        """
+                        이번 달에 어느 상품에 얼마씩 넣기로 했는지 알려줍니다.
+                        이미 확정된 이번 달 배분이라 새로 계산하지 않습니다.
+                        "이번 달에 어디에 얼마 넣어?" 처럼 이번 달 납입처를 묻는 질문에 씁니다.
+                        구간 전체에 걸친 배분 기준은 getSegmentComposition 을 씁니다.
+                        이번 달 금액이 확정된 뒤에만 쓸 수 있습니다.
+                        이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
+                        """,
+                        (arguments, context) -> describeMonthlyPlan(context.memberId())),
 
                 ToolSpec.noArgs(
                         "getRoadmapGraph",
@@ -380,6 +393,49 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 가입 전에는 IllegalStateException 이 난다. 던지면 ToolRegistry 가 이유를 뭉갠다.
+    private String describeMonthlyPlan(long memberId) {
+        MonthlyPlanSummary plan;
+        try {
+            plan = roadmapQueryService.getCurrentMonthlyPlan(memberId);
+        }
+        catch (IllegalStateException | ResourceNotFoundException e) {
+            return notConfirmedReason(memberId);
+        }
+
+        StringBuilder sb = new StringBuilder("[이번 달 배분 계획]\n");
+        sb.append("이번 달에 모을 금액: ").append(money(plan.monthlySavingAmount())).append("원\n");
+        for (MonthlyPlanSummary.AllocationSummary a : plan.allocations()) {
+            sb.append("- ").append(a.productName())
+                    .append(" | 금리 ").append(a.appliedRate()).append("%")
+                    .append(" | 이번 달 ").append(money(a.allocatedAmount())).append("원\n");
+        }
+        if (isPositive(plan.recommendedCashSaving())) {
+            sb.append("- 적금에 담지 못해 현금으로 두는 금액: ")
+                    .append(money(plan.recommendedCashSaving())).append("원\n");
+        }
+        sb.append("보여주는 방법:\n");
+        sb.append("- 이미 정해진 이번 달 계획입니다. 다시 정하자고 하지 마세요.\n");
+        sb.append("- 상품이 하나면 이름과 금액을 그대로 말하세요.\n");
+        sb.append("- 둘 이상이면 상품마다 한 줄로 이름과 금액만 짧게 적으세요.\n");
+        sb.append("- 금액은 위 값 그대로 옮기고 더하거나 빼지 마세요.\n");
+        return sb.toString();
+    }
+
+    // 이번 달을 아직 확정하지 않았거나, 그 앞 단계에 머물러 있다. 어디서 막혔는지 갈라 알린다.
+    private String notConfirmedReason(long memberId) {
+        RoadmapStatus status = roadmapQueryService.getStatus(memberId);
+        if (!status.roadmapExists()) {
+            return "아직 로드맵이 없어 이번 달 계획이 없습니다.\n"
+                    + "로드맵을 먼저 만들어야 한다고 안내하세요.\n";
+        }
+        if (FLOW_ONBOARDING.equals(status.flowType())) {
+            return "아직 상품이 정해지지 않아 이번 달 계획이 없습니다.\n"
+                    + "우대조건을 먼저 확인해야 한다고 안내하세요.\n";
+        }
+        return "이번 달에 모을 금액을 아직 정하지 않았습니다.\n"
+                + "먼저 이번 달 금액을 정해야 한다고 알리고, 정할지 물어보세요.\n";
+    }
+
     private String describeComposition(ToolContext context) {
         try {
             return describeComposition(context,
