@@ -94,10 +94,13 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
                 : List.of(Suggestion.ask("상품 구성 알려줘"));
     }
 
-    // 첫 구간에서는 시안대로 '첫 구간' 이라고 부른다. 두 번째부터는 '이번 구간' 이다.
+    // 지난달이 없는 달에만 시안대로 '첫 구간' 이라고 부른다. 카드가 막대를 둘만 그리는 달과 같다.
+    // 흐름 종류로는 가를 수 없다 — 우대조건을 내는 순간 ONBOARDING 이 끝나는데,
+    // 이 칩은 그 뒤에 나간다.
     private Suggestion segmentDetailChip(long memberId) {
-        Integer segmentNo = roadmapQueryService.getStatus(memberId).currentSegmentNo();
-        return segmentNo != null && segmentNo == 1 ? FIRST_SEGMENT_DETAIL : THIS_SEGMENT_DETAIL;
+        return roadmapQueryService.getStatus(memberId).lastMonthActualAmount() == null
+                ? FIRST_SEGMENT_DETAIL
+                : THIS_SEGMENT_DETAIL;
     }
 
     private boolean isNewSegment(long memberId) {
