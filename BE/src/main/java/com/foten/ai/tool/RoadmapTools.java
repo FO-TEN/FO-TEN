@@ -201,7 +201,9 @@ public class RoadmapTools implements ToolProvider{
         appendSegment(sb, s);
         appendLastMonth(sb, s);
         appendAmounts(sb, s);
-        appendDeficitGuide(sb, memberId, s);
+        if (!appendDeficitGuide(sb, memberId, s)) {
+            appendNextStep(sb, s);
+        }
         sb.append("위 금액들의 차액을 직접 빼서 구하지 마세요. 필요한 값은 이미 위에 있습니다.");
         return sb.toString();
     }
@@ -211,10 +213,9 @@ public class RoadmapTools implements ToolProvider{
             return "알 수 없습니다. 무엇을 도와드릴지 물어보세요.";
         }
         return switch (flowType) {
-            case "ONBOARDING" -> "로드맵을 막 만든 달입니다. 다음은 우대조건 확인입니다"
-                    + " (getPreferentialConditionQuestions).";
-            case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 다음 구간 상품을 새로 고르는 달이라고 알리고,"
-                    + " 우대조건을 다시 확인하자고 하세요 (getPreferentialConditionQuestions).";
+            case "ONBOARDING" -> "로드맵을 막 만든 달입니다.";
+            case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 지난 구간이 끝났고 다음 구간 상품을"
+                    + " 새로 고르는 달이라고 알리세요.";
             case "REGULAR_MONTH" -> "평소 달입니다. 지난달 결과와 이번 달 저축액을 알려주세요.";
             default -> "알 수 없습니다. 무엇을 도와드릴지 물어보세요.";
         };
@@ -260,20 +261,30 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 밀린 금액이 있는 달은 어떻게 채울지 정해야 이번 달 금액이 나온다.
-    private void appendDeficitGuide(StringBuilder sb, long memberId, RoadmapStatus s) {
+    // 이 단계가 남아 있으면 true 를 돌려준다. 그때는 다른 단계를 권하지 않는다.
+    private boolean appendDeficitGuide(StringBuilder sb, long memberId, RoadmapStatus s) {
         if (FLOW_ONBOARDING.equals(s.flowType()) || !Boolean.TRUE.equals(s.hasShortfall())) {
-            return;
+            return false;
         }
         // 밀린 금액은 갚기 전까지 남아 있다. 확정 여부까지 봐야 두 번 묻지 않는다.
         if (isMonthlySavingConfirmed(memberId)) {
             sb.append("이번 달에 모을 금액은 이미 정해졌습니다. 다시 정하자고 하지 마세요.\n");
-            return;
+            return false;
         }
         sb.append("밀린 금액을 어떻게 채울지 정해야 이번 달 금액이 확정됩니다.\n");
         sb.append("이번 달에 다 채우는 방법과 남은 기간에 나눠 담는 방법이 있다고 알리고,");
         sb.append(" 어느 쪽이 좋을지 물으세요.\n");
         sb.append("코드 이름은 내부용입니다. 사용자에게 보여주지 마세요.\n");
         sb.append("사용자가 어느 쪽인지 답하면 그 자리에서 confirmMonthlySaving 을 부르세요.\n");
+        sb.append("이번 달 금액이 정해지기 전에는 상품이나 우대조건 이야기를 꺼내지 마세요.\n");
+        return true;
+    }
+
+    // 상품을 새로 고르는 달은 우대조건부터다. 다만 밀린 금액을 정하는 것이 그보다 앞선다.
+    private void appendNextStep(StringBuilder sb, RoadmapStatus s) {
+        if (FLOW_ONBOARDING.equals(s.flowType()) || FLOW_NEW_SEGMENT.equals(s.flowType())) {
+            sb.append("다음 단계는 우대조건 확인입니다 (getPreferentialConditionQuestions).\n");
+        }
     }
 
     private String startRoadmap(long memberId) {
