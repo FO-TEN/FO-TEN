@@ -18,6 +18,7 @@ export const useChatStore = defineStore('chat', {
     sending: false,
     error: '',
     pendingQuestion: '', // 대시보드 CTA 등에서 넘어올 때 자동 전송할 질문
+    scrollTop: null, // 다른 화면에 갔다 돌아오믄 되돌릴 대화 스크롤 위치. 없으믄 맨 아래
   }),
 
   getters: {
