@@ -217,7 +217,8 @@ public class RoadmapTools implements ToolProvider{
             case "ONBOARDING" -> "로드맵을 막 만든 달입니다.";
             case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 지난 구간이 끝났고 다음 구간 상품을"
                     + " 새로 고르는 달이라고 알리세요.";
-            case "REGULAR_MONTH" -> "평소 달입니다. 지난달 결과와 이번 달 저축액을 알려주세요.";
+            case "REGULAR_MONTH" -> "구간이 바뀌지 않는 달입니다. 이 사실 자체는 말하지 말고,"
+                    + " 지난달 결과와 이번 달 저축액만 알려주세요.";
             default -> "알 수 없습니다. 무엇을 도와드릴지 물어보세요.";
         };
     }
@@ -446,6 +447,7 @@ public class RoadmapTools implements ToolProvider{
         sb.append("아직 확정 전입니다. 계산해 본 금액일 뿐입니다.\n");
         sb.append("이 금액을 알려주고, 우대조건을 확인해야 확정된다고 안내하세요.\n");
         sb.append("다 정해졌다고 말하지 마세요.\n");
+        sb.append("새 구간 상품에 붙일 조건을 고르는 것입니다. '다시' 나 '또' 를 붙이지 마세요.\n");
         return sb.toString();
     }
 
@@ -633,7 +635,8 @@ public class RoadmapTools implements ToolProvider{
         StringBuilder sb = new StringBuilder("[우대금리 조건 질문]\n");
         if (FLOW_NEW_SEGMENT.equals(status.flowType())) {
             sb.append("구간이 바뀌는 달이라 다음 구간 상품을 새로 고릅니다.\n");
-            sb.append("지난번 답이 아직 유효한지 다시 확인하는 것이라고 알리세요.\n");
+            sb.append("그 상품에 붙일 조건을 새로 고르는 것이라고 알리세요.\n");
+            sb.append("지난번 답을 검사하는 것이 아닙니다. 또 묻는다고 말하지 마세요.\n");
             if (Boolean.TRUE.equals(status.hasShortfall())) {
                 sb.append("밀린 금액이 있어 제출할 때 채우는 방식도 함께 넘겨야 합니다.\n");
                 sb.append("아직 방식을 안 정했으면 그것부터 물으세요.\n");
