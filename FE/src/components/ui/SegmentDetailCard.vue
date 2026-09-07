@@ -57,18 +57,25 @@ const rows = computed(() =>
 // 목표기준액 선. 막대와 같은 자를 쓴다. 막대는 위 여백 아래에서 시작하므로 그만큼 더한다.
 const baselineTop = computed(() => PAD_TOP + CHART_H - Math.round(baseline.value * scale.value))
 
-// 기준선이 가장 높은 막대와 비슷하면 라벨이 그 막대의 금액 글자와 겹친다.
-// 그때는 금액 글자 위로 올린다. 선에서 떨어져 보여도 겹치는 것보다 낫다.
+// 목표기준액 라벨이 막대 위 금액 글자와 겹칠 수 있다. 막대마다 글자 높이가 달라
+// 가장 높은 막대만 봐서는 부족하다. 어느 하나와도 겹치면 전부 위로 올린다.
 const TAG_H = 21
 const AMOUNT_H = 23
-const LABEL_BOTTOM = PAD_TOP + CHART_H - MAX_BAR_H
-const LABEL_TOP = LABEL_BOTTOM - AMOUNT_H
+// 지난달은 금액이 막대 안에 있어 위 자리를 차지하지 않는다.
+const amountBands = computed(() =>
+  rows.value.filter((r) => !r.actual).map((r) => {
+    const barTop = PAD_TOP + CHART_H - r.height
+    return { top: barTop - AMOUNT_H - 2, bottom: barTop }
+  }),
+)
 const baseTagTop = computed(() => {
   const wanted = baselineTop.value - 30
-  if (wanted + TAG_H <= LABEL_TOP || wanted >= LABEL_BOTTOM) {
+  const hit = amountBands.value.some((b) => wanted < b.bottom && wanted + TAG_H > b.top)
+  if (!hit) {
     return Math.max(0, wanted)
   }
-  return Math.max(0, LABEL_TOP - TAG_H - 4)
+  const highest = Math.min(...amountBands.value.map((b) => b.top))
+  return Math.max(0, highest - TAG_H - 4)
 })
 // "지금" 표시는 이번 달 막대 앞에 선다. 지난달이 없으면 맨 앞이다.
 const nowIndex = computed(() => Math.max(0, rows.value.findIndex((r) => !r.actual)))
