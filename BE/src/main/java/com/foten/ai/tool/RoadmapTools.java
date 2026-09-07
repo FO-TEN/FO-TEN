@@ -474,7 +474,8 @@ public class RoadmapTools implements ToolProvider{
         addCard(context, CARD_SEGMENT_DETAIL, detailPayload(detail, plan));
 
         StringBuilder sb = new StringBuilder("[구간 자세히]\n");
-        sb.append("매달 모으기로 한 금액: ").append(money(detail.baselineAmount())).append("원\n");
+        sb.append("목표를 세울 때 정한 매달 기준 금액: ")
+                .append(money(detail.baselineAmount())).append("원 (견주는 기준일 뿐 낼 금액이 아님)\n");
         boolean hasLastMonth = false;
         for (SegmentDetail.Bar bar : detail.bars()) {
             hasLastMonth = hasLastMonth || ACTUAL.equals(bar.type());
@@ -483,6 +484,15 @@ public class RoadmapTools implements ToolProvider{
         }
         sb.append("보여주는 방법:\n");
         sb.append("- 달을 나란히 그린 카드가 함께 나갑니다. 금액을 하나씩 읊지 마세요.\n");
+        sb.append("- 기준 금액은 따로 떼어 말하지 마세요. 말하려면 왜 그보다 더 내는지와 붙여 말하세요.\n");
+        if (SPREAD.equals(detail.deficitChoice())) {
+            sb.append("- 밀린 금액을 남은 기간에 나눠 담기로 해서, 앞으로 기준보다 조금씩 더 냅니다.\n");
+            sb.append("- 다음 달부터 기준 금액으로 돌아간다고 말하지 마세요. 돌아가지 않습니다.\n");
+        }
+        else if (FULL_RECOVERY.equals(detail.deficitChoice())) {
+            sb.append("- 밀린 금액을 이번 달에 다 채우기로 해서 이번 달만 많습니다.\n");
+            sb.append("- 다음 달부터는 기준 금액으로 돌아옵니다.\n");
+        }
         if (hasLastMonth) {
             sb.append("- 지난달과 견줘 이번 달이 어떻게 달라지는지 한두 문장으로만 말하세요.\n");
         }
