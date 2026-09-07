@@ -24,9 +24,14 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String COMPOSITION_TOOL = "getSegmentComposition";
     private static final String CONFIRM_TOOL = "confirmMonthlySaving";
     private static final String GRAPH_TOOL = "getRoadmapGraph";
+    private static final String DETAIL_TOOL = "getSegmentDetail";
+    private static final String PLAN_TOOL = "getMonthlyPlan";
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
     private static final Suggestion RECHECK_CONDITIONS = Suggestion.ask("우대조건 다시 확인할래");
+    private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
+    private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
+    private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -39,20 +44,24 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
 
         List<String> tools = ctx.calledTools();
 
+        // 구간 상세와 배분 계획이 흐름의 마지막이라 더 권할 것이 없다.
+        // 상태 조회를 함께 부른 턴이 있어, 아래 단계들보다 먼저 걸러야 엉뚱한 칩이 안 나간다.
+        if (tools.contains(DETAIL_TOOL) || tools.contains(PLAN_TOOL)) {
+            return List.of();
+        }
+        // 전체 로드맵을 본 다음은 이번 구간을 확대해 보는 단계다.
+        if (tools.contains(GRAPH_TOOL)) {
+            return List.of(segmentDetailChip(ctx.memberId()));
+        }
         // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
         // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
         // 구간이 바뀌는 달은 방식을 정해도 아직 확정 전이다. 조건까지 받아야 끝난다.
         if (tools.contains(CONFIRM_TOOL)) {
-            return isNewSegment(ctx.memberId()) ? List.of(RECHECK_CONDITIONS) : List.of();
+            return isNewSegment(ctx.memberId()) ? List.of(RECHECK_CONDITIONS) : List.of(WHOLE_ROADMAP);
         }
-        // 방금 그 단계를 보여준 턴에는 같은 것을 다시 권하지 않는다.
-        // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
-        // 상품이 정해진 직후에는 전체 흐름으로 이어준다. 그래프를 보여준 턴에는 더 권할 것이 없다.
+        // 상품이 정해진 직후에는 전체 흐름으로 이어준다.
         if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
-            return List.of(Suggestion.ask("앞으로 어떻게 모으면 돼?"));
-        }
-        if (tools.contains(GRAPH_TOOL)) {
-            return List.of();
+            return List.of(WHOLE_ROADMAP);
         }
         // 질문을 보여준 턴에는 고를 수 있게 조건을 칩으로 낸다.
         if (tools.contains(CONDITION_TOOL)) {
@@ -83,6 +92,12 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         return isNewSegment(ctx.memberId())
                 ? List.of(RECHECK_CONDITIONS)
                 : List.of(Suggestion.ask("상품 구성 알려줘"));
+    }
+
+    // 첫 구간에서는 시안대로 '첫 구간' 이라고 부른다. 두 번째부터는 '이번 구간' 이다.
+    private Suggestion segmentDetailChip(long memberId) {
+        Integer segmentNo = roadmapQueryService.getStatus(memberId).currentSegmentNo();
+        return segmentNo != null && segmentNo == 1 ? FIRST_SEGMENT_DETAIL : THIS_SEGMENT_DETAIL;
     }
 
     private boolean isNewSegment(long memberId) {
