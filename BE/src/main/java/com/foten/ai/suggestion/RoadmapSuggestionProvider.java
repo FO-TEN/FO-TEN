@@ -98,7 +98,8 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         if (!profile.isMonthlySavingConfirmed()) {
             return List.of(MONTHLY_PLAN);
         }
-        return List.of(Suggestion.ask("상품 구성 알려줘"));
+        // 이번 달이 정해진 뒤에는 전체 흐름으로 이어준다. 확정한 턴과 같은 다음 단계다.
+        return List.of(WHOLE_ROADMAP);
     }
 
     // 지난달이 없는 달에만 시안대로 '첫 구간' 이라고 부른다. 카드가 막대를 둘만 그리는 달과 같다.
