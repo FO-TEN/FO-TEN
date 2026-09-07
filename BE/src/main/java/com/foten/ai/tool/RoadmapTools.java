@@ -500,7 +500,9 @@ public class RoadmapTools implements ToolProvider{
                     + "우대조건을 먼저 확인해야 한다고 안내하세요.\n";
         }
         return "이번 달에 모을 금액을 아직 정하지 않았습니다.\n"
-                + "먼저 이번 달 금액을 정해야 한다고 알리고, 정할지 물어보세요.\n";
+                + "아직 어떻게 할지 안 들었으면 이번 달 금액부터 정해야 한다고 알리고 물어보세요.\n"
+                + "사용자가 이미 방식을 말했거나 정하겠다고 답했으면 다시 묻지 말고\n"
+                + "그 자리에서 confirmMonthlySaving 을 부르세요.\n";
     }
 
     private String describeComposition(ToolContext context) {
