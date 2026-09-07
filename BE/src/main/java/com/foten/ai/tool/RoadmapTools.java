@@ -198,9 +198,10 @@ public class RoadmapTools implements ToolProvider{
 
         sb.append("로드맵: 있음\n");
         sb.append("이번 달에 할 안내: ").append(flowGuide(s.flowType())).append("\n");
+        boolean pendingChoice = isDeficitChoicePending(memberId, s);
         appendSegment(sb, s);
         appendLastMonth(sb, s);
-        appendAmounts(sb, s);
+        appendAmounts(sb, s, pendingChoice);
         if (!appendDeficitGuide(sb, memberId, s)) {
             appendNextStep(sb, memberId, s);
         }
@@ -248,9 +249,20 @@ public class RoadmapTools implements ToolProvider{
         sb.append("지난달에 실제로 모은 금액: ").append(money(s.lastMonthActualAmount())).append("원\n");
     }
 
-    private void appendAmounts(StringBuilder sb, RoadmapStatus s) {
+    // 필요저축액은 밀린 금액을 남은 기간에 나눠 담았을 때의 금액이다. 고르기 전에 이것을
+    // 이번 달 금액이라고 말하면, 한쪽을 이미 고른 것처럼 들린다.
+    private void appendAmounts(StringBuilder sb, RoadmapStatus s, boolean pendingChoice) {
         sb.append("매달 모으기로 한 금액: ").append(money(s.baselineAmount())).append("원\n");
-        sb.append("이번 달에 모아야 하는 금액: ").append(money(s.requiredAmount())).append("원\n");
+        if (pendingChoice) {
+            sb.append("이번 달 금액은 아직 정해지지 않았습니다. 어떻게 채울지 골라야 정해집니다.\n");
+            sb.append("남은 기간에 나눠 담으면 이번 달은 ")
+                    .append(money(s.requiredAmount())).append("원이 됩니다.\n");
+            sb.append("이번 달에 다 채우는 쪽 금액은 여기 없습니다. 직접 더해서 만들지 마세요.\n");
+            sb.append("고르기 전에는 어느 한쪽 금액도 이번 달 금액이라고 말하지 마세요.\n");
+        }
+        else {
+            sb.append("이번 달에 모아야 하는 금액: ").append(money(s.requiredAmount())).append("원\n");
+        }
 
         if (Boolean.TRUE.equals(s.hasShortfall()) && isPositive(s.shortfallAmount())) {
             sb.append("지금까지 밀린 금액: ").append(money(s.shortfallAmount())).append("원\n");
@@ -258,6 +270,13 @@ public class RoadmapTools implements ToolProvider{
         else {
             sb.append("밀린 금액: 없음\n");
         }
+    }
+
+    // 밀린 금액이 있는데 아직 채우는 방식을 안 골랐는가. 금액 표기와 안내가 같은 기준을 쓴다.
+    private boolean isDeficitChoicePending(long memberId, RoadmapStatus s) {
+        return !FLOW_ONBOARDING.equals(s.flowType())
+                && Boolean.TRUE.equals(s.hasShortfall())
+                && !isMonthlySavingConfirmed(memberId);
     }
 
     // 밀린 금액이 있는 달은 어떻게 채울지 정해야 이번 달 금액이 나온다.
