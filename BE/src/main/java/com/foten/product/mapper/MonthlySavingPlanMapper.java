@@ -1,6 +1,7 @@
 package com.foten.product.mapper;
 
 import com.foten.product.domain.MonthlySavingPlanVO;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import org.apache.ibatis.annotations.Mapper;
@@ -28,4 +29,10 @@ public interface MonthlySavingPlanMapper {
 
     // 생성된 monthly_saving_plan_id 를 plan.monthlySavingPlanId 에 다시 채워 넣는다.
     void insert(MonthlySavingPlanVO plan);
+
+    // "전체 로드맵 예상 이자" 헤드라인 값을 커밋 이후에 채운다 — 이 값 자체가 방금 커밋한
+    // 이 행을 반영해서 계산돼야 해서(getGraph()가 "가장 최근 회차"를 다시 조회함) insert
+    // 시점엔 알 수 없고, insert 후 재계산해서 UPDATE 한다.
+    void updateProjectedTotalInterest(@Param("monthlySavingPlanId") Long monthlySavingPlanId,
+                                       @Param("projectedTotalInterest") BigDecimal projectedTotalInterest);
 }
