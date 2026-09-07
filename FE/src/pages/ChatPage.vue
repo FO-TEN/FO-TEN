@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useChatStore } from '../stores/chat'
 import { useLocaleStore } from '../stores/locale'
+import { roadmapApi } from '../api'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
 import PotenAvatar from '../components/ui/PotenAvatar.vue'
@@ -17,6 +18,7 @@ import sendIcon from '../assets/icons/send.svg'
  * Figma 05_대화 · 홈(217:2463).
  *  말풍선  contentKo / contentLocal  — LangSwitch(한국어 ↔ 내 언어)로 그 자리에서 바꾼다. 재호출 없음.
  *  칩      서버 suggestions(labelKo/labelLocal) + 첫 화면 고정 칩 3개(로드맵 만들기 · 소비 내역 보기 · 목표 바꾸기)
+ *          이력이 있으면 두 가지 다 안 나온다 — 그때는 로드맵 상태를 보고 첫 칩 하나를 띄운다.
  *  입력    POST /chat (500자 상한 — 서버가 400 을 내므로 여기서도 막는다)
  *  이력    GET /chat/messages 최신순 → 오래된 순으로 뒤집어 그린다
  */
@@ -36,6 +38,7 @@ onMounted(async () => {
   } catch {
     /* 이력이 없어도 대화는 시작할 수 있다 */
   }
+  await loadOpener()
   await restoreOrBottom()
   if (chat.pendingQuestion) {
     const q = chat.pendingQuestion
@@ -87,6 +90,21 @@ const staticChips = computed(() => [
   { key: 'goal', label: t('chat.chip_goal'), go: () => router.push({ name: 'onboarding', params: { step: 1 }, query: { from: 'me' } }) },
 ])
 
+// 이력이 있으면 고정 칩도 서버 칩도 안 나와 빈 입력창만 남는다. 매달 오는 사용자가 다 이 경우다.
+// 로드맵이 있는지만 보고 첫 칩 하나를 띄운다. 어느 단계인지는 누른 뒤 서버가 이어서 알려준다.
+const opener = ref(null)
+async function loadOpener() {
+  if (chat.suggestions.length || showGreeting.value) return
+  try {
+    const status = await roadmapApi.status()
+    opener.value = status.roadmapExists
+      ? { label: t('chat.chip_month'), message: '이번 달 상황 알려줘' }
+      : { label: t('chat.chip_roadmap'), message: '내 로드맵 만들기' }
+  } catch {
+    /* 상태를 못 읽으면 띄우지 않는다. 잘못 짚느니 없는 편이 낫다 */
+  }
+}
+
 async function submit() {
   const text = draft.value.trim()
   if (!text || chat.sending) return
@@ -95,6 +113,13 @@ async function submit() {
 }
 async function pickChip(s) {
   await chat.send(s.value)
+}
+
+// 첫 칩은 한 번 쓰고 사라진다. 그다음부터는 서버가 내려주는 칩이 이어받는다.
+async function useOpener() {
+  const message = opener.value.message
+  opener.value = null
+  await chat.send(message)
 }
 
 // 우대조건은 여러 개를 골라 한 번에 보낸다. 서버가 그 종류로 내려주면 버튼 대신 체크박스로 그린다.
@@ -150,6 +175,9 @@ const conditionChips = computed(() =>
       </div>
       <div v-else-if="showGreeting" class="chips">
         <button v-for="c in staticChips" :key="c.key" type="button" class="chip" @click="c.go()">{{ c.label }}</button>
+      </div>
+      <div v-else-if="opener" class="chips">
+        <button type="button" class="chip" @click="useOpener()">{{ opener.label }}</button>
       </div>
 
       <p v-if="chat.error" class="err">
