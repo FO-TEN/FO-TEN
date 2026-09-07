@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="coins">
+<path id="Vector" d="M10 8.33333C13.2217 8.33333 15.8333 7.21405 15.8333 5.83333C15.8333 4.45262 13.2217 3.33333 10 3.33333C6.77834 3.33333 4.16667 4.45262 4.16667 5.83333C4.16667 7.21405 6.77834 8.33333 10 8.33333Z" stroke="#C96A6A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M4.16667 5.83333V14.1667C4.16667 15.5833 6.75 16.6667 10 16.6667C13.25 16.6667 15.8333 15.5833 15.8333 14.1667V5.83333M4.16667 10C4.16667 11.4167 6.75 12.5 10 12.5C13.25 12.5 15.8333 11.4167 15.8333 10" stroke="#C96A6A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

@@ -1,12 +1,15 @@
 <script setup>
+import { useRouter } from 'vue-router'
 import { useLocaleStore } from '../../stores/locale'
 import { won } from '../../utils/format'
+import chev from '../../assets/icons/product_chev12.svg'
 
 // 답변에 딸려 오는 추천 조합 카드 (UI 흐름 v5 [첫 운용구간 추천 조합]).
 // payload 는 서버가 그때 값으로 남긴 스냅샷이라 여기서 다시 계산하지 않는다.
 const props = defineProps({
   payload: { type: Object, required: true },
 })
+const router = useRouter()
 const locale = useLocaleStore()
 const t = (k, v) => locale.t(k, v)
 
@@ -15,7 +18,8 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
 </script>
 
 <template>
-  <section class="reco">
+  <!-- 누르면 상품 추천 상세로. 카드는 요약이고 자세한 건 그 화면이 보여준다 -->
+  <section class="reco" role="button" tabindex="0" @click="router.push({ name: 'products' })" @keydown.enter="router.push({ name: 'products' })">
     <p class="rt">{{ t('card.reco_title') }}</p>
 
     <div class="base">
@@ -48,11 +52,18 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
         <span class="amt num">{{ won(payload.recommendedCashSaving) }}</span>
       </div>
     </div>
+
+    <!-- 카드 전체가 눌리지만, 눌린다는 느낌이 없어 안내 줄을 둔다 -->
+    <div class="more">
+      <span>{{ t('card.detail') }}</span>
+      <img :src="chev" alt="" width="12" height="12" />
+    </div>
   </section>
 </template>
 
 <style scoped>
 .reco {
+  cursor: pointer;
   margin-top: 6px;
   padding: 14px 16px;
   border-radius: var(--r-card);
@@ -120,5 +131,17 @@ const has = (v) => v !== null && v !== undefined && Number(v) > 0
 .cash .pn,
 .cash .amt {
   color: var(--gray-500);
+}
+.more {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--gray-600);
 }
 </style>

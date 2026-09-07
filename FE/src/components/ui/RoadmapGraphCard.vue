@@ -15,7 +15,7 @@ const t = (k, v) => locale.t(k, v)
 // 시안 치수 (375 프레임 기준). 막대 영역 높이와 가장 높은 막대의 높이.
 const CHART_H = 160
 const TOP_LABEL_H = 21 // total label above the last bar
-const BADGE_H = 28 // in-progress badge above the active bar
+const BADGE_H = 32 // in-progress badge above the active bar
 const BASE_RESERVE = 24 // Figma: 160 - 136
 const THIN = 4 // 값이 있는데 너무 얇으면 보이게 하는 최소 두께
 const LABEL_MIN_H = 18 // 이보다 낮은 층에는 글자를 넣지 않는다
@@ -92,8 +92,8 @@ const subtitle = computed(() =>
 
     <div class="chart" :style="{ height: CHART_H + 'px' }">
       <div v-for="b in bars" :key="b.key" class="col" :style="{ flexGrow: b.grow }">
+        <span v-if="b.active" class="badge" :class="{ stacked: b.last }">{{ t('card.in_progress') }}</span>
         <p v-if="b.last" class="top num">{{ t('card.about', { v: man(b.total) }) }}</p>
-        <span v-if="b.active" class="badge">{{ t('card.in_progress') }}</span>
         <div class="stack">
           <div
             v-for="l in b.layers"
@@ -215,8 +215,7 @@ const subtitle = computed(() =>
   white-space: nowrap;
 }
 .badge {
-  align-self: flex-start;
-  margin: 0 0 10px 5px;
+  margin: 0 0 10px;
   padding: 2px 7px;
   border-radius: var(--r-pill);
   background: var(--gray-850);
@@ -225,6 +224,10 @@ const subtitle = computed(() =>
   font-weight: 700;
   line-height: 1.4;
   white-space: nowrap;
+}
+/* 총액이 같이 있으면 배지는 그 위에 온다. 붙어 보이지 않게 살짝 띄운다 */
+.badge.stacked {
+  margin-bottom: 4px;
 }
 .axis {
   display: flex;
