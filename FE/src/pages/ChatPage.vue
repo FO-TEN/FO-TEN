@@ -98,8 +98,8 @@ async function loadOpener() {
   try {
     const status = await roadmapApi.status()
     opener.value = status.roadmapExists
-      ? { label: t('chat.chip_month'), message: '이번 달 상황 알려줘' }
-      : { label: t('chat.chip_roadmap'), message: '내 로드맵 만들기' }
+      ? { key: 'chat.chip_month', message: '이번 달 상황 알려줘' }
+      : { key: 'chat.chip_roadmap', message: '내 로드맵 만들기' }
   } catch {
     /* 상태를 못 읽으면 띄우지 않는다. 잘못 짚느니 없는 편이 낫다 */
   }
@@ -177,7 +177,7 @@ const conditionChips = computed(() =>
         <button v-for="c in staticChips" :key="c.key" type="button" class="chip" @click="c.go()">{{ c.label }}</button>
       </div>
       <div v-else-if="opener" class="chips">
-        <button type="button" class="chip" @click="useOpener()">{{ opener.label }}</button>
+        <button type="button" class="chip" @click="useOpener()">{{ t(opener.key) }}</button>
       </div>
 
       <p v-if="chat.error" class="err">
