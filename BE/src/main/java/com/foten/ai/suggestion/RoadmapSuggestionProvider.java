@@ -32,6 +32,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
     private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
     private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
+    private static final Suggestion MONTHLY_PLAN = Suggestion.ask("이번 달 계획 세워줘");
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -89,9 +90,15 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
             return deficit;
         }
         // 밀린 금액이 없는 구간 전환은 바로 조건 확인으로 간다.
-        return isNewSegment(ctx.memberId())
-                ? List.of(RECHECK_CONDITIONS)
-                : List.of(Suggestion.ask("상품 구성 알려줘"));
+        if (isNewSegment(ctx.memberId())) {
+            return List.of(RECHECK_CONDITIONS);
+        }
+        // 밀린 금액이 없어도 이번 달 배분표는 만들어야 배분·구간 상세가 열린다.
+        // 고를 것이 없는 달이라 방식은 안 묻고, 시작하겠다는 말만 받는다.
+        if (!profile.isMonthlySavingConfirmed()) {
+            return List.of(MONTHLY_PLAN);
+        }
+        return List.of(Suggestion.ask("상품 구성 알려줘"));
     }
 
     // 지난달이 없는 달에만 시안대로 '첫 구간' 이라고 부른다. 카드가 막대를 둘만 그리는 달과 같다.

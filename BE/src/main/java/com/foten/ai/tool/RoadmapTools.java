@@ -202,7 +202,7 @@ public class RoadmapTools implements ToolProvider{
         appendLastMonth(sb, s);
         appendAmounts(sb, s);
         if (!appendDeficitGuide(sb, memberId, s)) {
-            appendNextStep(sb, s);
+            appendNextStep(sb, memberId, s);
         }
         sb.append("위 금액들의 차액을 직접 빼서 구하지 마세요. 필요한 값은 이미 위에 있습니다.");
         return sb.toString();
@@ -281,9 +281,18 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 상품을 새로 고르는 달은 우대조건부터다. 다만 밀린 금액을 정하는 것이 그보다 앞선다.
-    private void appendNextStep(StringBuilder sb, RoadmapStatus s) {
+    private void appendNextStep(StringBuilder sb, long memberId, RoadmapStatus s) {
         if (FLOW_ONBOARDING.equals(s.flowType()) || FLOW_NEW_SEGMENT.equals(s.flowType())) {
             sb.append("다음 단계는 우대조건 확인입니다 (getPreferentialConditionQuestions).\n");
+            return;
+        }
+        // 밀린 금액이 없는 달도 이번 달 배분표를 만들어야 뒤 단계가 열린다.
+        // 고를 것이 없으니 방식을 묻지 말고, 이번 달을 시작할지만 물어본다.
+        if (!isMonthlySavingConfirmed(memberId)) {
+            sb.append("이번 달 배분표를 아직 만들지 않았습니다.\n");
+            sb.append("밀린 금액이 없어 고를 것은 없고, 이번 달 계획을 세우면 됩니다.\n");
+            sb.append("계획을 세울지 물어보고, 하겠다고 답하면 confirmMonthlySaving 을 choice 없이 부르세요.\n");
+            sb.append("사용자가 이미 하겠다고 말했으면 다시 묻지 말고 그 자리에서 부르세요.\n");
         }
     }
 
