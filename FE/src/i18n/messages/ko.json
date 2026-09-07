@@ -104,7 +104,7 @@
   "detail.bar_plan": "이번 달",
   "detail.bar_future": "다음 달부터",
   "detail.sub": "지난달 실제 · 이번 달 · 이후 계획",
-  "detail.now": "지금",
+  "detail.now": "현재",
   "detail.plan": "계획",
   "detail.baseline": "목표기준액 {v}",
   "detail.alloc_title": "이번 달 {v} 원 배분",

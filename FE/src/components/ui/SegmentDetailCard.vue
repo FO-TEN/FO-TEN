@@ -13,7 +13,8 @@ const locale = useLocaleStore()
 const t = (k, v) => locale.t(k, v)
 
 // 시안 치수 (375 프레임 기준)
-const CHART_H = 144 // 축선까지의 높이
+const CHART_H = 144 // 막대가 서는 영역의 높이
+const PAD_TOP = 26 // '현재' 라벨 자리. 막대는 이 아래에서 시작한다
 const MAX_BAR_H = 92 // 가장 높은 막대
 const MIN_BAR_H = 10
 
@@ -53,12 +54,27 @@ const rows = computed(() =>
   }),
 )
 
-// 목표기준액 선. 막대와 같은 자를 쓴다.
-const baselineTop = computed(() => CHART_H - Math.round(baseline.value * scale.value))
+// 목표기준액 선. 막대와 같은 자를 쓴다. 막대는 위 여백 아래에서 시작하므로 그만큼 더한다.
+const baselineTop = computed(() => PAD_TOP + CHART_H - Math.round(baseline.value * scale.value))
+
+// 기준선이 가장 높은 막대와 비슷하면 라벨이 그 막대의 금액 글자와 겹친다.
+// 그때는 금액 글자 위로 올린다. 선에서 떨어져 보여도 겹치는 것보다 낫다.
+const TAG_H = 21
+const AMOUNT_H = 23
+const LABEL_BOTTOM = PAD_TOP + CHART_H - MAX_BAR_H
+const LABEL_TOP = LABEL_BOTTOM - AMOUNT_H
+const baseTagTop = computed(() => {
+  const wanted = baselineTop.value - 30
+  if (wanted + TAG_H <= LABEL_TOP || wanted >= LABEL_BOTTOM) {
+    return Math.max(0, wanted)
+  }
+  return Math.max(0, LABEL_TOP - TAG_H - 4)
+})
 // "지금" 표시는 이번 달 막대 앞에 선다. 지난달이 없으면 맨 앞이다.
 const nowIndex = computed(() => Math.max(0, rows.value.findIndex((r) => !r.actual)))
 
 function diffText(v) {
+  if (v === 0) return '±0'
   return (v > 0 ? '+' : '−') + man(Math.abs(v))
 }
 </script>
@@ -73,16 +89,19 @@ function diffText(v) {
       <p class="ss">{{ t('detail.sub') }}</p>
     </div>
 
-    <div class="chart" :style="{ height: CHART_H + 26 + 'px' }">
+    <div class="chart" :style="{ height: CHART_H + PAD_TOP + 'px' }">
       <!-- 목표기준액 기준선 -->
       <div class="base-line" :style="{ top: baselineTop + 'px' }" />
-      <span class="base-tag" :style="{ top: Math.max(0, baselineTop - 22) + 'px' }">
+      <span class="base-tag" :style="{ top: baseTagTop + 'px' }">
         {{ t('detail.baseline', { v: man(baseline) }) }}
       </span>
 
       <div class="cols">
         <div v-for="(r, i) in rows" :key="r.key" class="col">
-          <span v-if="i === nowIndex" class="now">{{ t('detail.now') }}</span>
+          <template v-if="i === nowIndex">
+            <span class="now-line" :class="{ head: i === 0 }" />
+            <span class="now" :class="{ head: i === 0 }">{{ t('detail.now') }}</span>
+          </template>
           <span class="amt num" :class="{ inbar: r.actual }" :style="r.actual ? { bottom: r.height - 26 + 'px' } : {}">
             {{ man(r.amount) }}
           </span>
@@ -96,7 +115,7 @@ function diffText(v) {
     <div class="axis">
       <div v-for="(r, i) in rows" :key="'ax-' + r.key" class="ax">
         <span class="ax-l" :class="{ on: i === nowIndex }">{{ r.label }}</span>
-        <span v-if="r.diff !== 0" class="pill" :class="r.diff > 0 ? 'up' : 'down'">{{ diffText(r.diff) }}</span>
+        <span class="pill" :class="r.diff === 0 ? 'flat' : r.diff > 0 ? 'up' : 'down'">{{ diffText(r.diff) }}</span>
       </div>
     </div>
 
@@ -178,14 +197,17 @@ function diffText(v) {
   padding-top: 26px;
   border-bottom: 1px solid var(--gray-200);
 }
+/* 막대가 기준액을 넘으면 선을 덮는다. 기준선이라 막대 위에 그린다 */
 .base-line {
   position: absolute;
+  z-index: 1;
   left: 0;
   right: 0;
   border-top: 1px dashed var(--gray-400);
 }
 .base-tag {
   position: absolute;
+  z-index: 1;
   right: 0;
   padding: 2px 7px;
   border-radius: 6px;
@@ -212,16 +234,32 @@ function diffText(v) {
   justify-content: flex-end;
   height: 100%;
 }
+/* 지금 표시: 지난달과 이번 달 사이 틈을 지나 축까지 내려가는 세로 점선 */
+.now-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -7px;
+  border-left: 2px dotted var(--gray-850);
+}
 .now {
   position: absolute;
-  top: -26px;
-  left: 0;
-  padding-left: 2px;
-  border-left: 2px dashed var(--gray-850);
+  top: -22px;
+  left: -7px;
+  transform: translateX(-50%);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.4;
   color: var(--gray-850);
+  white-space: nowrap;
+}
+/* 지난달이 없으면 맨 앞 막대라 선이 카드 밖으로 나간다. 막대 왼쪽에 붙인다 */
+.now-line.head {
+  left: 0;
+}
+.now.head {
+  left: 0;
+  transform: none;
 }
 .amt {
   margin-bottom: 2px;
@@ -239,7 +277,7 @@ function diffText(v) {
 }
 .bar {
   width: 100%;
-  border-radius: 8px 8px 0 0;
+  border-radius: 10px 10px 0 0;
 }
 .bar.actual {
   background: var(--c-actual);
@@ -296,6 +334,10 @@ function diffText(v) {
 .pill.down {
   background: var(--red-bg);
   color: var(--red);
+}
+.pill.flat {
+  background: var(--gray-100);
+  color: var(--gray-700);
 }
 
 .alloc {
