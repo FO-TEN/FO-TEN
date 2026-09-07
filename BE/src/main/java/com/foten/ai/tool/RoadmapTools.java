@@ -414,6 +414,7 @@ public class RoadmapTools implements ToolProvider{
 
         if (result.committed()) {
             sb.append("확정되었습니다. 이 금액을 알려주세요.\n");
+            sb.append("필요한 값은 여기 다 있습니다. 다른 도구를 더 부르지 말고 바로 답하세요.\n");
             return sb.toString();
         }
         // 구간이 바뀌는 달은 우대조건까지 받아야 확정된다. 다 됐다고 말하면 안 된다.

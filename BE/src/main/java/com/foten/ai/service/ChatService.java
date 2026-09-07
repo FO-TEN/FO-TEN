@@ -27,7 +27,9 @@ import java.util.stream.IntStream;
 @Service
 @RequiredArgsConstructor
 public class ChatService {
-    private static final int MAX_TOOL_ROUNDS = 3;
+    // 마지막 왕복은 답을 쓰는 데 쓰인다. 3이면 도구를 두 번밖에 못 부르는데,
+    // 이번 달을 확정하는 흐름은 상태 조회·확정·배분 확인으로 세 번이 필요하다.
+    private static final int MAX_TOOL_ROUNDS = 4;
     // 다시 쓰게 할 때 붙이는 지시. 도구 결과는 이미 대화에 있어 도구 없이도 같은 답을 만들 수 있다.
     private static final String REWRITE_KOREAN =
             "직전 답에 한국어가 아닌 문자 체계의 글자가 섞였습니다. "
