@@ -15,6 +15,7 @@ import com.foten.product.domain.RateConditionVO;
 import com.foten.product.domain.RoadmapGraph;
 import com.foten.product.domain.RoadmapStatus;
 import com.foten.product.domain.SegmentComposition;
+import com.foten.product.domain.SegmentDetail;
 import com.foten.product.service.RoadmapCommandService;
 import com.foten.product.service.RoadmapQueryService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -36,6 +39,8 @@ public class RoadmapTools implements ToolProvider{
     private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
     // 전체 기간 동안 돈이 어떻게 쌓이는지 구간별 막대로 그리는 카드.
     private static final String CARD_ROADMAP = "ROADMAP";
+    // 지난달·이번 달·이후를 나란히 놓고 이번 달 배분까지 함께 보여주는 카드.
+    private static final String CARD_SEGMENT_DETAIL = "SEGMENT_DETAIL";
     // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     // 구간이 바뀌는 달에도 우대조건을 다시 받아 다음 구간 상품을 고른다.
@@ -43,6 +48,8 @@ public class RoadmapTools implements ToolProvider{
     // 밀린 금액을 이번 달에 다 채우거나, 남은 기간에 나눠 담거나 둘 중 하나다.
     private static final String FULL_RECOVERY = "FULL_RECOVERY";
     private static final String SPREAD = "SPREAD";
+    // 막대가 지난달 실적인지 앞으로 낼 계획인지 가른다.
+    private static final String ACTUAL = "ACTUAL";
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -148,6 +155,19 @@ public class RoadmapTools implements ToolProvider{
                         이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
                         """,
                         (arguments, context) -> describeMonthlyPlan(context.memberId())),
+
+                ToolSpec.noArgs(
+                        "getSegmentDetail",
+                        """
+                        지난달에 실제로 낸 금액, 이번 달에 낼 금액, 다음 달부터 낼 금액을
+                        나란히 놓고 비교해 알려줍니다. 목표기준액과 얼마나 차이 나는지도 나옵니다.
+                        "지난달이랑 이번 달 얼마나 달라?", "앞으로 얼마씩 내면 돼?" 처럼
+                        달 사이 변화를 묻는 질문에 씁니다.
+                        기간 전체가 궁금하면 getRoadmapGraph 를 씁니다.
+                        이번 달 금액이 확정된 뒤에만 쓸 수 있습니다.
+                        이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
+                        """,
+                        (arguments, context) -> describeSegmentDetail(context)),
 
                 ToolSpec.noArgs(
                         "getRoadmapGraph",
@@ -393,6 +413,53 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 가입 전에는 IllegalStateException 이 난다. 던지면 ToolRegistry 가 이유를 뭉갠다.
+    private String describeSegmentDetail(ToolContext context) {
+        long memberId = context.memberId();
+        SegmentDetail detail;
+        MonthlyPlanSummary plan;
+        try {
+            detail = roadmapQueryService.getSegmentDetail(memberId);
+            plan = roadmapQueryService.getCurrentMonthlyPlan(memberId);
+        }
+        catch (IllegalStateException | ResourceNotFoundException e) {
+            return notConfirmedReason(memberId);
+        }
+        addCard(context, CARD_SEGMENT_DETAIL, detailPayload(detail, plan));
+
+        StringBuilder sb = new StringBuilder("[구간 자세히]\n");
+        sb.append("매달 모으기로 한 금액: ").append(money(detail.baselineAmount())).append("원\n");
+        boolean hasLastMonth = false;
+        for (SegmentDetail.Bar bar : detail.bars()) {
+            hasLastMonth = hasLastMonth || ACTUAL.equals(bar.type());
+            sb.append(bar.label()).append(": ").append(money(bar.amount())).append("원");
+            sb.append(ACTUAL.equals(bar.type()) ? " (실제로 낸 금액)\n" : " (낼 금액)\n");
+        }
+        sb.append("보여주는 방법:\n");
+        sb.append("- 달을 나란히 그린 카드가 함께 나갑니다. 금액을 하나씩 읊지 마세요.\n");
+        if (hasLastMonth) {
+            sb.append("- 지난달과 견줘 이번 달이 어떻게 달라지는지 한두 문장으로만 말하세요.\n");
+        }
+        else {
+            sb.append("- 지난달 기록이 아직 없습니다. 지난달을 아예 입에 올리지 마세요.\n");
+            sb.append("- 이번 달과 다음 달부터의 금액만 한두 문장으로 말하세요.\n");
+        }
+        sb.append("- 금액은 위 값 그대로 옮기고 직접 빼서 차이를 구하지 마세요.\n");
+        return sb.toString();
+    }
+
+    // 시안 카드 한 장에 구간 막대(4-8)와 이번 달 배분(4-9)이 같이 들어간다. 두 값을 합쳐 보낸다.
+    private Map<String, Object> detailPayload(SegmentDetail detail, MonthlyPlanSummary plan) {
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("segmentNo", detail.segmentNo());
+        payload.put("deficitChoice", detail.deficitChoice());
+        payload.put("baselineAmount", detail.baselineAmount());
+        payload.put("bars", detail.bars());
+        payload.put("monthlySavingAmount", plan.monthlySavingAmount());
+        payload.put("allocations", plan.allocations());
+        payload.put("recommendedCashSaving", plan.recommendedCashSaving());
+        return payload;
+    }
+
     private String describeMonthlyPlan(long memberId) {
         MonthlyPlanSummary plan;
         try {
