@@ -101,6 +101,7 @@
   "card.rate": "ดอกเบี้ย {r}%",
   "card.deposit": "เงินฝากประจำ",
   "card.cash": "เงินออมสด",
+  "card.detail": "ดูรายละเอียด",
   "products.title": "แพ็กเกจแนะนำ",
   "products.receive_on": "เงินที่ได้รับใน {ym}",
   "products.interest": "ดอกเบี้ยคาดการณ์",

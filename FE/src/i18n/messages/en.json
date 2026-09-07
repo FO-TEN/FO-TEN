@@ -101,6 +101,7 @@
   "card.rate": "{r}% rate",
   "card.deposit": "Lump-sum deposit",
   "card.cash": "Cash savings",
+  "card.detail": "See details",
   "products.title": "Recommended mix",
   "products.receive_on": "What you get in {ym}",
   "products.interest": "Expected interest",

@@ -101,6 +101,7 @@
   "card.rate": "ດອກເບ້ຍ {r}%",
   "card.deposit": "ເງິນຝາກປະຈຳ",
   "card.cash": "ເງິນເກັບສົດ",
+  "card.detail": "ເບິ່ງລາຍລະອຽດ",
   "products.title": "ຊຸດແນະນຳ",
   "products.receive_on": "ເງິນທີ່ໄດ້ຮັບໃນ {ym}",
   "products.interest": "ດອກເບ້ຍຄາດຄະເນ",

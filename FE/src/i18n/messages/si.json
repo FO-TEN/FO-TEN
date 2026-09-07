@@ -101,6 +101,7 @@
   "card.rate": "පොලිය {r}%",
   "card.deposit": "එකවර තැන්පතුව",
   "card.cash": "මුදල් ඉතිරිය",
+  "card.detail": "විස්තර බලන්න",
   "products.title": "නිර්දේශිත සංයෝජනය",
   "products.receive_on": "{ym} දී ලැබෙන මුදල",
   "products.interest": "අපේක්ෂිත පොලිය",

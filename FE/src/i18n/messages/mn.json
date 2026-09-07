@@ -101,6 +101,7 @@
   "card.rate": "хүү {r}%",
   "card.deposit": "Хадгаламж",
   "card.cash": "Бэлэн мөнгөний хуримтлал",
+  "card.detail": "Дэлгэрэнгүй харах",
   "products.title": "Санал болгох багц",
   "products.receive_on": "{ym}-д авах мөнгө",
   "products.interest": "Таамаг хүү",

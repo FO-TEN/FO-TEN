@@ -101,6 +101,7 @@
   "card.rate": "အတိုး {r}%",
   "card.deposit": "စုပေါင်းအပ်ငွေ",
   "card.cash": "ငွေသားစုဆောင်းမှု",
+  "card.detail": "အသေးစိတ်ကြည့်ရန်",
   "products.title": "အကြံပြုပေါင်းစပ်မှု",
   "products.receive_on": "{ym} တွင် ရမည့်ငွေ",
   "products.interest": "ခန့်မှန်းအတိုး",

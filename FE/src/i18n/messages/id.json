@@ -101,6 +101,7 @@
   "card.rate": "bunga {r}%",
   "card.deposit": "Deposito",
   "card.cash": "Tabungan tunai",
+  "card.detail": "Lihat detail",
   "products.title": "Paket rekomendasi",
   "products.receive_on": "Uang yang diterima pada {ym}",
   "products.interest": "Perkiraan bunga",

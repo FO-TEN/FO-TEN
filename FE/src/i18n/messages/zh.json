@@ -101,6 +101,7 @@
   "card.rate": "利率{r}%",
   "card.deposit": "整存定期",
   "card.cash": "现金储蓄",
+  "card.detail": "查看详情",
   "products.title": "推荐组合",
   "products.receive_on": "{ym}可领取的钱",
   "products.interest": "预计利息",

@@ -101,6 +101,7 @@
   "card.rate": "সুদ {r}%",
   "card.deposit": "এককালীন আমানত",
   "card.cash": "নগদ সঞ্চয়",
+  "card.detail": "বিস্তারিত দেখুন",
   "products.title": "প্রস্তাবিত সমন্বয়",
   "products.receive_on": "{ym}-এ প্রাপ্য টাকা",
   "products.interest": "প্রত্যাশিত সুদ",
