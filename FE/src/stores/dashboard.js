@@ -95,6 +95,22 @@ export const useDashboardStore = defineStore('dashboard', {
       this.loading = false
     },
 
+    // 마이페이지 진입: loadHome()과 달리 me만 있으면 되고, 실패해도 나머지를 그릴 게 없다.
+    async loadMePage(force = false) {
+      this.loading = true
+      this.error = ''
+      this.loadFailed = false
+      try {
+        await this.loadMe(force)
+        await this.loadFx()
+      } catch (err) {
+        this.error = err?.response?.data?.message || ''
+        this.loadFailed = true
+      } finally {
+        this.loading = false
+      }
+    },
+
     invalidate() {
       this.me = null
       this.diagnosis = null
