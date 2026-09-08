@@ -357,3 +357,27 @@ JOIN (SELECT '주거' AS category, 1 AS item_order, 100000 AS amount, '월세' A
 JOIN (SELECT 1 AS item_order, 2 AS day_offset UNION ALL
       SELECT 2, 4 UNION ALL SELECT 3, 6 UNION ALL SELECT 4, 8 UNION ALL SELECT 5, 10) d ON d.item_order = f.item_order
 WHERE m.login_id = 'natty04';
+
+-- ------------------------------------------------------------
+-- 급여(SALARY)/송금(REMITTANCE) — cycle1~12 전부(구간1이 어제 끝나 12개월 모두 이미
+-- 지난 달이다). 매달 25일 급여·26일 송금, 온보딩 때 넣은 재무조건(월급여 2,500,000/
+-- 월송금액 626,604) 그대로 한 달도 빠짐없이 들어왔다고 가정한다. balance_after 는
+-- 09-fix-transaction-balance.sql 이 마지막에 다시 계산하므로 0으로 둔다.
+-- ------------------------------------------------------------
+INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
+SELECT m.member_id, DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-25'), INTERVAL mo.months_ago MONTH),
+       'SALARY', 'IN', 2500000, 0, '급여'
+FROM member m
+JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+      SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+      SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) mo
+WHERE m.login_id = 'natty04';
+
+INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
+SELECT m.member_id, DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-26'), INTERVAL mo.months_ago MONTH),
+       'REMITTANCE', 'OUT', 626604, 0, '본국 송금'
+FROM member m
+JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL
+      SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL
+      SELECT 9 UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12) mo
+WHERE m.login_id = 'natty04';
