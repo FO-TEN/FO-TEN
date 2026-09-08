@@ -23,10 +23,7 @@ const dash = useDashboardStore()
 const locale = useLocaleStore()
 const t = (k, v) => locale.t(k, v)
 
-onMounted(async () => {
-  await dash.loadMe().catch(() => {})
-  await dash.loadFx()
-})
+onMounted(() => dash.loadMePage())
 
 const me = computed(() => dash.me)
 const langLabel = computed(() => {
@@ -57,6 +54,10 @@ async function logout() {
           <p class="sub">{{ t('nation.' + (me?.member?.nationality || auth.member?.nationality)) }} · E-9</p>
         </div>
       </div>
+
+      <p v-if="dash.loading && !me" class="err">{{ t('common.loading') }}</p>
+      <p v-else-if="dash.error && !me" class="err">{{ dash.error }}</p>
+      <p v-else-if="dash.loadFailed && !me" class="err">{{ t('common.load_failed') }}</p>
 
       <!-- 체류 정보 -->
       <section class="card">
@@ -151,6 +152,12 @@ async function logout() {
 .sub {
   font-size: 16px;
   color: var(--gray-700);
+}
+.err {
+  font-size: 14px;
+  color: var(--gray-500);
+  text-align: center;
+  padding: 12px;
 }
 .card {
   display: flex;
