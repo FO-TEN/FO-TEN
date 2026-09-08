@@ -181,7 +181,7 @@ const conditionChips = computed(() =>
       </div>
 
       <p v-if="chat.error" class="err">
-        {{ chat.error === 'too_long' ? t('chat.too_long', { n: MAX }) : chat.error === 'send_failed' ? t('chat.failed') : chat.error }}
+        {{ chat.error === 'too_long' ? t('chat.too_long', { n: MAX }) : t('chat.failed') }}
       </p>
     </div>
 

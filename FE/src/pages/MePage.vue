@@ -56,8 +56,7 @@ async function logout() {
       </div>
 
       <p v-if="dash.loading && !me" class="err">{{ t('common.loading') }}</p>
-      <p v-else-if="dash.error && !me" class="err">{{ dash.error }}</p>
-      <p v-else-if="dash.loadFailed && !me" class="err">{{ t('common.load_failed') }}</p>
+      <p v-else-if="dash.errorKey && !me" class="err">{{ t(dash.errorKey) }}</p>
 
       <!-- 체류 정보 -->
       <section class="card">

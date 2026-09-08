@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useDashboardStore } from '../stores/dashboard'
 import { useLocaleStore } from '../stores/locale'
 import { comma, won, ym } from '../utils/format'
+import { errorKey } from '../api/http'
 import AppHeader from '../components/layout/AppHeader.vue'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
@@ -47,7 +48,8 @@ async function load() {
     await dash.loadSpending(monthsAgo.value)
     if (monthsAgo.value === 0 && !dash.diagnosis) await dash.loadDiagnosis().catch(() => {})
   } catch (e) {
-    error.value = e?.response?.data?.message || t('common.load_failed')
+    // 서버 message 는 한국어로 고정이라 그대로 쓰면 19개 언어 화면에서 한국어가 샌다.
+    error.value = t(errorKey(e))
   } finally {
     loading.value = false
   }
