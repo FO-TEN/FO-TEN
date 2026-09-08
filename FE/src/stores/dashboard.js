@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { goalApi, memberApi, spendingApi, exchangeApi } from '../api'
 import { nationalityOf } from '../i18n'
-import { useLocaleStore } from './locale'
 
 /*
  * 대시보드·소비내역·내 정보가 함께 쓰는 읽기 데이터.
@@ -22,7 +21,8 @@ export const useDashboardStore = defineStore('dashboard', {
     fx: null,
     spending: {}, // monthsAgo → 응답
     loading: false,
-    error: '',
+    error: '', // 서버가 내려준 메시지. 언어가 고정된 문자열이라 그대로 표시한다.
+    loadFailed: false, // 서버 메시지가 없는 실패(네트워크 끊김 등) — 화면에서 t()로 안내문을 고른다.
   }),
 
   getters: {
@@ -78,15 +78,20 @@ export const useDashboardStore = defineStore('dashboard', {
     async loadHome(force = false) {
       this.loading = true
       this.error = ''
+      this.loadFailed = false
       const results = await Promise.allSettled([
         this.loadMe(force).then(() => this.loadFx()),
         this.loadDiagnosis(force),
         this.loadSpending(0, force),
       ])
       const failed = results.find((r) => r.status === 'rejected')
-      // 응답 자체가 없는 실패(네트워크 끊김·타임아웃)는 response 가 없어 메시지도 없다 —
-      // 빈 문자열로 두면 화면에서 "에러 없음"과 구분이 안 되므로 항상 안내문을 채운다.
-      if (failed) this.error = failed.reason?.response?.data?.message || useLocaleStore().t('common.load_failed')
+      if (failed) {
+        // 응답 자체가 없는 실패(네트워크 끊김·타임아웃)는 response 가 없어 메시지도 없다. 여기서
+        // t()로 안내문을 확정해 저장하면 화면 언어를 나중에 바꿔도 저장된 문자열은 안 바뀐다 —
+        // 그래서 실패 사실만 loadFailed 로 남기고, 실제 문구는 화면(t() 호출)에서 매번 새로 고른다.
+        this.error = failed.reason?.response?.data?.message || ''
+        this.loadFailed = true
+      }
       this.loading = false
     },
 

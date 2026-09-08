@@ -172,6 +172,7 @@ function goChat() {
 
       <p v-if="dash.loading && !dx" class="err">{{ t('common.loading') }}</p>
       <p v-else-if="dash.error && !dx" class="err">{{ dash.error }}</p>
+      <p v-else-if="dash.loadFailed && !dx" class="err">{{ t('common.load_failed') }}</p>
 
       <!-- CTA -->
       <button type="button" class="cta light" @click="router.push({ name: 'products' })">
