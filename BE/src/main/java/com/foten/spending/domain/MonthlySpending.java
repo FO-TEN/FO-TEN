@@ -2,6 +2,7 @@ package com.foten.spending.domain;
 
 import java.math.BigDecimal;
 import java.time.YearMonth;
+import java.util.List;
 import java.util.Map;
 
 // 한 달 소비 집계
@@ -11,7 +12,8 @@ public record MonthlySpending(
         BigDecimal fixedTotal,
         Map<String, BigDecimal> fixedByCategory,
         BigDecimal variableTotal,
-        Map<String, BigDecimal> variableByCategory
+        Map<String, BigDecimal> variableByCategory,
+        List<CategoryTotal> topCategories // FIXED+VARIABLE 합산 카테고리별 상위 N개, 금액 내림차순 (홈·소비내역 화면 전용)
 ) {
     public BigDecimal total() {
         return fixedTotal.add(variableTotal);

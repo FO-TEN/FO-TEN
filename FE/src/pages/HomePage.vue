@@ -165,8 +165,10 @@ function goChat() {
           </div>
           <p class="amt"><span class="num mid">{{ comma(sp.total) }}</span><span class="won16">{{ t('common.won') }}</span></p>
         </div>
-        <div class="sprow"><span class="dot fixed" /><span class="spl">{{ t('spending.fixed') }}</span><span class="num spv">{{ comma(sp.fixedTotal) }} {{ t('common.won') }}</span></div>
-        <div class="sprow"><span class="dot var" /><span class="spl">{{ t('spending.variable') }}</span><span class="num spv">{{ comma(sp.variableTotal) }} {{ t('common.won') }}</span></div>
+        <div v-for="c in sp.topCategories" :key="c.category" class="sprow">
+          <span class="spl">{{ t('cat.' + c.category) }}</span>
+          <span class="num spv">{{ comma(c.amount) }} {{ t('common.won') }}</span>
+        </div>
         <button type="button" class="link" @click="router.push({ name: 'spending' })">{{ t('home.see_all_spending') }} →</button>
       </section>
 
@@ -455,17 +457,6 @@ function goChat() {
   gap: 8px;
   padding: 4px 0;
   font-size: 15px;
-}
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.dot.fixed {
-  background: var(--gray-700);
-}
-.dot.var {
-  background: var(--surface-primary);
 }
 .spl {
   flex: 1 0 0;

@@ -10,7 +10,9 @@ import BottomNav from '../components/layout/BottomNav.vue'
 /*
  * Figma 09_소비 내역(217:1874).
  *  GET /spending?monthsAgo=N → { month:'2026-09', daysCovered, total, fixedTotal, variableTotal,
- *                                fixedByCategory{}, variableByCategory{} }
+ *                                fixedByCategory{}, variableByCategory{}, topCategories:[{category,amount}] }
+ *  고정비/변동비 구분 표시는 화면에서 뺐다(카테고리 TOP3로 대체) — fixedTotal/variableTotal 등은
+ *  챗봇(SpendingTools)이 여전히 쓰므로 API 응답에는 남아있고, 이 화면만 topCategories를 쓴다.
  *  "지난달 같은 날" 비교는 안 하기로 해서 뺐다. 이번 달일 때만 저축 예상 카드(진단 API)를 붙인다.
  *  헤더에 LangSwitch 추가 (규칙 10). 월 선택은 헤더 아래 monthbar 에 둔다.
  */
@@ -50,10 +52,6 @@ async function load() {
 }
 onMounted(load)
 watch(monthsAgo, load)
-
-const fixedRows = computed(() => Object.entries(data.value?.fixedByCategory || {}))
-const variableRows = computed(() => Object.entries(data.value?.variableByCategory || {}))
-const topVariable = computed(() => variableRows.value.reduce((a, b) => (Number(b[1]) > Number(a?.[1] ?? -1) ? b : a), null)?.[0])
 
 // additionalNeeded 는 "지금처럼 쓰면" 모자라는 돈이다. "줄여도 모자라요" 문장은 다 줄인 뒤의 차액이어야
 // 하므로 목표(monthlyBaseline) − 최대 예상 저축(maxExpectedSaving) 을 직접 뺀다. 음수면 여유.
@@ -101,39 +99,17 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
           <p class="total num">{{ won(data.total) }}</p>
         </section>
 
-        <!-- 고정비 -->
+        <!-- 카테고리별 소비 -->
         <section class="card">
           <div class="fh">
-            <span class="dot fixed" />
-            <span class="fname">{{ t('spending.fixed') }}</span>
-            <span class="pill gray">{{ t('spending.not_adjustable') }}</span>
-            <span class="sp1" />
-            <span class="fsum num">{{ won(data.fixedTotal) }}</span>
+            <span class="fname">{{ t('spending.top_categories') }}</span>
           </div>
           <div class="rows">
-            <div v-for="[cat, amt] in fixedRows" :key="cat" class="r">
-              <span class="rl">{{ t('cat.' + cat) }}</span>
-              <span class="rv num">{{ won(amt) }}</span>
+            <div v-for="c in data.topCategories" :key="c.category" class="r">
+              <span class="rl">{{ t('cat.' + c.category) }}</span>
+              <span class="rv num">{{ won(c.amount) }}</span>
             </div>
-            <p v-if="!fixedRows.length" class="empty">{{ t('spending.none') }}</p>
-          </div>
-        </section>
-
-        <!-- 변동비 -->
-        <section class="card">
-          <div class="fh">
-            <span class="dot var" />
-            <span class="fname">{{ t('spending.variable') }}</span>
-            <span class="pill green">{{ t('spending.adjustable') }}</span>
-            <span class="sp1" />
-            <span class="fsum num">{{ won(data.variableTotal) }}</span>
-          </div>
-          <div class="rows">
-            <div v-for="[cat, amt] in variableRows" :key="cat" class="r">
-              <span class="rl" :class="{ top: cat === topVariable }">{{ t('cat.' + cat) }}</span>
-              <span class="rv num" :class="{ top: cat === topVariable }">{{ won(amt) }}</span>
-            </div>
-            <p v-if="!variableRows.length" class="empty">{{ t('spending.none') }}</p>
+            <p v-if="!data.topCategories.length" class="empty">{{ t('spending.none') }}</p>
           </div>
         </section>
 
@@ -259,42 +235,8 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   align-items: center;
   gap: 6px;
 }
-.dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-}
-.dot.fixed {
-  background: var(--gray-700);
-}
-.dot.var {
-  background: var(--surface-primary);
-}
 .fname {
   font-size: 14px;
-  font-weight: 700;
-  color: var(--gray-900);
-}
-.pill {
-  padding: 3px 7px;
-  border-radius: 6px;
-  font-size: 10px;
-  font-weight: 500;
-  line-height: 1.45;
-}
-.pill.gray {
-  background: var(--gray-100);
-  color: var(--gray-400);
-}
-.pill.green {
-  background: var(--green-bg);
-  color: var(--green);
-}
-.sp1 {
-  flex: 1 0 0;
-}
-.fsum {
-  font-size: 15px;
   font-weight: 700;
   color: var(--gray-900);
 }
@@ -315,15 +257,8 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   flex: 1 0 0;
   color: var(--gray-700);
 }
-.rl.top {
-  font-weight: 700;
-  color: var(--gray-900);
-}
 .rv {
   color: var(--gray-900);
-}
-.rv.top {
-  font-weight: 700;
 }
 .empty {
   font-size: 14px;
