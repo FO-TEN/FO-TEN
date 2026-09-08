@@ -163,7 +163,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   padding: 0 10px 0 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--r-pill);
-  background: #fff;
+  background: var(--surface-card);
   font-size: 15px;
   font-weight: 600;
   color: var(--gray-900);
@@ -184,14 +184,14 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   padding: 6px;
   list-style: none;
   width: 140px;
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
-  border-radius: 14px;
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-menu);
 }
 .mi {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--r-input);
   font-size: 16px;
   color: var(--gray-900);
   cursor: pointer;
@@ -217,7 +217,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   flex-direction: column;
   padding: 18px;
   border-radius: var(--r-card);
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
 }
 .until {
@@ -284,7 +284,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   flex-direction: column;
   gap: 4px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: var(--r-card);
   line-height: 1.45;
 }
 .box.g {
