@@ -31,7 +31,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String PLAN_TOOL = "getMonthlyPlan";
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
-    private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
+    private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("전체 로드맵 보기");
     private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
     private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
     private static final Suggestion MONTHLY_PLAN = Suggestion.ask("이번 달 계획 세워줘");

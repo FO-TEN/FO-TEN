@@ -95,22 +95,38 @@ function moodFor(m) {
 }
 
 const showGreeting = computed(() => !chat.hasHistory)
-// 로드맵은 화면 이동이 아니라 대화로 만든다. 이미 있으면 서버가 그렇게 답한다.
-const staticChips = computed(() => [
-  { key: 'roadmap', label: t('chat.chip_roadmap'), go: () => ask('내 로드맵 만들기') },
-  { key: 'spending', label: t('chat.chip_spending'), go: () => router.push({ name: 'spending' }) },
-  { key: 'goal', label: t('chat.chip_goal'), go: () => router.push({ name: 'onboarding', params: { step: 1 }, query: { from: 'me' } }) },
-])
+
+/*
+ * 첫 화면 칩. 로드맵은 화면 이동이 아니라 대화로 만든다.
+ *
+ * 첫 칩은 opener 가 정한다 — 로드맵이 있는 사람에게 "로드맵 만들기" 를 권하면 안 된다.
+ * 대화 이력이 없다고 처음 온 사람인 것은 아니다. 앱을 쓰다가 챗 탭에 처음 들어온 사람도
+ * 이력이 비어 있고, 시드 계정도 전부 그렇다.
+ *
+ * 로드맵 상태를 못 읽었으면 첫 칩을 아예 빼고 나머지 둘만 낸다. 잘못 짚느니 없는 편이 낫다.
+ */
+const staticChips = computed(() => {
+  const chips = []
+  if (opener.value) {
+    chips.push({ key: opener.value.key, label: t(opener.value.key), go: () => useOpener() })
+  }
+  chips.push(
+    { key: 'spending', label: t('chat.chip_spending'), go: () => router.push({ name: 'spending' }) },
+    { key: 'goal', label: t('chat.chip_goal'), go: () => router.push({ name: 'onboarding', params: { step: 1 }, query: { from: 'me' } }) },
+  )
+  return chips
+})
 
 // 이력이 있으면 고정 칩도 서버 칩도 안 나와 빈 입력창만 남는다. 매달 오는 사용자가 다 이 경우다.
 // 로드맵이 있는지만 보고 첫 칩 하나를 띄운다. 어느 단계인지는 누른 뒤 서버가 이어서 알려준다.
+// 이력이 없는 첫 화면에서도 이 값을 쓰므로(staticChips) 그때도 읽어 둔다.
 const opener = ref(null)
 async function loadOpener() {
-  if (chat.suggestions.length || showGreeting.value) return
+  if (chat.suggestions.length) return
   try {
     const status = await roadmapApi.status()
     opener.value = status.roadmapExists
-      ? { key: 'chat.chip_month', message: '이번 달 상황 알려줘' }
+      ? { key: 'chat.chip_roadmap_update', message: '로드맵 업데이트하기' }
       : { key: 'chat.chip_roadmap', message: '내 로드맵 만들기' }
   } catch {
     /* 상태를 못 읽으면 띄우지 않는다. 잘못 짚느니 없는 편이 낫다 */

@@ -91,7 +91,7 @@
   "chat.chip_roadmap": "Tạo lộ trình",
   "chat.chip_spending": "Xem chi tiêu của tôi",
   "chat.chip_goal": "Đổi mục tiêu",
-  "chat.chip_month": "Cho tôi biết tình hình tháng này",
+  "chat.chip_roadmap_update": "Cập nhật lộ trình",
   "chat.placeholder": "Hỏi Foten bất cứ điều gì",
   "chat.too_long": "Vui lòng viết dưới {n} ký tự",
   "chat.failed": "Không nhận được câu trả lời. Vui lòng hỏi lại.",

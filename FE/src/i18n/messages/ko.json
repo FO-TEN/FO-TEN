@@ -91,7 +91,7 @@
   "chat.chip_roadmap": "로드맵 만들기",
   "chat.chip_spending": "내 소비 보기",
   "chat.chip_goal": "목표 바꾸기",
-  "chat.chip_month": "이번 달 상황 알려줘",
+  "chat.chip_roadmap_update": "로드맵 업데이트하기",
   "chat.placeholder": "궁금한 걸 물어보세요",
   "chat.too_long": "{n}자 안으로 써 주세요",
   "chat.failed": "답을 가져오지 못했어요. 다시 물어봐 주세요.",
