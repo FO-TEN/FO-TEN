@@ -15,14 +15,14 @@ public record MonthlySpendingResponse(
         Map<String, BigDecimal> fixedByCategory,
         BigDecimal variableTotal,
         Map<String, BigDecimal> variableByCategory,
-        List<CategoryTotal> topCategories
+        List<CategoryTotal> categoryTotals
 ) {
     public static MonthlySpendingResponse from(MonthlySpending s) {
         return new MonthlySpendingResponse(
                 s.month().toString(), s.daysCovered(), s.total(),
                 s.fixedTotal(), s.fixedByCategory(),
                 s.variableTotal(), s.variableByCategory(),
-                s.topCategories()
+                s.categoryTotals()
         );
     }
 }

@@ -32,7 +32,7 @@ class SpendingQueryServiceImplTest {
     }
 
     @Test
-    void topCategories_FIXED와_VARIABLE을_구분없이_카테고리별로_합산한다() {
+    void categoryTotals_FIXED와_VARIABLE을_구분없이_카테고리별로_합산한다() {
         when(spendingSummaryMapper.findByMonth(MEMBER_ID, 0)).thenReturn(List.of(
                 지출("식비", "VARIABLE", 30_000),
                 지출("식비", "FIXED", 20_000), // 같은 카테고리라도 FIXED/VARIABLE 안 가리고 합산
@@ -42,11 +42,11 @@ class SpendingQueryServiceImplTest {
 
         assertEquals(
                 List.of(new CategoryTotal("식비", BigDecimal.valueOf(50_000)), new CategoryTotal("교통", BigDecimal.valueOf(10_000))),
-                result.topCategories());
+                result.categoryTotals());
     }
 
     @Test
-    void topCategories_금액_내림차순으로_정렬된다() {
+    void categoryTotals_금액_내림차순으로_정렬된다() {
         when(spendingSummaryMapper.findByMonth(MEMBER_ID, 0)).thenReturn(List.of(
                 지출("교통", "VARIABLE", 10_000),
                 지출("식비", "VARIABLE", 50_000),
@@ -54,11 +54,12 @@ class SpendingQueryServiceImplTest {
 
         MonthlySpending result = service().getMonthlySpending(MEMBER_ID, 0);
 
-        assertEquals(List.of("식비", "쇼핑", "교통"), result.topCategories().stream().map(CategoryTotal::category).toList());
+        assertEquals(List.of("식비", "쇼핑", "교통"), result.categoryTotals().stream().map(CategoryTotal::category).toList());
     }
 
     @Test
-    void topCategories_상위_3개까지만_반환한다() {
+    void categoryTotals_카테고리가_5개여도_전부_반환한다() {
+        // 홈 화면은 이 중 앞 3개만 잘라 쓰지만, 서비스 레이어 자체는 자르지 않는다 — 소비내역 화면이 전체를 써야 하므로.
         when(spendingSummaryMapper.findByMonth(MEMBER_ID, 0)).thenReturn(List.of(
                 지출("식비", "VARIABLE", 50_000),
                 지출("쇼핑", "VARIABLE", 40_000),
@@ -68,16 +69,18 @@ class SpendingQueryServiceImplTest {
 
         MonthlySpending result = service().getMonthlySpending(MEMBER_ID, 0);
 
-        assertEquals(3, result.topCategories().size());
-        assertEquals(List.of("식비", "쇼핑", "교통"), result.topCategories().stream().map(CategoryTotal::category).toList());
+        assertEquals(5, result.categoryTotals().size());
+        assertEquals(
+                List.of("식비", "쇼핑", "교통", "통신", "기타"),
+                result.categoryTotals().stream().map(CategoryTotal::category).toList());
     }
 
     @Test
-    void topCategories_소비_이력이_없으면_빈_리스트를_반환한다() {
+    void categoryTotals_소비_이력이_없으면_빈_리스트를_반환한다() {
         when(spendingSummaryMapper.findByMonth(MEMBER_ID, 0)).thenReturn(List.of());
 
         MonthlySpending result = service().getMonthlySpending(MEMBER_ID, 0);
 
-        assertTrue(result.topCategories().isEmpty());
+        assertTrue(result.categoryTotals().isEmpty());
     }
 }

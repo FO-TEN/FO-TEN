@@ -13,7 +13,7 @@ public record MonthlySpending(
         Map<String, BigDecimal> fixedByCategory,
         BigDecimal variableTotal,
         Map<String, BigDecimal> variableByCategory,
-        List<CategoryTotal> topCategories // FIXED+VARIABLE 합산 카테고리별 상위 N개, 금액 내림차순 (홈·소비내역 화면 전용)
+        List<CategoryTotal> categoryTotals // FIXED+VARIABLE 합산 카테고리별 전체, 금액 내림차순 (홈·소비내역 화면 전용)
 ) {
     public BigDecimal total() {
         return fixedTotal.add(variableTotal);

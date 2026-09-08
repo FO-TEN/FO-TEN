@@ -22,7 +22,6 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
 
     private static final String FIXED = "FIXED";
     private static final String VARIABLE = "VARIABLE";
-    private static final int TOP_CATEGORIES_LIMIT = 3;
     private final SpendingSummaryMapper spendingSummaryMapper;
 
     @Override
@@ -32,10 +31,10 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
 
         Map<String, BigDecimal> fixed = byCategory(lines, FIXED);
         Map<String, BigDecimal> variable = byCategory(lines, VARIABLE);
-        List<CategoryTotal> topCategories = topCategories(lines, TOP_CATEGORIES_LIMIT);
+        List<CategoryTotal> categoryTotals = categoryTotals(lines);
 
         return new MonthlySpending(
-                month, daysCovered(month), sum(fixed), fixed, sum(variable), variable, topCategories);
+                month, daysCovered(month), sum(fixed), fixed, sum(variable), variable, categoryTotals);
     }
 
     // 이번 달은 오늘까지만 조회됨
@@ -73,9 +72,10 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
         return byCategory.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    // FIXED+VARIABLE 구분 없이 카테고리별로 합산해 금액 내림차순 상위 limit개만 반환 (홈·소비내역 화면 전용).
+    // FIXED+VARIABLE 구분 없이 카테고리별로 합산해 금액 내림차순 전체 반환 (홈·소비내역 화면 전용).
+    // 홈 화면은 이 중 앞 3개만 잘라 쓰고, 소비내역 화면은 전체를 보여준다.
     // byCategory()는 SpendingCategory.ALL 고정 순서로 정렬하는 표시용이라 "많은 순" 정렬 목적엔 안 맞아 따로 뺐다.
-    private List<CategoryTotal> topCategories(List<SpendingLine> lines, int limit) {
+    private List<CategoryTotal> categoryTotals(List<SpendingLine> lines) {
         Map<String, BigDecimal> amounts = new LinkedHashMap<>();
         for (SpendingLine line : lines) {
             amounts.merge(line.getCategory(), line.getAmount(), BigDecimal::add);
@@ -84,7 +84,6 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
         return amounts.entrySet().stream()
                 .filter(e -> e.getValue().signum() != 0)
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
-                .limit(limit)
                 .map(e -> new CategoryTotal(e.getKey(), e.getValue()))
                 .toList();
     }
