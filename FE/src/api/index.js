@@ -43,6 +43,8 @@ export const exchangeApi = {
 }
 
 export const roadmapApi = {
+  // 로드맵이 있는지, 이번 달이 어떤 달인지. 로드맵이 없어도 200 으로 답한다.
+  status: () => http.get('/roadmap/status').then((r) => r.data),
   // 상품이 아직 없으면 서버가 오류로 답한다. 화면이 빈 상태로 처리한다.
   composition: () => http.get('/roadmap/segments/current/composition').then((r) => r.data),
   graph: () => http.get('/roadmap/graph').then((r) => r.data),
