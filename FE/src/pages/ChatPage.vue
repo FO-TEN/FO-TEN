@@ -44,7 +44,7 @@ onMounted(async () => {
   if (chat.pendingQuestion) {
     const q = chat.pendingQuestion
     chat.pendingQuestion = ''
-    await chat.send(q)
+    await ask(q)
   }
 })
 
@@ -86,7 +86,7 @@ function chipLabel(s) {
 const showGreeting = computed(() => !chat.hasHistory)
 // 로드맵은 화면 이동이 아니라 대화로 만든다. 이미 있으면 서버가 그렇게 답한다.
 const staticChips = computed(() => [
-  { key: 'roadmap', label: t('chat.chip_roadmap'), go: () => chat.send('내 로드맵 만들기') },
+  { key: 'roadmap', label: t('chat.chip_roadmap'), go: () => ask('내 로드맵 만들기') },
   { key: 'spending', label: t('chat.chip_spending'), go: () => router.push({ name: 'spending' }) },
   { key: 'goal', label: t('chat.chip_goal'), go: () => router.push({ name: 'onboarding', params: { step: 1 }, query: { from: 'me' } }) },
 ])
@@ -106,21 +106,27 @@ async function loadOpener() {
   }
 }
 
+/*
+ * 첫 칩은 대화가 시작되면 사라진다. 그다음부터는 서버가 내려주는 칩이 이어받는다.
+ * 누를 때만 지우면 안 된다 — 직접 입력해 보낸 사람에게는 답을 기다리는 동안 그 칩이
+ * 그대로 남아, 방금 한 질문 아래에 엉뚱한 칩이 하나 붙어 있는 것처럼 보인다.
+ */
+async function ask(message) {
+  opener.value = null
+  await chat.send(message)
+}
+
 async function submit() {
   const text = draft.value.trim()
   if (!text || chat.sending) return
   draft.value = ''
-  await chat.send(text)
+  await ask(text)
 }
 async function pickChip(s) {
-  await chat.send(s.value)
+  await ask(s.value)
 }
-
-// 첫 칩은 한 번 쓰고 사라진다. 그다음부터는 서버가 내려주는 칩이 이어받는다.
 async function useOpener() {
-  const message = opener.value.message
-  opener.value = null
-  await chat.send(message)
+  await ask(opener.value.message)
 }
 
 // 우대조건은 여러 개를 골라 한 번에 보낸다. 서버가 그 종류로 내려주면 버튼 대신 체크박스로 그린다.
@@ -170,7 +176,7 @@ const conditionChips = computed(() =>
         v-if="conditionChips.length"
         :items="conditionChips"
         :disabled="chat.sending"
-        @submit="chat.send($event)"
+        @submit="ask($event)"
       />
       <div v-else-if="chat.suggestions.length" class="chips">
         <button v-for="(s, i) in chat.suggestions" :key="i" type="button" class="chip" @click="pickChip(s)">{{ chipLabel(s) }}</button>
