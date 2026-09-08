@@ -224,6 +224,15 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
           {{ isSave ? t(fromMe ? 'onboarding.save' : 'onboarding.start') : t('onboarding.next') }}
         </BaseButton>
       </div>
+
+      <!--
+        환율 출처. open.er-api.com 무료 티어가 요구하는 표기라 문구와 링크를 그대로 쓴다.
+        번역하지 않는다 - 약관이 이 영문 그대로를 요구한다.
+        환율을 실제로 쓰는 2·3단계에서만 보이면 된다(1단계는 환율을 안 불러온다).
+      -->
+      <p v-if="ob.rate" class="fxsrc">
+        <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">Rates By Exchange Rate API</a>
+      </p>
     </form>
   </main>
 </template>
@@ -335,6 +344,16 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
 .error {
   font-size: 14px;
   color: var(--red);
+}
+.fxsrc {
+  margin-top: 10px;
+  font-size: 11px;
+  text-align: center;
+  color: var(--gray-400);
+}
+.fxsrc a {
+  color: inherit;
+  text-decoration: underline;
 }
 .bw {
   padding-top: 8px;
