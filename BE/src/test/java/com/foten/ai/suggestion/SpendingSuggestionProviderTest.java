@@ -38,7 +38,7 @@ class SpendingSuggestionProviderTest {
         List<Suggestion> chips = provider.suggest(spendingTurn(),
                 "식비는 25,000원, 교통은 4,150원, 쇼핑은 5,500원입니다.");
 
-        assertEquals(List.of("통신 얼마 썼어?", "기타 얼마 썼어?"), labelsOf(chips));
+        assertEquals(List.of("통신 얼마 썼어?", "기타 얼마 썼어?", "주거 얼마 썼어?"), labelsOf(chips));
     }
 
     @Test

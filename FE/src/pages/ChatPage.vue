@@ -76,8 +76,8 @@ async function scrollBottom() {
 // 말풍선에 보일 글 — 사용자 행은 원문(contentLocal), 봇 행은 화면 언어에 따라
 function text(m) {
   if (m.role === 'USER') return m.contentLocal ?? m.contentKo ?? ''
-  if (locale.isKorean) return m.contentKo ?? ''
-  return m.contentLocal ?? m.contentKo ?? ''
+  const content = locale.isKorean ? m.contentKo : (m.contentLocal ?? m.contentKo)
+  return content || t('chat.failed')
 }
 function chipLabel(s) {
   return locale.isKorean ? s.labelKo : s.labelLocal || s.labelKo
