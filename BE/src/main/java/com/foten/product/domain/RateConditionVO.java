@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class RateConditionVO {
     private String conditionCode;      // PK. 예: SALARY_TRANSFER
     private String label;              // 화면 표시명
-    private String description;        // 조건 상세 / 질문 문구
+    private String description;        // 체크리스트에 보이는 문구. 비어 있으면 고를 수 없는 조건이다.
     private Boolean isBehaviorBased;   // true = 향후 행동으로 충족 가능 → 공통 질문 대상
 }

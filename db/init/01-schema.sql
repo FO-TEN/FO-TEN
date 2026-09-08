@@ -170,7 +170,14 @@ CREATE TABLE product_rate (
 CREATE TABLE rate_condition (
     condition_code     VARCHAR(30)  NOT NULL,             -- SALARY_TRANSFER / CARD_PAYMENT / OVERSEAS_REMITTANCE ...
     label              VARCHAR(50)  NOT NULL,             -- 화면 표시명
-    description        VARCHAR(200) NULL,                 -- 조건 상세 / 질문 문구
+    -- 체크리스트에 그대로 보이는 문구. label 은 은행 용어라 무엇을 약속하는지 알 수 없고,
+    -- 긴 질문은 여섯 줄이 겹쳐 읽기 어렵다. 그 사이를 "월급 KB국민은행 계좌로 받기" 처럼
+    -- 짧은 행동으로 적는다. 규칙 셋:
+    --   1. "~하기" 로 끝낸다 — 체크하면 무엇을 지키기로 하는 것인지가 분명해진다.
+    --   2. 은행 용어 대신 일상어를 쓴다 (급여->월급, 결제대금->카드값).
+    --   3. "이 계좌" 처럼 가리키는 말을 쓰지 않는다 — 어느 은행인지 문구 안에서 끝낸다.
+    -- 비워 두면 사용자가 고를 수 없는 조건(재가입·장기거래 등)이라는 뜻이다.
+    description        VARCHAR(200) NULL,
     is_behavior_based  BOOLEAN      NOT NULL,             -- TRUE = 사용자가 향후 행동으로 충족 가능
     PRIMARY KEY (condition_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
