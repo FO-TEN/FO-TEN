@@ -5,8 +5,8 @@ import bag from '../../assets/icons/cat_bag.svg'
 
 /*
  * 소비 카테고리 아이콘 (36px 원 + 18px 그림). Figma 217:3104~3123 스타일.
- * 백엔드 카테고리: 식비 · 교통 · 통신 · 쇼핑 · 기타
- * 식비/쇼핑/외식은 시안 에셋. 교통·통신·기타는 시안에 없어 임시 인라인 아이콘 — 디자이너가 그리면 교체.
+ * 백엔드 카테고리: 식비 · 교통 · 통신 · 쇼핑 · 기타 · 주거
+ * 식비/쇼핑/외식은 시안 에셋. 교통·통신·기타·주거는 시안에 없어 임시 인라인 아이콘 — 디자이너가 그리면 교체.
  */
 const props = defineProps({ category: { type: String, required: true } })
 
@@ -17,6 +17,7 @@ const map = {
   쇼핑: { bg: 'var(--cat-bag)', img: bag },
   교통: { bg: '#4f8ef7', glyph: 'bus' },
   통신: { bg: '#2bb0a5', glyph: 'phone' },
+  주거: { bg: '#c17a54', glyph: 'house' },
   기타: { bg: '#a8a29e', glyph: 'dots' },
 }
 const info = map[props.category] || map['기타']
@@ -35,6 +36,11 @@ const info = map[props.category] || map['기타']
     <svg v-else-if="info.glyph === 'phone'" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <rect x="5" y="2" width="8" height="14" rx="2" stroke="#fff" stroke-width="1.6" />
       <circle cx="9" cy="13" r="0.9" fill="#fff" />
+    </svg>
+    <svg v-else-if="info.glyph === 'house'" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M3 8.5L9 3.5L15 8.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M4.5 7.5V14.5H13.5V7.5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" />
+      <rect x="7.5" y="10.5" width="3" height="4" stroke="#fff" stroke-width="1.4" />
     </svg>
     <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="4" cy="9" r="1.6" fill="#fff" />

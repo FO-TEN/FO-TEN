@@ -311,7 +311,7 @@ CREATE TABLE transaction_history (
     direction                 VARCHAR(3)    NOT NULL,            -- IN(입금) / OUT(출금)
     amount                    DECIMAL(12,0) NOT NULL,            -- 거래 금액 (항상 양수, 입출금은 direction 으로 구분)
     balance_after             DECIMAL(12,0) NOT NULL,            -- 거래 직후 입출금통장 잔액
-    category                  VARCHAR(30)   NULL,                -- 소비 카테고리 (EXPENSE 일 때만): 식비, 교통, 통신, 쇼핑, 기타
+    category                  VARCHAR(30)   NULL,                -- 소비 카테고리 (EXPENSE 일 때만): 식비, 교통, 통신, 쇼핑, 주거, 기타
     expense_type              VARCHAR(10)   NULL,                -- FIXED(고정비) / VARIABLE(변동비) (EXPENSE 일 때만)
     product_subscription_id   BIGINT        NULL,                -- 연결된 예·적금 가입 ID (SAVINGS_PAYMENT / DEPOSIT_PAYMENT / MATURITY_RECEIPT 일 때)
     memo                      VARCHAR(100)  NULL,                -- 거래 관련 메모 (기존 consumption.memo 역할 포함)

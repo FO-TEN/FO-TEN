@@ -12,7 +12,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class SpendingLine {
-    private String category;    // 식비, 교통, 통신, 쇼핑, 기타
+    private String category;    // 식비, 교통, 통신, 쇼핑, 기타, 주거
     private String expenseType; // FIXED, VARIABLE
     private BigDecimal amount;
 }
