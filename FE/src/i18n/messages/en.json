@@ -90,6 +90,7 @@
   "chat.chip_roadmap": "Create my roadmap",
   "chat.chip_spending": "See my spending",
   "chat.chip_goal": "Change my goal",
+  "chat.chip_month": "Tell me about this month",
   "chat.placeholder": "Ask me anything",
   "chat.too_long": "Please keep it under {n} characters",
   "chat.failed": "Couldn't get an answer. Please ask again.",

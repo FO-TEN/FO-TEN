@@ -90,6 +90,7 @@
   "chat.chip_roadmap": "Жол картасын түзүү",
   "chat.chip_spending": "Чыгашамды көрүү",
   "chat.chip_goal": "Максатты өзгөртүү",
+  "chat.chip_month": "Бул айдын абалын айтып бериңиз",
   "chat.placeholder": "Каалаганыңызды сураңыз",
   "chat.too_long": "{n} белгиден кем жазыңыз",
   "chat.failed": "Жооп келбеди. Кайра сураңыз.",

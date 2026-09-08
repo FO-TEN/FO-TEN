@@ -90,6 +90,7 @@
   "chat.chip_roadmap": "ສ້າງແຜນເກັບເງິນ",
   "chat.chip_spending": "ເບິ່ງລາຍຈ່າຍຂ້ອຍ",
   "chat.chip_goal": "ປ່ຽນເປົ້າໝາຍ",
+  "chat.chip_month": "ບອກສະພາບເດືອນນີ້ແດ່",
   "chat.placeholder": "ຖາມຫຍັງກໍໄດ້",
   "chat.too_long": "ກະລຸນາພິມບໍ່ເກີນ {n} ຕົວອັກສອນ",
   "chat.failed": "ບໍ່ໄດ້ຮັບຄຳຕອບ. ກະລຸນາຖາມໃໝ່.",

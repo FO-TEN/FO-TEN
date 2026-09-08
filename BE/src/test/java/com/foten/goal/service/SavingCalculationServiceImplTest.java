@@ -165,4 +165,55 @@ class SavingCalculationServiceImplTest {
 
         assertEquals(0, result);
     }
+
+    // ===== 이슈 #84 재현 테스트: 신규회원 소비여력분석이 항상 낙관적으로 나오는 문제 =====
+    //
+    // 원인: elapsedDays는 GoalDiagnosisServiceImpl.buildCategorySpendingInputs()에서
+    // LocalDate.now().getDayOfMonth()(이번 달 "달력 경과일")로 채워지는데, 이는 회원이
+    // 실제로 추적된 기간(가입 후 실지출 발생 일수)과 무관하다. calcExpectedRemaining()의
+    // dailyAvg = currentMonthSpent / elapsedDays 계산에서, 신규회원은 분자(실제 지출 발생
+    // 일수만큼의 지출액)는 그대로인데 분모(달력 경과일)만 크게 잡혀 일평균이 실제보다
+    // 축소된다 — 월말에 가까울수록(늦게 가입할수록) 왜곡이 커진다. 6개월 이력이 없는
+    // 신규회원은 last6MonthsSpending도 전부 0으로 패딩되어(GoalDiagnosisServiceImpl.java:148,156)
+    // calcAdjustedRemaining까지 같은 방향(과소 지출 추정)으로 밀린다.
+    //
+    // 아래 테스트들은 "현재의 (버그가 있는) 동작"을 문서화하는 재현 테스트다. 실제 수정은
+    // 원인 규명 후 별도 작업이며, 그때 이 테스트들의 기대값도 함께 바뀌어야 한다.
+
+    @Test
+    void calcExpectedRemaining_신규회원은_경과일이_실제_추적기간보다_커서_일평균이_과소평가된다() {
+        // "월 20일에 가입해 5일간 하루 5만원씩(총 25만원) 지출한" 신규회원을 흉내낸 입력 —
+        // elapsedDays에는 실제 추적일(5일)이 아니라 달력 경과일(25일)이 들어간다
+        // (GoalDiagnosisServiceImpl이 실제로 만들어내는 것과 동일한 형태).
+        CategorySpendingInput c = new CategorySpendingInput(
+                "식비", 250_000, 25, 30,
+                List.of(0, 0, 0, 0, 0, 0),
+                List.of(30, 30, 30, 30, 30, 30));
+
+        int result = service.calcExpectedRemaining(c);
+
+        // 실제 일평균은 250,000/5(실제 추적일)=50,000원이라 남은 5일간 250,000원이 더
+        // 나가야 정상이지만, 버그로 인해 250,000/25(달력 경과일)=10,000원으로 계산돼
+        // 남은 지출을 실제의 5분의 1인 50,000원으로 과소평가한다.
+        assertEquals(50_000, result);
+    }
+
+    @Test
+    void diagnose_신규회원은_실제_소비습관대로면_불가능에_가까워도_여유있음으로_나온다() {
+        // 위와 같은 신규회원 입력(하루 5만원 소비 습관, 6개월 이력 없음).
+        CategorySpendingInput 신규회원_식비 = new CategorySpendingInput(
+                "식비", 250_000, 25, 30,
+                List.of(0, 0, 0, 0, 0, 0),
+                List.of(30, 30, 30, 30, 30, 30));
+
+        // 실제 소비 습관(하루 5만원)이 남은 5일간 유지된다면 currentExpectedSaving은
+        // 2,500,000-800,000-300,000-250,000-250,000=900,000원이라, 목표 1,000,000원은
+        // "여유있음"이 아니어야 정상이다. 하지만 elapsedDays 왜곡 때문에 남은 지출을
+        // 50,000원으로만 잡아 currentExpectedSaving이 1,100,000원으로 과대평가된다.
+        SavingCalculationOutput result = service.diagnose(
+                1_000_000, List.of(신규회원_식비), 2_500_000, 800_000, 300_000, 250_000);
+
+        assertEquals("여유있음", result.judgeResult());
+        assertEquals(-100_000, result.additionalNeeded());
+    }
 }

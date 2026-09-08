@@ -41,9 +41,9 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     @Override
     public GoalDiagnosisResponse diagnose(Long memberId) {
         Goal goal = goalMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("목표 정보가 없습니다. memberId=" + memberId));
+                .orElseThrow(() -> new ResourceNotFoundException("목표 정보가 없습니다."));
         FinancialInfo financialInfo = financialInfoMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new ResourceNotFoundException("재무 정보가 없습니다. memberId=" + memberId));
+                .orElseThrow(() -> new ResourceNotFoundException("재무 정보가 없습니다."));
 
         List<CategorySpendingInput> categories = buildCategorySpendingInputs(memberId);
         int currentTotalSpent = spendingMapper.findCurrentTotalSpent(memberId).intValue();
