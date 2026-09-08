@@ -224,3 +224,239 @@ JOIN product_subscription ps ON ps.segment_id = rs.segment_id AND ps.product_id 
 JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) c ON TRUE
 WHERE m.login_id = 'natty03';
+
+-- ================================================================
+-- 소비내역(EXPENSE) — "부족액을 채우기 위해 소비를 얼마나 줄일 수 있는지" 분석 흐름 검증용.
+--
+-- 로드맵 1개월차(cycle1, 3월)부터 오늘 기준 어제까지 7개월치(3~9월)를 채운다 — 3~8월은
+-- 이미 끝난 달(각각 cycle1~6에 대응), 9월은 아직 진행 중인 달(cycle7, 어제까지만).
+-- 카테고리는 6개(식비/교통/통신/쇼핑/주거/기타) 전부, 달마다 카테고리당 최소 5건씩
+-- (=달 최소 30건) 넣는다 — 목표진단(GoalDiagnosisServiceImpl류)이 카테고리별 절감 여력을
+-- 계산하는 화면에서 "거래가 너무 적어 표가 휑해 보이는" 문제를 피하기 위함이다.
+--
+-- 금액 설계: 식비/교통/쇼핑은 변동비(VARIABLE)라 달마다 총액이 다르고, 그중 쇼핑을
+-- 편차가 가장 크게 잡았다(4.5만~25만) — 03-seed-transaction.sql의 nguyen01과 같은 이유로,
+-- 쇼핑이 "절감 여력 1위"로 뽑히게 하기 위함이다. 특히 지난달(cycle6, 8월 — 실제로 30만원
+-- 부족액이 난 달)의 쇼핑을 전체 중 최고액(25만원)으로 잡아, "왜 지난달에 부족했는지"와
+-- "어디를 줄이면 되는지"가 한 이야기로 이어지게 했다. 주거/통신/기타는 고정비(FIXED)라
+-- 매달 금액이 같고(합계 30만원 = financial_info.monthly_living_cost 와 일치시켰다),
+-- 항목 하나하나는 "월세/관리비/전기세…"처럼 실제 있을 법한 소분류로 나눴다 — 이 스키마엔
+-- 소분류 컬럼이 없어서 편법이지만, 달마다 카테고리당 5건을 채워야 하는 이 시드의 목적상
+-- 고정비 하나를 5줄로 쪼개는 것 말고는 자연스러운 방법이 없었다.
+--
+-- 각 항목의 금액은 카테고리 월 총액 × 가중치(30/25/20/15/10%)로 계산한다(반올림은 -2,
+-- 즉 100원 단위) — 21개(카테고리 3 × 월 5)의 총액만 손으로 정하면 나머지 75건의 금액은
+-- 자동으로 나온다. 고정비는 총액이 항상 같아서 품목별 금액을 직접 고정값으로 뒀다(15건).
+--
+-- 날짜 처리는 구간이 셋으로 갈린다 — 하나의 CURDATE() 기준 산식으로 셋 다 커버할 수 없다:
+--   (a) 1~5개월 전(cycle2~6, 이미 끝난 달): DATE_SUB(CURDATE(), INTERVAL mo MONTH)로 해당
+--       월을 구하고, 그 달 1일부터 날짜를 센다(월말 근처로 밀리는 걸 막으려 항상 1일부터
+--       계산 — 이 파일 위쪽 monthly_saving_plan 날짜 계산과 같은 이유).
+--   (b) 6개월 전(cycle1, 첫 달 — 입국일부터 시작하는 partial month): sr.start_date 이후
+--       며칠(1~9일)로 날짜를 잡는다. sr.start_date 의 일자가 크면(20일 이후) 드물게 다음 달로
+--       넘어갈 수 있는데, 이 시드는 "정상적으로 매달 대화한 케이스"만 재현하는 게 목적이라
+--       lan01/03과 같은 이유로 이 경계는 다루지 않는다.
+--   (c) 이번 달(cycle7, 어제까지): "어제"가 그 달의 며칠째인지(@natty03_elapsed)를 구해
+--       5건을 그 안에 비례 배분한다(CEIL(elapsed × i/5)) — 재적용 시점의 날짜가 몇일이든
+--       마지막 건(5번째)은 항상 "어제"에 정확히 걸리게 한다.
+--
+-- natty03 은 SALARY/REMITTANCE 거래가 없어(적금 납입만 재현하는 게 이 계정의 핵심이라
+-- 뺐다) 월말 잔액(findBalanceAsOf) 기반 계산의 입력값으로는 애초에 못 쓴다 — 이 소비내역은
+-- 카테고리별 지출 분석(목표진단)에만 쓰는 걸 전제로 한다.
+-- ================================================================
+SET @natty03_yesterday := DATE_SUB(CURDATE(), INTERVAL 1 DAY);
+SET @natty03_elapsed := GREATEST(1, DAY(@natty03_yesterday));
+
+-- ------------------------------------------------------------
+-- (a) 변동비 — cycle2~6 (1~5개월 전, 이미 끝난 달)
+-- ------------------------------------------------------------
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(
+         DATE_ADD(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL t.months_ago MONTH), '%Y-%m-01'), INTERVAL (d.day_of_month - 1) DAY),
+         INTERVAL (8 + o.item_order * 2) HOUR
+       ),
+       'EXPENSE', 'OUT', ROUND(t.total * o.weight, -2), 0, t.category, 'VARIABLE', o.item_name
+FROM member m
+JOIN (SELECT '쇼핑' AS category, 1 AS months_ago, 250000 AS total UNION ALL
+      SELECT '쇼핑', 2,  55000 UNION ALL
+      SELECT '쇼핑', 3, 170000 UNION ALL
+      SELECT '쇼핑', 4,  60000 UNION ALL
+      SELECT '쇼핑', 5, 190000 UNION ALL
+      SELECT '식비', 1, 210000 UNION ALL
+      SELECT '식비', 2, 190000 UNION ALL
+      SELECT '식비', 3, 195000 UNION ALL
+      SELECT '식비', 4, 185000 UNION ALL
+      SELECT '식비', 5, 190000 UNION ALL
+      SELECT '교통', 1,  95000 UNION ALL
+      SELECT '교통', 2,  84000 UNION ALL
+      SELECT '교통', 3,  88000 UNION ALL
+      SELECT '교통', 4,  82000 UNION ALL
+      SELECT '교통', 5,  85000) t ON TRUE
+JOIN (SELECT '쇼핑' AS category, 1 AS item_order, 0.30 AS weight, '의류' AS item_name UNION ALL
+      SELECT '쇼핑', 2, 0.25, '온라인쇼핑' UNION ALL
+      SELECT '쇼핑', 3, 0.20, '생활용품' UNION ALL
+      SELECT '쇼핑', 4, 0.15, '잡화' UNION ALL
+      SELECT '쇼핑', 5, 0.10, '선물' UNION ALL
+      SELECT '식비', 1, 0.30, '마트 장보기' UNION ALL
+      SELECT '식비', 2, 0.25, '외식' UNION ALL
+      SELECT '식비', 3, 0.20, '배달음식' UNION ALL
+      SELECT '식비', 4, 0.15, '카페' UNION ALL
+      SELECT '식비', 5, 0.10, '간식' UNION ALL
+      SELECT '교통', 1, 0.30, '지하철' UNION ALL
+      SELECT '교통', 2, 0.25, '버스' UNION ALL
+      SELECT '교통', 3, 0.20, '택시' UNION ALL
+      SELECT '교통', 4, 0.15, '시외버스' UNION ALL
+      SELECT '교통', 5, 0.10, '공유자전거') o ON o.category = t.category
+JOIN (SELECT 1 AS item_order, 3 AS day_of_month UNION ALL
+      SELECT 2, 9 UNION ALL SELECT 3, 14 UNION ALL SELECT 4, 19 UNION ALL SELECT 5, 24) d ON d.item_order = o.item_order
+WHERE m.login_id = 'natty03';
+
+-- ------------------------------------------------------------
+-- (a) 고정비 — cycle2~6 (1~5개월 전), 금액은 매달 동일
+-- ------------------------------------------------------------
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(
+         DATE_ADD(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL mo.months_ago MONTH), '%Y-%m-01'), INTERVAL (d.day_of_month - 1) DAY),
+         INTERVAL (8 + f.item_order * 2) HOUR
+       ),
+       'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
+FROM member m
+JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) mo
+JOIN (SELECT '주거' AS category, 1 AS item_order, 100000 AS amount, '월세' AS item_name UNION ALL
+      SELECT '주거', 2,  30000, '관리비' UNION ALL
+      SELECT '주거', 3,  20000, '전기세' UNION ALL
+      SELECT '주거', 4,  15000, '가스비' UNION ALL
+      SELECT '주거', 5,  15000, '수도세' UNION ALL
+      SELECT '통신', 1,  30000, '휴대폰 요금' UNION ALL
+      SELECT '통신', 2,  15000, '인터넷 요금' UNION ALL
+      SELECT '통신', 3,   5000, 'OTT 구독' UNION ALL
+      SELECT '통신', 4,   5000, '데이터 충전' UNION ALL
+      SELECT '통신', 5,   5000, '국제전화' UNION ALL
+      SELECT '기타', 1,  15000, 'TV 수신료' UNION ALL
+      SELECT '기타', 2,  15000, '보험료' UNION ALL
+      SELECT '기타', 3,  10000, '정수기 렌탈료' UNION ALL
+      SELECT '기타', 4,  10000, '회비' UNION ALL
+      SELECT '기타', 5,  10000, '잡비') f ON TRUE
+JOIN (SELECT 1 AS item_order, 2 AS day_of_month UNION ALL
+      SELECT 2, 7 UNION ALL SELECT 3, 12 UNION ALL SELECT 4, 17 UNION ALL SELECT 5, 22) d ON d.item_order = f.item_order
+WHERE m.login_id = 'natty03';
+
+-- ------------------------------------------------------------
+-- (b) 변동비/고정비 — cycle1 (6개월 전, 입국월 = partial month)
+-- ------------------------------------------------------------
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(DATE_ADD(sr.start_date, INTERVAL d.day_offset DAY), INTERVAL (8 + o.item_order * 2) HOUR),
+       'EXPENSE', 'OUT', ROUND(t.total * o.weight, -2), 0, t.category, 'VARIABLE', o.item_name
+FROM member m
+JOIN savings_roadmap sr ON sr.member_id = m.member_id
+JOIN (SELECT '쇼핑' AS category, 45000 AS total UNION ALL
+      SELECT '식비', 140000 UNION ALL
+      SELECT '교통',  60000) t ON TRUE
+JOIN (SELECT '쇼핑' AS category, 1 AS item_order, 0.30 AS weight, '의류' AS item_name UNION ALL
+      SELECT '쇼핑', 2, 0.25, '온라인쇼핑' UNION ALL
+      SELECT '쇼핑', 3, 0.20, '생활용품' UNION ALL
+      SELECT '쇼핑', 4, 0.15, '잡화' UNION ALL
+      SELECT '쇼핑', 5, 0.10, '선물' UNION ALL
+      SELECT '식비', 1, 0.30, '마트 장보기' UNION ALL
+      SELECT '식비', 2, 0.25, '외식' UNION ALL
+      SELECT '식비', 3, 0.20, '배달음식' UNION ALL
+      SELECT '식비', 4, 0.15, '카페' UNION ALL
+      SELECT '식비', 5, 0.10, '간식' UNION ALL
+      SELECT '교통', 1, 0.30, '지하철' UNION ALL
+      SELECT '교통', 2, 0.25, '버스' UNION ALL
+      SELECT '교통', 3, 0.20, '택시' UNION ALL
+      SELECT '교통', 4, 0.15, '시외버스' UNION ALL
+      SELECT '교통', 5, 0.10, '공유자전거') o ON o.category = t.category
+JOIN (SELECT 1 AS item_order, 1 AS day_offset UNION ALL
+      SELECT 2, 3 UNION ALL SELECT 3, 5 UNION ALL SELECT 4, 7 UNION ALL SELECT 5, 9) d ON d.item_order = o.item_order
+WHERE m.login_id = 'natty03';
+
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(DATE_ADD(sr.start_date, INTERVAL d.day_offset DAY), INTERVAL (8 + f.item_order * 2) HOUR),
+       'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
+FROM member m
+JOIN savings_roadmap sr ON sr.member_id = m.member_id
+JOIN (SELECT '주거' AS category, 1 AS item_order, 100000 AS amount, '월세' AS item_name UNION ALL
+      SELECT '주거', 2,  30000, '관리비' UNION ALL
+      SELECT '주거', 3,  20000, '전기세' UNION ALL
+      SELECT '주거', 4,  15000, '가스비' UNION ALL
+      SELECT '주거', 5,  15000, '수도세' UNION ALL
+      SELECT '통신', 1,  30000, '휴대폰 요금' UNION ALL
+      SELECT '통신', 2,  15000, '인터넷 요금' UNION ALL
+      SELECT '통신', 3,   5000, 'OTT 구독' UNION ALL
+      SELECT '통신', 4,   5000, '데이터 충전' UNION ALL
+      SELECT '통신', 5,   5000, '국제전화' UNION ALL
+      SELECT '기타', 1,  15000, 'TV 수신료' UNION ALL
+      SELECT '기타', 2,  15000, '보험료' UNION ALL
+      SELECT '기타', 3,  10000, '정수기 렌탈료' UNION ALL
+      SELECT '기타', 4,  10000, '회비' UNION ALL
+      SELECT '기타', 5,  10000, '잡비') f ON TRUE
+JOIN (SELECT 1 AS item_order, 2 AS day_offset UNION ALL
+      SELECT 2, 4 UNION ALL SELECT 3, 6 UNION ALL SELECT 4, 8 UNION ALL SELECT 5, 10) d ON d.item_order = f.item_order
+WHERE m.login_id = 'natty03';
+
+-- ------------------------------------------------------------
+-- (c) 변동비/고정비 — cycle7 (이번 달, 오늘 어제까지만)
+-- ------------------------------------------------------------
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(
+         DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL (CEIL(@natty03_elapsed * o.item_order / 5) - 1) DAY),
+         INTERVAL (8 + o.item_order * 2) HOUR
+       ),
+       'EXPENSE', 'OUT', ROUND(t.total * o.weight, -2), 0, t.category, 'VARIABLE', o.item_name
+FROM member m
+JOIN (SELECT '쇼핑' AS category, 50000 AS total UNION ALL
+      SELECT '식비', 55000 UNION ALL
+      SELECT '교통', 25000) t ON TRUE
+JOIN (SELECT '쇼핑' AS category, 1 AS item_order, 0.30 AS weight, '의류' AS item_name UNION ALL
+      SELECT '쇼핑', 2, 0.25, '온라인쇼핑' UNION ALL
+      SELECT '쇼핑', 3, 0.20, '생활용품' UNION ALL
+      SELECT '쇼핑', 4, 0.15, '잡화' UNION ALL
+      SELECT '쇼핑', 5, 0.10, '선물' UNION ALL
+      SELECT '식비', 1, 0.30, '마트 장보기' UNION ALL
+      SELECT '식비', 2, 0.25, '외식' UNION ALL
+      SELECT '식비', 3, 0.20, '배달음식' UNION ALL
+      SELECT '식비', 4, 0.15, '카페' UNION ALL
+      SELECT '식비', 5, 0.10, '간식' UNION ALL
+      SELECT '교통', 1, 0.30, '지하철' UNION ALL
+      SELECT '교통', 2, 0.25, '버스' UNION ALL
+      SELECT '교통', 3, 0.20, '택시' UNION ALL
+      SELECT '교통', 4, 0.15, '시외버스' UNION ALL
+      SELECT '교통', 5, 0.10, '공유자전거') o ON o.category = t.category
+WHERE m.login_id = 'natty03';
+
+INSERT INTO transaction_history
+    (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
+SELECT m.member_id,
+       DATE_ADD(
+         DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL (CEIL(@natty03_elapsed * f.item_order / 5) - 1) DAY),
+         INTERVAL (8 + f.item_order * 2) HOUR
+       ),
+       'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
+FROM member m
+JOIN (SELECT '주거' AS category, 1 AS item_order, 100000 AS amount, '월세' AS item_name UNION ALL
+      SELECT '주거', 2,  30000, '관리비' UNION ALL
+      SELECT '주거', 3,  20000, '전기세' UNION ALL
+      SELECT '주거', 4,  15000, '가스비' UNION ALL
+      SELECT '주거', 5,  15000, '수도세' UNION ALL
+      SELECT '통신', 1,  30000, '휴대폰 요금' UNION ALL
+      SELECT '통신', 2,  15000, '인터넷 요금' UNION ALL
+      SELECT '통신', 3,   5000, 'OTT 구독' UNION ALL
+      SELECT '통신', 4,   5000, '데이터 충전' UNION ALL
+      SELECT '통신', 5,   5000, '국제전화' UNION ALL
+      SELECT '기타', 1,  15000, 'TV 수신료' UNION ALL
+      SELECT '기타', 2,  15000, '보험료' UNION ALL
+      SELECT '기타', 3,  10000, '정수기 렌탈료' UNION ALL
+      SELECT '기타', 4,  10000, '회비' UNION ALL
+      SELECT '기타', 5,  10000, '잡비') f ON TRUE
+WHERE m.login_id = 'natty03';
