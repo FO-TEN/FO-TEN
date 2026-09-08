@@ -686,7 +686,7 @@ public class RoadmapTools implements ToolProvider{
         sb.append("총 기간: ").append(graph.totalMonths()).append("개월\n");
         sb.append("구간 수: ").append(graph.segments().size()).append("개\n");
         sb.append("끝났을 때 원금 합계: ").append(money(graph.finalAmount())).append("원\n");
-        sb.append("예상 이자 합계: ").append(money(graph.expectedInterestTotal())).append("원\n");
+        sb.append("예상 이자 합계(세후): ").append(money(graph.expectedInterestTotal())).append("원\n");
         sb.append("보여주는 방법:\n");
         sb.append("- 구간별 막대 그래프 카드가 함께 나갑니다. 구간마다 얼마인지는 읊지 마세요.\n");
         sb.append("- 총 기간, 끝났을 때 원금, 예상 이자만 한두 문장으로 말하세요.\n");
