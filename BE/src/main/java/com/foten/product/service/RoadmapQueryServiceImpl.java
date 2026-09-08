@@ -1,6 +1,7 @@
 package com.foten.product.service;
 
 import com.foten.common.ResourceNotFoundException;
+import com.foten.common.RoadmapStateConflictException;
 import com.foten.goal.domain.Goal;
 import com.foten.goal.mapper.GoalMapper;
 import com.foten.product.domain.AllocationPlan;
@@ -180,7 +181,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         // 이 엔드포인트는 온보딩/구간전환 커밋 이후에만 호출된다고 전제한다 — getStatus() 와 달리
         // "아직 로드맵이 없음"을 정상 케이스로 봐주지 않는다.
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
@@ -199,8 +200,8 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
 
         // 상품구성 기준액 판단 (§4-7) — 이 구간 첫 회차의 deficitChoice로 목표기준액/필요저축액 중 선택.
         MonthlySavingPlanVO firstPlanOfSegment = monthlySavingPlanMapper.selectFirstBySegment(segment.getSegmentId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "이 구간의 저축 제안이 아직 없습니다. segmentId=" + segment.getSegmentId()));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "PRODUCTS_NOT_SELECTED", "이 구간의 저축 제안이 아직 없습니다."));
         BigDecimal basisAmount = SPREAD.equals(firstPlanOfSegment.getDeficitChoice())
                 ? firstPlanOfSegment.getRequiredSnapshot()
                 : baselineAmount;
@@ -271,7 +272,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     public RoadmapGraph getGraph(long memberId) {
         // 이 엔드포인트도 getCurrentComposition 처럼 "로드맵 없음"을 정상 케이스로 안 본다.
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         BigDecimal baselineAmount = goalMapper.selectByMemberId(memberId)
                 .map(Goal::getTargetBaselineAmount)
                 .orElseThrow(() -> new ResourceNotFoundException("목표 정보가 없습니다."));
@@ -287,8 +288,8 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         // "구성 기준액"(§4-7) — 현재 구간에서 가장 최근에 커밋된 회차의 deficitChoice 기준.
         // SPREAD로 확정된 적이 있으면 그 필요저축액이 앞으로 유지할 영구 기준이 된다.
         MonthlySavingPlanVO latestPlan = monthlySavingPlanMapper.selectLatestBySegment(activeSegment.getSegmentId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "이 구간의 저축 제안이 아직 없습니다. segmentId=" + activeSegment.getSegmentId()));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "PRODUCTS_NOT_SELECTED", "이 구간의 저축 제안이 아직 없습니다."));
         BigDecimal compositionBasis = SPREAD.equals(latestPlan.getDeficitChoice())
                 ? latestPlan.getRequiredSnapshot() : baselineAmount;
 
@@ -298,8 +299,8 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         // 확정해놓고도 그래프·달성률에 전혀 반영되지 않는다). 이 구간에서 지금까지 몇 회차가
         // "커밋"됐는지(cycle_no 차이로 계산)를 여기서 한 번만 구해 전달한다.
         MonthlySavingPlanVO firstPlanOfActiveSegment = monthlySavingPlanMapper.selectFirstBySegment(activeSegment.getSegmentId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "이 구간의 저축 제안이 아직 없습니다. segmentId=" + activeSegment.getSegmentId()));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "PRODUCTS_NOT_SELECTED", "이 구간의 저축 제안이 아직 없습니다."));
         int committedCyclesInSegment = latestPlan.getCycleNo() - firstPlanOfActiveSegment.getCycleNo() + 1;
         Map<Long, BigDecimal> committedAllocationBySubscriptionId = monthlySavingAllocationMapper
                 .selectByPlanId(latestPlan.getMonthlySavingPlanId()).stream()
@@ -556,12 +557,12 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         RoadmapStatus status = getStatus(memberId);
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         LocalDate thisMonth = YearMonth.now().atDay(1);
         MonthlySavingPlanVO currentPlan = monthlySavingPlanMapper
                 .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
-                .orElseThrow(() -> new IllegalStateException(
-                        "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요)."));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "MONTHLY_SAVING_NOT_CONFIRMED", "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요)."));
 
         // "다음 달부터" = 구성 기준액(§4-7과 동일 규칙) — SPREAD면 그때 얼려둔 필요저축액이
         // 영구 기준, 아니면(NONE/FULL_RECOVERY) 목표기준액.
@@ -582,12 +583,12 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     public MonthlyPlanSummary getCurrentMonthlyPlan(long memberId) {
         // 새 계산 없음 — 4-4/4-6에서 이미 확정해둔 값을 그대로 보여주기만 한다 (§4-9).
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         LocalDate thisMonth = YearMonth.now().atDay(1);
         MonthlySavingPlanVO plan = monthlySavingPlanMapper
                 .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
-                .orElseThrow(() -> new IllegalStateException(
-                        "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요)."));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "MONTHLY_SAVING_NOT_CONFIRMED", "이번 달 저축 방식이 아직 확정되지 않았습니다(4-6 먼저 호출 필요)."));
         RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
@@ -627,10 +628,10 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         RoadmapGraph graph = getGraph(memberId);
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         MonthlySavingPlanVO firstPlan = monthlySavingPlanMapper.selectFirst(roadmap.getSavingsRoadmapId())
-                .orElseThrow(() -> new IllegalStateException(
-                        "최초 저축 계획이 아직 없습니다."));
+                .orElseThrow(() -> new RoadmapStateConflictException(
+                        "PRODUCTS_NOT_SELECTED", "최초 저축 계획이 아직 없습니다."));
         // 목표저축액(KRW) — §2-3 역산 공식, getStatus() STEP6과 동일한 계산.
         BigDecimal targetAmount = roadmapCalculationService.reverseTargetAmount(
                 firstPlan.getBaselineSnapshot(), roadmap.getTotalMonths(), firstPlan.getCurrentAccumulatedFund());
