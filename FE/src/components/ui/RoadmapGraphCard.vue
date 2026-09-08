@@ -281,9 +281,9 @@ const subtitle = computed(() =>
 }
 .foot {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
   padding-top: 12px;
   border-top: 1px solid var(--switch-bg);
 }
