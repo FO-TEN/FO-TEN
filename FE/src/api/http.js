@@ -27,9 +27,17 @@ http.interceptors.response.use(
   },
 )
 
-// 서버 에러 본문은 { message } 하나다. 없으면(400 본문 없음 등) 상태코드로 안내한다.
-export function errorMessage(err, fallback = '잠시 후 다시 시도해 주세요.') {
-  return err?.response?.data?.message || fallback
+/*
+ * 서버 message 대신 화면이 번역해 쓸 i18n 키를 고른다.
+ *
+ * 서버 message 는 한국어로 고정돼 있어서 19개 언어 화면에 그대로 내보내면 거기서 한국어가 샌다.
+ * 로그인·가입·온보딩처럼 사용자가 한국어를 못 읽을 수 있는 자리는 이 함수로 키를 받아 t() 로 옮긴다.
+ *
+ * 화면마다 뜻이 다른 상태코드(401·409 등)는 여기서 다루지 않는다 — 그건 부르는 쪽이 이미
+ * 자기 문구로 갈라 처리하고 있고, 여기서 겹쳐 정하면 두 군데를 봐야 한다.
+ */
+export function errorKey(err) {
+  return err?.response ? 'common.error' : 'common.load_failed'
 }
 
 export default http

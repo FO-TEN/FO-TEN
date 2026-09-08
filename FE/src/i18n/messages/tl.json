@@ -3,6 +3,7 @@
   "common.select": "Pumili",
   "common.loading": "Naglo-load…",
   "common.load_failed": "Hindi ma-load. Pakisubukan ulit mamaya.",
+  "common.error": "May nangyaring mali. Pakisubukan ulit mamaya.",
 
   "nav.home": "Home",
   "nav.chat": "Chat",

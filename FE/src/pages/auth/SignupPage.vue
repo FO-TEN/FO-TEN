@@ -3,7 +3,7 @@ import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
-import { errorMessage } from '../../api/http'
+import { errorKey } from '../../api/http'
 import { LANGUAGES, NATIONALITIES, nationalityOf } from '../../i18n'
 import BaseInput from '../../components/ui/BaseInput.vue'
 import BaseButton from '../../components/ui/BaseButton.vue'
@@ -63,7 +63,7 @@ async function submit() {
     router.replace({ name: 'onboarding', params: { step: 1 } })
   } catch (e) {
     const st = e?.response?.status
-    error.value = st === 409 ? locale.t('signup.dup') : errorMessage(e)
+    error.value = st === 409 ? locale.t('signup.dup') : locale.t(errorKey(e))
   } finally {
     loading.value = false
   }

@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useOnboardingStore } from '../../stores/onboarding'
 import { useDashboardStore } from '../../stores/dashboard'
 import { useLocaleStore } from '../../stores/locale'
-import { errorMessage } from '../../api/http'
+import { errorKey as httpErrorKey } from '../../api/http'
 import { comma, daysUntil } from '../../utils/format'
 import AppHeader from '../../components/layout/AppHeader.vue'
 import LangSwitch from '../../components/ui/LangSwitch.vue'
@@ -29,11 +29,10 @@ const step = computed(() => Number(route.params.step))
 const fromMe = computed(() => route.query.from === 'me')
 const t = (k, v) => locale.t(k, v)
 
-// 우리 문구는 키로, 서버가 준 문구는 글자로 들고 있는다.
-// 번역해서 넣어두면 언어를 바꿔도 잡은 시점의 언어에 굳는다.
+// 오류는 글자가 아니라 키로 들고 있는다. 번역해서 넣어두면 언어를 바꿔도 잡은 시점의 언어에 굳고,
+// 서버 message 를 그대로 담으면 한국어라 다른 언어 화면에서 한국어가 샌다.
 const errorKey = ref('')
-const errorText = ref('')
-const error = computed(() => (errorKey.value ? t(errorKey.value) : errorText.value))
+const error = computed(() => (errorKey.value ? t(errorKey.value) : ''))
 const loading = ref(false)
 
 onMounted(async () => {
@@ -98,16 +97,12 @@ const isSave = computed(() => fromMe.value || step.value === 3)
 // 로드맵이 시작되면 목표를 못 바꾼다. 서버 message 에는 내부 문구와 회원 번호가
 // 들어 있어 그대로 뿌리면 안 되고, 한국어뿐이라 번역도 안 탄다. 코드를 보고 우리 문구를 쓴다.
 function setSaveError(e) {
-  if (e?.response?.data?.errorCode === 'ROADMAP_ALREADY_EXISTS') {
-    errorKey.value = 'onboarding.locked'
-    return
-  }
-  errorText.value = errorMessage(e)
+  errorKey.value =
+    e?.response?.data?.errorCode === 'ROADMAP_ALREADY_EXISTS' ? 'onboarding.locked' : httpErrorKey(e)
 }
 
 function clearError() {
   errorKey.value = ''
-  errorText.value = ''
 }
 
 async function next() {

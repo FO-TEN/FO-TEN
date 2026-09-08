@@ -3,6 +3,7 @@
   "common.select": "Pilih",
   "common.loading": "Memuat…",
   "common.load_failed": "Gagal memuat. Coba lagi sebentar.",
+  "common.error": "Terjadi kesalahan. Coba lagi sebentar.",
 
   "nav.home": "Beranda",
   "nav.chat": "Obrolan",

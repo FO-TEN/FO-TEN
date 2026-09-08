@@ -3,6 +3,7 @@
   "common.select": "선택해 주세요",
   "common.loading": "불러오는 중…",
   "common.load_failed": "불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+  "common.error": "문제가 생겼어요. 잠시 후 다시 시도해 주세요.",
 
   "nav.home": "홈",
   "nav.chat": "대화",

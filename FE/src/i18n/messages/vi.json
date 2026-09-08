@@ -3,6 +3,7 @@
   "common.select": "Chọn",
   "common.loading": "Đang tải…",
   "common.load_failed": "Không tải được. Vui lòng thử lại sau.",
+  "common.error": "Đã xảy ra lỗi. Vui lòng thử lại sau.",
 
   "nav.home": "Trang chủ",
   "nav.chat": "Trò chuyện",

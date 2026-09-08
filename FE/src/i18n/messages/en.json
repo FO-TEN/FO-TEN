@@ -3,6 +3,7 @@
   "common.select": "Select",
   "common.loading": "Loading…",
   "common.load_failed": "Couldn't load. Please try again in a moment.",
+  "common.error": "Something went wrong. Please try again in a moment.",
 
   "nav.home": "Home",
   "nav.chat": "Chat",
