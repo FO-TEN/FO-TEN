@@ -84,9 +84,11 @@ export const useChatStore = defineStore('chat', {
         bot.card = reply.card
         bot.createdAt = new Date().toISOString()
         this.suggestions = reply.suggestions || []
-      } catch (e) {
+      } catch {
         this.messages.pop() // pending 말풍선 제거
-        this.error = e?.response?.data?.message || 'send_failed'
+        // 서버 message 는 한국어로 고정이라 담아 두면 화면에서 그대로 새어 나간다.
+        // 챗은 실패 이유가 무엇이든 안내가 "다시 물어봐 주세요" 로 같아, 화면이 옮길 키만 남긴다.
+        this.error = 'send_failed'
       } finally {
         this.sending = false
       }
