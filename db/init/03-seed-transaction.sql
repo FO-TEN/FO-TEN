@@ -94,13 +94,13 @@ SELECT m.member_id,
 FROM member m
 JOIN (SELECT 6 AS months_ago UNION ALL SELECT 5 UNION ALL SELECT 4
       UNION ALL SELECT 3 UNION ALL SELECT 2 UNION ALL SELECT 1 UNION ALL SELECT 0) mo
-JOIN (SELECT 'nguyen01' AS login_id, '기타' AS category, 600000 AS amount, '월세' AS memo UNION ALL
+JOIN (SELECT 'nguyen01' AS login_id, '주거' AS category, 600000 AS amount, '월세' AS memo UNION ALL
       SELECT 'nguyen01', '통신', 100000, '휴대폰 요금' UNION ALL
       SELECT 'nguyen01', '기타', 100000, '공과금' UNION ALL
-      SELECT 'rai01',    '기타', 650000, '월세' UNION ALL
+      SELECT 'rai01',    '주거', 650000, '월세' UNION ALL
       SELECT 'rai01',    '통신', 130000, '휴대폰 요금' UNION ALL
       SELECT 'rai01',    '기타', 120000, '공과금' UNION ALL
-      SELECT 'sok01',    '기타', 620000, '월세' UNION ALL
+      SELECT 'sok01',    '주거', 620000, '월세' UNION ALL
       SELECT 'sok01',    '통신', 110000, '휴대폰 요금' UNION ALL
       SELECT 'sok01',    '기타', 120000, '공과금') c ON c.login_id = m.login_id
 WHERE m.login_id IN ('nguyen01', 'rai01', 'sok01')
