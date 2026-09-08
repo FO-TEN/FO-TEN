@@ -154,7 +154,7 @@
   "card.legend_deposit": "예금",
   "card.legend_cash": "현금성",
   "card.legend_interest": "이자",
-  "card.roadmap_note": "예금 예치금 = 적금 만기금 + 예금 만기금 + 현금성 저축",
+  "card.roadmap_note": "예금 예치금 = 예·적금 만기금 + 현금성 저축",
   "card.roadmap_after": "{n}개월 뒤",
   "card.roadmap_total_mid": "만 원 + 예상 이자 약 ",
   "card.roadmap_total_suffix": "만 원",
