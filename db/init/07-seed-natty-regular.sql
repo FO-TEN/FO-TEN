@@ -415,8 +415,8 @@ SELECT m.member_id,
        ),
        'EXPENSE', 'OUT', ROUND(t.total * o.weight, -2), 0, t.category, 'VARIABLE', o.item_name
 FROM member m
-JOIN (SELECT '쇼핑' AS category, 50000 AS total UNION ALL
-      SELECT '식비', 55000 UNION ALL
+JOIN (SELECT '쇼핑' AS category, 120000 AS total UNION ALL
+      SELECT '식비', 60000 UNION ALL
       SELECT '교통', 25000) t ON TRUE
 JOIN (SELECT '쇼핑' AS category, 1 AS item_order, 0.30 AS weight, '의류' AS item_name UNION ALL
       SELECT '쇼핑', 2, 0.25, '온라인쇼핑' UNION ALL
