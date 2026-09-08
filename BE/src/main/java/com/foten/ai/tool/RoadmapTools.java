@@ -593,7 +593,9 @@ public class RoadmapTools implements ToolProvider{
             sb.append("예금 | ").append(d.productName())
                     .append(" | ").append(d.termMonths()).append("개월")
                     .append(" | 금리 ").append(d.appliedRate()).append("%")
-                    .append(" | 목돈 ").append(money(d.principal())).append("원\n");
+                    .append(" | 목돈 ").append(money(d.principal())).append("원")
+                    .append(" | 만기 예상 ").append(money(d.maturityAmount())).append("원")
+                    .append(" (세후 이자 ").append(money(d.expectedInterest())).append("원)\n");
         }
 
         if (isPositive(c.recommendedCashSaving())) {
@@ -608,7 +610,9 @@ public class RoadmapTools implements ToolProvider{
         sb.append("- 상품이 몇 개인지는 말해도 됩니다. 자세한 것은 아래 카드에서 보라고 알려주세요.\n");
         sb.append("- 말하게 되는 금액은 위 값 그대로 옮기고 직접 더하거나 빼지 마세요.\n");
         sb.append("- 예금이 없으면 목돈이 아직 없어서라고 알려주세요.\n");
-        sb.append("- 이자와 만기 금액은 아직 계산되지 않았습니다. 지어내지 마세요.\n");
+        sb.append("- 예금 만기 금액과 이자는 위에 적혀 있습니다. 물으면 그 값을 그대로 옮기세요.\n");
+        sb.append("- 로드맵 전체 예상 이자와 목표 달성률은 카드가 보여줍니다. 값이 위에 없으니 말로 옮기지 말고,\n");
+        sb.append("  숫자를 물으면 getRoadmapGraph 를 부르세요.\n");
         return sb.toString();
     }
 
