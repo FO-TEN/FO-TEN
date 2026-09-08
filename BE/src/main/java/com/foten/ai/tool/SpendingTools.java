@@ -1,5 +1,6 @@
 package com.foten.ai.tool;
 
+import com.foten.spending.domain.CategoryTotal;
 import com.foten.spending.domain.MonthlySpending;
 import com.foten.spending.service.SpendingQueryService;
 import lombok.RequiredArgsConstructor;
@@ -51,12 +52,27 @@ public class SpendingTools implements ToolProvider {
 
     private void appendBreakdown(StringBuilder sb, MonthlySpending spending) {
         sb.append("  전체: ").append(money(spending.total())).append("원\n");
+        // 화면(홈·소비내역)이 보여주는 것과 같은 값이다. 고정비·변동비를 합쳐 많이 쓴 순으로 뽑은
+        // 것이라, 밑의 두 갈래를 모델이 직접 더해 만들 필요가 없다.
+        appendTopCategories(sb, spending.topCategories());
         sb.append("  고정비: ").append(money(spending.fixedTotal()))
                 .append("원 (월세·통신요금처럼 매달 나가는 돈)\n");
         appendCategories(sb, spending.fixedByCategory());
         sb.append("  변동비: ").append(money(spending.variableTotal()))
                 .append("원 (줄일 수 있는 소비)\n");
         appendCategories(sb, spending.variableByCategory());
+    }
+
+    private void appendTopCategories(StringBuilder sb, List<CategoryTotal> topCategories) {
+        if (topCategories == null || topCategories.isEmpty()) {
+            return;
+        }
+        sb.append("  많이 쓴 순 (고정비+변동비 합산):\n");
+        int rank = 1;
+        for (CategoryTotal c : topCategories) {
+            sb.append("    ").append(rank++).append(". ").append(c.category())
+                    .append(": ").append(money(c.amount())).append("원\n");
+        }
     }
 
     private void appendCategories(StringBuilder sb, Map<String, BigDecimal> byCategory) {
@@ -69,7 +85,8 @@ public class SpendingTools implements ToolProvider {
         sb.append("두 금액을 직접 비교하지 마세요. 이번 달 예상 금액을 만들어내지도 마세요.\n");
         sb.append("비교해 달라고 하면 이번 달이 끝나야 견줄 수 있다고 답하세요.\n");
         sb.append("항목별에 없는 항목은 0원입니다.\n");
-        sb.append("고정비 항목과 변동비 항목을 섞지 마세요.\n");
+        sb.append("무엇에 많이 썼는지 물으면 '많이 쓴 순'을 그대로 옮기세요. 화면도 같은 값을 보여줍니다.\n");
+        sb.append("고정비 항목과 변동비 항목을 직접 더하지 마세요. 합친 값이 필요하면 '많이 쓴 순'에 있습니다.\n");
         sb.append("각 항목을 얼마나 줄일 수 있는지는 이 결과에 없습니다.\n");
         sb.append("소비가 늘거나 줄어든 이유는 이 결과에 없습니다. 금액만 말하고 이유를 지어내지 마세요.");
     }
