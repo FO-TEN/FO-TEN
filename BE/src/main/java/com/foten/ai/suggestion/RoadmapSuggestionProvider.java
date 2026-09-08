@@ -28,10 +28,13 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String PLAN_TOOL = "getMonthlyPlan";
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
-    private static final Suggestion RECHECK_CONDITIONS = Suggestion.ask("우대조건 다시 확인할래");
+    // 구간이 바뀌는 달도 최초 월과 같은 문구를 쓴다. 새 구간에 쓸 조건을 고르는 것이지
+    // 지난 답을 검사하는 것이 아니다. 왜 또 묻는지는 말풍선이 설명한다.
+    private static final Suggestion CHECK_CONDITIONS = Suggestion.ask("우대조건 확인할래");
     private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
     private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
     private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
+    private static final Suggestion MONTHLY_PLAN = Suggestion.ask("이번 달 계획 세워줘");
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
@@ -57,7 +60,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
         // 구간이 바뀌는 달은 방식을 정해도 아직 확정 전이다. 조건까지 받아야 끝난다.
         if (tools.contains(CONFIRM_TOOL)) {
-            return isNewSegment(ctx.memberId()) ? List.of(RECHECK_CONDITIONS) : List.of(WHOLE_ROADMAP);
+            return isNewSegment(ctx.memberId()) ? List.of(CHECK_CONDITIONS) : List.of(WHOLE_ROADMAP);
         }
         // 상품이 정해진 직후에는 전체 흐름으로 이어준다.
         if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
@@ -81,7 +84,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
             return List.of(Suggestion.ask("내 로드맵 만들기"));
         }
         if (!profile.isRateConditionsAnswered()) {
-            return List.of(Suggestion.ask("우대조건 확인할래"));
+            return List.of(CHECK_CONDITIONS);
         }
 
         List<Suggestion> deficit = deficitChips(ctx.memberId(), profile);
@@ -89,9 +92,16 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
             return deficit;
         }
         // 밀린 금액이 없는 구간 전환은 바로 조건 확인으로 간다.
-        return isNewSegment(ctx.memberId())
-                ? List.of(RECHECK_CONDITIONS)
-                : List.of(Suggestion.ask("상품 구성 알려줘"));
+        if (isNewSegment(ctx.memberId())) {
+            return List.of(CHECK_CONDITIONS);
+        }
+        // 밀린 금액이 없어도 이번 달 배분표는 만들어야 배분·구간 상세가 열린다.
+        // 고를 것이 없는 달이라 방식은 안 묻고, 시작하겠다는 말만 받는다.
+        if (!profile.isMonthlySavingConfirmed()) {
+            return List.of(MONTHLY_PLAN);
+        }
+        // 이번 달이 정해진 뒤에는 전체 흐름으로 이어준다. 확정한 턴과 같은 다음 단계다.
+        return List.of(WHOLE_ROADMAP);
     }
 
     // 지난달이 없는 달에만 시안대로 '첫 구간' 이라고 부른다. 카드가 막대를 둘만 그리는 달과 같다.

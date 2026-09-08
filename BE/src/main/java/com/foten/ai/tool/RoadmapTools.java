@@ -198,11 +198,12 @@ public class RoadmapTools implements ToolProvider{
 
         sb.append("로드맵: 있음\n");
         sb.append("이번 달에 할 안내: ").append(flowGuide(s.flowType())).append("\n");
+        boolean pendingChoice = isDeficitChoicePending(memberId, s);
         appendSegment(sb, s);
         appendLastMonth(sb, s);
-        appendAmounts(sb, s);
+        appendAmounts(sb, s, pendingChoice);
         if (!appendDeficitGuide(sb, memberId, s)) {
-            appendNextStep(sb, s);
+            appendNextStep(sb, memberId, s);
         }
         sb.append("위 금액들의 차액을 직접 빼서 구하지 마세요. 필요한 값은 이미 위에 있습니다.");
         return sb.toString();
@@ -216,7 +217,8 @@ public class RoadmapTools implements ToolProvider{
             case "ONBOARDING" -> "로드맵을 막 만든 달입니다.";
             case "NEW_SEGMENT" -> "운용 구간이 바뀌는 달입니다. 지난 구간이 끝났고 다음 구간 상품을"
                     + " 새로 고르는 달이라고 알리세요.";
-            case "REGULAR_MONTH" -> "평소 달입니다. 지난달 결과와 이번 달 저축액을 알려주세요.";
+            case "REGULAR_MONTH" -> "구간이 바뀌지 않는 달입니다. 이 사실 자체는 말하지 말고,"
+                    + " 지난달 결과와 이번 달 저축액만 알려주세요.";
             default -> "알 수 없습니다. 무엇을 도와드릴지 물어보세요.";
         };
     }
@@ -248,9 +250,20 @@ public class RoadmapTools implements ToolProvider{
         sb.append("지난달에 실제로 모은 금액: ").append(money(s.lastMonthActualAmount())).append("원\n");
     }
 
-    private void appendAmounts(StringBuilder sb, RoadmapStatus s) {
+    // 필요저축액은 밀린 금액을 남은 기간에 나눠 담았을 때의 금액이다. 고르기 전에 이것을
+    // 이번 달 금액이라고 말하면, 한쪽을 이미 고른 것처럼 들린다.
+    private void appendAmounts(StringBuilder sb, RoadmapStatus s, boolean pendingChoice) {
         sb.append("매달 모으기로 한 금액: ").append(money(s.baselineAmount())).append("원\n");
-        sb.append("이번 달에 모아야 하는 금액: ").append(money(s.requiredAmount())).append("원\n");
+        if (pendingChoice) {
+            sb.append("이번 달 금액은 아직 정해지지 않았습니다. 어떻게 채울지 골라야 정해집니다.\n");
+            sb.append("남은 기간에 나눠 담으면 이번 달은 ")
+                    .append(money(s.requiredAmount())).append("원이 됩니다.\n");
+            sb.append("이번 달에 다 채우는 쪽 금액은 여기 없습니다. 직접 더해서 만들지 마세요.\n");
+            sb.append("고르기 전에는 어느 한쪽 금액도 이번 달 금액이라고 말하지 마세요.\n");
+        }
+        else {
+            sb.append("이번 달에 모아야 하는 금액: ").append(money(s.requiredAmount())).append("원\n");
+        }
 
         if (Boolean.TRUE.equals(s.hasShortfall()) && isPositive(s.shortfallAmount())) {
             sb.append("지금까지 밀린 금액: ").append(money(s.shortfallAmount())).append("원\n");
@@ -258,6 +271,13 @@ public class RoadmapTools implements ToolProvider{
         else {
             sb.append("밀린 금액: 없음\n");
         }
+    }
+
+    // 밀린 금액이 있는데 아직 채우는 방식을 안 골랐는가. 금액 표기와 안내가 같은 기준을 쓴다.
+    private boolean isDeficitChoicePending(long memberId, RoadmapStatus s) {
+        return !FLOW_ONBOARDING.equals(s.flowType())
+                && Boolean.TRUE.equals(s.hasShortfall())
+                && !isMonthlySavingConfirmed(memberId);
     }
 
     // 밀린 금액이 있는 달은 어떻게 채울지 정해야 이번 달 금액이 나온다.
@@ -281,10 +301,25 @@ public class RoadmapTools implements ToolProvider{
     }
 
     // 상품을 새로 고르는 달은 우대조건부터다. 다만 밀린 금액을 정하는 것이 그보다 앞선다.
-    private void appendNextStep(StringBuilder sb, RoadmapStatus s) {
+    private void appendNextStep(StringBuilder sb, long memberId, RoadmapStatus s) {
         if (FLOW_ONBOARDING.equals(s.flowType()) || FLOW_NEW_SEGMENT.equals(s.flowType())) {
             sb.append("다음 단계는 우대조건 확인입니다 (getPreferentialConditionQuestions).\n");
+            return;
         }
+        // 밀린 금액이 없는 달도 이번 달 배분표를 만들어야 뒤 단계가 열린다.
+        // 고를 것이 없으니 방식을 묻지 말고, 이번 달을 시작할지만 물어본다.
+        if (!isMonthlySavingConfirmed(memberId)) {
+            sb.append("이번 달 배분표를 아직 만들지 않았습니다.\n");
+            sb.append("밀린 금액이 없어 고를 것은 없고, 이번 달 계획을 세우면 됩니다.\n");
+            sb.append("계획을 세울지 물어보고, 하겠다고 답하면 confirmMonthlySaving 을 choice 없이 부르세요.\n");
+            sb.append("사용자가 이미 하겠다고 말했으면 다시 묻지 말고 그 자리에서 부르세요.\n");
+            return;
+        }
+        sb.append("이번 달 금액은 이미 정해졌습니다.\n");
+        sb.append("정해져 있다는 것을 반드시 알려주세요. 빼먹으면 아직 안 한 것처럼 보입니다.\n");
+        sb.append("확정하겠냐고 다시 묻지 마세요.\n");
+        sb.append("'모아야 한다' 가 아니라 '모으기로 했다' 처럼 이미 정한 일로 말하세요.\n");
+        sb.append("어디에 얼마씩 넣는지 궁금해하면 getMonthlyPlan 을 부르세요.\n");
     }
 
     private String startRoadmap(long memberId) {
@@ -405,12 +440,14 @@ public class RoadmapTools implements ToolProvider{
 
         if (result.committed()) {
             sb.append("확정되었습니다. 이 금액을 알려주세요.\n");
+            sb.append("필요한 값은 여기 다 있습니다. 다른 도구를 더 부르지 말고 바로 답하세요.\n");
             return sb.toString();
         }
         // 구간이 바뀌는 달은 우대조건까지 받아야 확정된다. 다 됐다고 말하면 안 된다.
         sb.append("아직 확정 전입니다. 계산해 본 금액일 뿐입니다.\n");
         sb.append("이 금액을 알려주고, 우대조건을 확인해야 확정된다고 안내하세요.\n");
         sb.append("다 정해졌다고 말하지 마세요.\n");
+        sb.append("새 구간 상품에 붙일 조건을 고르는 것입니다. '다시' 나 '또' 를 붙이지 마세요.\n");
         return sb.toString();
     }
 
@@ -439,7 +476,8 @@ public class RoadmapTools implements ToolProvider{
         addCard(context, CARD_SEGMENT_DETAIL, detailPayload(detail, plan));
 
         StringBuilder sb = new StringBuilder("[구간 자세히]\n");
-        sb.append("매달 모으기로 한 금액: ").append(money(detail.baselineAmount())).append("원\n");
+        sb.append("목표를 세울 때 정한 매달 기준 금액: ")
+                .append(money(detail.baselineAmount())).append("원 (견주는 기준일 뿐 낼 금액이 아님)\n");
         boolean hasLastMonth = false;
         for (SegmentDetail.Bar bar : detail.bars()) {
             hasLastMonth = hasLastMonth || ACTUAL.equals(bar.type());
@@ -448,6 +486,15 @@ public class RoadmapTools implements ToolProvider{
         }
         sb.append("보여주는 방법:\n");
         sb.append("- 달을 나란히 그린 카드가 함께 나갑니다. 금액을 하나씩 읊지 마세요.\n");
+        sb.append("- 기준 금액은 따로 떼어 말하지 마세요. 말하려면 왜 그보다 더 내는지와 붙여 말하세요.\n");
+        if (SPREAD.equals(detail.deficitChoice())) {
+            sb.append("- 밀린 금액을 남은 기간에 나눠 담기로 해서, 앞으로 기준보다 조금씩 더 냅니다.\n");
+            sb.append("- 다음 달부터 기준 금액으로 돌아간다고 말하지 마세요. 돌아가지 않습니다.\n");
+        }
+        else if (FULL_RECOVERY.equals(detail.deficitChoice())) {
+            sb.append("- 밀린 금액을 이번 달에 다 채우기로 해서 이번 달만 많습니다.\n");
+            sb.append("- 다음 달부터는 기준 금액으로 돌아옵니다.\n");
+        }
         if (hasLastMonth) {
             sb.append("- 지난달과 견줘 이번 달이 어떻게 달라지는지 한두 문장으로만 말하세요.\n");
         }
@@ -588,7 +635,8 @@ public class RoadmapTools implements ToolProvider{
         StringBuilder sb = new StringBuilder("[우대금리 조건 질문]\n");
         if (FLOW_NEW_SEGMENT.equals(status.flowType())) {
             sb.append("구간이 바뀌는 달이라 다음 구간 상품을 새로 고릅니다.\n");
-            sb.append("지난번 답이 아직 유효한지 다시 확인하는 것이라고 알리세요.\n");
+            sb.append("그 상품에 붙일 조건을 새로 고르는 것이라고 알리세요.\n");
+            sb.append("지난번 답을 검사하는 것이 아닙니다. 또 묻는다고 말하지 마세요.\n");
             if (Boolean.TRUE.equals(status.hasShortfall())) {
                 sb.append("밀린 금액이 있어 제출할 때 채우는 방식도 함께 넘겨야 합니다.\n");
                 sb.append("아직 방식을 안 정했으면 그것부터 물으세요.\n");
