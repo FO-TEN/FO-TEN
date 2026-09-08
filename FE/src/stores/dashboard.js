@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { goalApi, memberApi, spendingApi, exchangeApi } from '../api'
 import { nationalityOf } from '../i18n'
+import { useLocaleStore } from './locale'
 
 /*
  * 대시보드·소비내역·내 정보가 함께 쓰는 읽기 데이터.
@@ -83,7 +84,9 @@ export const useDashboardStore = defineStore('dashboard', {
         this.loadSpending(0, force),
       ])
       const failed = results.find((r) => r.status === 'rejected')
-      if (failed) this.error = failed.reason?.response?.data?.message || ''
+      // 응답 자체가 없는 실패(네트워크 끊김·타임아웃)는 response 가 없어 메시지도 없다 —
+      // 빈 문자열로 두면 화면에서 "에러 없음"과 구분이 안 되므로 항상 안내문을 채운다.
+      if (failed) this.error = failed.reason?.response?.data?.message || useLocaleStore().t('common.load_failed')
       this.loading = false
     },
 

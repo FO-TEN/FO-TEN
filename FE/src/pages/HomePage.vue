@@ -170,7 +170,8 @@ function goChat() {
         <button type="button" class="link" @click="router.push({ name: 'spending' })">{{ t('home.see_all_spending') }} →</button>
       </section>
 
-      <p v-if="dash.error && !dx" class="err">{{ dash.error }}</p>
+      <p v-if="dash.loading && !dx" class="err">{{ t('common.loading') }}</p>
+      <p v-else-if="dash.error && !dx" class="err">{{ dash.error }}</p>
 
       <!-- CTA -->
       <button type="button" class="cta light" @click="router.push({ name: 'products' })">
