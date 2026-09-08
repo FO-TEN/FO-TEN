@@ -144,7 +144,7 @@
   "products.error_sub": "Có thể do lỗi mạng hoặc máy chủ. Vui lòng thử lại.",
   "products.error_retry": "Thử lại",
   "card.roadmap_title": "Tiền của bạn tích lũy thế này",
-  "card.roadmap_sub": "{n} tháng · các giai đoạn {segs} tháng",
+  "card.roadmap_sub": "{n} tháng = các giai đoạn {segs} tháng",
   "card.man": "{n}만",
   "card.about": "khoảng {v}",
   "card.in_progress": "Hiện tại",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Lãi",
   "card.roadmap_note": "Tiền gửi là tiền đáo hạn tiết kiệm·tiền gửi của giai đoạn trước cộng với tiền mặt tích lũy.",
   "card.roadmap_after": "Sau {n} tháng",
-  "card.roadmap_total": "만 won + lãi dự kiến khoảng {i}만",
+  "card.roadmap_total_mid": "만 won + lãi dự kiến khoảng ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "Chi tiêu tháng {m}",
   "spending.until_day": "Đến ngày {d}/{m}",

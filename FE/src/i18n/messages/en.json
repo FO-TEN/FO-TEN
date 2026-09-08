@@ -144,7 +144,7 @@
   "products.error_sub": "This may be a network or server issue. Please try again.",
   "products.error_retry": "Try again",
   "card.roadmap_title": "How your money grows",
-  "card.roadmap_sub": "{n} months · {segs}-month periods",
+  "card.roadmap_sub": "{n} months = {segs}-month periods",
   "card.man": "{n}0k",
   "card.about": "about {v}",
   "card.in_progress": "Now",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Interest",
   "card.roadmap_note": "The deposit is the previous period’s matured savings and deposit plus cash savings.",
   "card.roadmap_after": "After {n} months",
-  "card.roadmap_total": "0k won + about {i}0k interest",
+  "card.roadmap_total_mid": "0k won + about ",
+  "card.roadmap_total_suffix": "0k interest",
 
   "spending.title": "Spending in month {m}",
   "spending.until_day": "Through {m}/{d}",

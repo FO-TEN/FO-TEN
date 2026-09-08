@@ -144,7 +144,7 @@
   "products.error_sub": "Bu tarmoq yoki server muammosi bo'lishi mumkin. Qayta urinib ko'ring.",
   "products.error_retry": "Qayta urinish",
   "card.roadmap_title": "Pulingiz shunday yigʻiladi",
-  "card.roadmap_sub": "{n} oy · {segs} oylik davrlar",
+  "card.roadmap_sub": "{n} oy = {segs} oylik davrlar",
   "card.man": "{n}만",
   "card.about": "taxminan {v}",
   "card.in_progress": "Davom etmoqda",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Foiz",
   "card.roadmap_note": "Depozit — oldingi davr jamgʻarma·depozit muddati tugagan summa va naqd jamgʻarma yigʻindisi.",
   "card.roadmap_after": "{n} oydan keyin",
-  "card.roadmap_total": "만 von + taxminiy foiz {i}만",
+  "card.roadmap_total_mid": "만 von + taxminiy foiz ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m}-oy xarajati",
   "spending.until_day": "{d}/{m} gacha",

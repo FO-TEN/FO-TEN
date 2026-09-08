@@ -144,7 +144,7 @@
   "products.error_sub": "මෙය ජාල හෝ සර්වර් ගැටලුවක් විය හැක. නැවත උත්සාහ කරන්න.",
   "products.error_retry": "නැවත උත්සාහ කරන්න",
   "card.roadmap_title": "ඔබේ මුදල් මෙසේ එකතු වේ",
-  "card.roadmap_sub": "මාස {n} · මාස {segs} කාල සීමා",
+  "card.roadmap_sub": "මාස {n} = මාස {segs} කාල සීමා",
   "card.man": "{n}만",
   "card.about": "ආසන්න {v}",
   "card.in_progress": "ක්‍රියාත්මක",
@@ -156,7 +156,8 @@
   "card.legend_interest": "පොලිය",
   "card.roadmap_note": "තැන්පතුව යනු පෙර කාලයේ පරිණත ඉතුරුම්·තැන්පතු සහ මුදල් ඉතුරුම් එකතුවයි.",
   "card.roadmap_after": "මාස {n} කට පසු",
-  "card.roadmap_total": "만 වොන් + අපේක්ෂිත පොලිය ආසන්න {i}만",
+  "card.roadmap_total_mid": "만 වොන් + අපේක්ෂිත පොලිය ආසන්න ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m} මාසේ වියදම",
   "spending.until_day": "{m}/{d} දක්වා",

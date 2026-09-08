@@ -144,7 +144,7 @@
   "products.error_sub": "Энэ нь сүлжээ эсвэл серверийн асуудал байж болно. Дахин оролдоно уу.",
   "products.error_retry": "Дахин оролдох",
   "card.roadmap_title": "Таны мөнгө ингэж хуримтлагдана",
-  "card.roadmap_sub": "{n} сар · {segs} сарын үе",
+  "card.roadmap_sub": "{n} сар = {segs} сарын үе",
   "card.man": "{n}만",
   "card.about": "ойролцоогоор {v}",
   "card.in_progress": "Явагдаж буй",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Хүү",
   "card.roadmap_note": "Хадгаламж нь өмнөх үеийн хуримтлал·хадгаламжийн хугацаа дууссан дүн дээр бэлэн мөнгийг нэмсэн дүн юм.",
   "card.roadmap_after": "{n} сарын дараа",
-  "card.roadmap_total": "만 вон + хүү ойролцоогоор {i}만",
+  "card.roadmap_total_mid": "만 вон + хүү ойролцоогоор ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m}-р сарын зарлага",
   "spending.until_day": "{m}/{d} хүртэл",

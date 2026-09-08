@@ -144,7 +144,7 @@
   "products.error_sub": "Бул тармак же сервер маселеси болушу мүмкүн. Кайра аракет кылыңыз.",
   "products.error_retry": "Кайра аракет кылуу",
   "card.roadmap_title": "Акчаңыз ушинтип топтолот",
-  "card.roadmap_sub": "{n} ай · {segs} айлык мезгилдер",
+  "card.roadmap_sub": "{n} ай = {segs} айлык мезгилдер",
   "card.man": "{n}만",
   "card.about": "болжол менен {v}",
   "card.in_progress": "Учурда",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Пайыз",
   "card.roadmap_note": "Депозит — мурунку мезгилдин мөөнөтү бүткөн топтоо·депозити жана накталай топтоонун суммасы.",
   "card.roadmap_after": "{n} айдан кийин",
-  "card.roadmap_total": "만 вон + болжолдуу пайыз {i}만",
+  "card.roadmap_total_mid": "만 вон + болжолдуу пайыз ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m}-айдын чыгашасы",
   "spending.until_day": "{d}/{m} чейин",

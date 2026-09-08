@@ -124,7 +124,9 @@ const subtitle = computed(() =>
       <span class="fl">{{ t('card.roadmap_after', { n: totalMonths }) }}</span>
       <span class="fr">
         <b class="num">{{ comma(Math.round(n(payload.finalAmount) / 10000)) }}</b>
-        <span>{{ t('card.roadmap_total', { i: comma(Math.round(n(payload.expectedInterestTotal) / 10000)) }) }}</span>
+        <span>{{ t('card.roadmap_total_mid') }}</span>
+        <b class="num">{{ comma(Math.round(n(payload.expectedInterestTotal) / 10000)) }}</b>
+        <span>{{ t('card.roadmap_total_suffix') }}</span>
       </span>
     </div>
   </section>

@@ -144,7 +144,7 @@
   "products.error_sub": "এটি নেটওয়ার্ক বা সার্ভার সমস্যা হতে পারে। আবার চেষ্টা করুন।",
   "products.error_retry": "আবার চেষ্টা করুন",
   "card.roadmap_title": "আপনার টাকা এভাবে জমবে",
-  "card.roadmap_sub": "{n} মাস · {segs} মাসের ধাপ",
+  "card.roadmap_sub": "{n} মাস = {segs} মাসের ধাপ",
   "card.man": "{n}만",
   "card.about": "প্রায় {v}",
   "card.in_progress": "চলমান",
@@ -156,7 +156,8 @@
   "card.legend_interest": "সুদ",
   "card.roadmap_note": "আমানত হলো আগের ধাপের মেয়াদপূর্ণ সঞ্চয়·আমানত ও নগদ সঞ্চয়ের যোগফল।",
   "card.roadmap_after": "{n} মাস পর",
-  "card.roadmap_total": "만 ওন + আনুমানিক সুদ প্রায় {i}만",
+  "card.roadmap_total_mid": "만 ওন + আনুমানিক সুদ প্রায় ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m} মাসের খরচ",
   "spending.until_day": "{d}/{m} পর্যন্ত",
