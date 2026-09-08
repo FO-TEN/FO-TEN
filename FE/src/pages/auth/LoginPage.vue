@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../../stores/auth'
 import { useLocaleStore } from '../../stores/locale'
-import { errorMessage } from '../../api/http'
+import { errorKey } from '../../api/http'
 import { LANGUAGES } from '../../i18n'
 import BaseInput from '../../components/ui/BaseInput.vue'
 import BaseButton from '../../components/ui/BaseButton.vue'
@@ -41,7 +41,7 @@ async function submit() {
     const to = route.query.redirect || (auth.onboarding?.completed ? '/home' : '/onboarding/1')
     router.replace(String(to))
   } catch (e) {
-    error.value = e?.response?.status === 401 ? locale.t('login.fail') : errorMessage(e)
+    error.value = e?.response?.status === 401 ? locale.t('login.fail') : locale.t(errorKey(e))
   } finally {
     loading.value = false
   }

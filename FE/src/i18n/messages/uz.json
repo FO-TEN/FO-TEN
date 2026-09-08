@@ -3,6 +3,7 @@
   "common.select": "Tanlang",
   "common.loading": "Yuklanmoqda…",
   "common.load_failed": "Yuklab boʻlmadi. Birozdan keyin qayta urinib koʻring.",
+  "common.error": "Xatolik yuz berdi. Birozdan keyin qayta urinib koʻring.",
 
   "nav.home": "Bosh sahifa",
   "nav.chat": "Suhbat",

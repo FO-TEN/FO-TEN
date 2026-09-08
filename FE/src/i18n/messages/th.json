@@ -3,6 +3,7 @@
   "common.select": "เลือก",
   "common.loading": "กำลังโหลด…",
   "common.load_failed": "โหลดไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+  "common.error": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
 
   "nav.home": "หน้าแรก",
   "nav.chat": "แชท",
