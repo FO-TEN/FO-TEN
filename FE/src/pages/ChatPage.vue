@@ -82,6 +82,17 @@ function chipLabel(s) {
   return locale.isKorean ? s.labelKo : s.labelLocal || s.labelKo
 }
 
+// 구간 상세 카드가 "지난달 실적"(ACTUAL)이 목표기준액보다 낮다고 보여주는 바로 그 메시지만
+// 곤란한 표정으로 — 문구를 뒤져서 "부족액" 같은 단어를 찾는 대신, 카드가 이미 구조화해둔
+// 값(SegmentDetailCard.vue가 배지 색을 정할 때 쓰는 것과 같은 diff)으로 판단한다.
+function moodFor(m) {
+  if (m.card?.type === 'SEGMENT_DETAIL') {
+    const bar = m.card.payload?.bars?.find((b) => b.type === 'ACTUAL')
+    if (bar && Number(bar.amount) < Number(m.card.payload.baselineAmount)) return 'sorry'
+  }
+  return 'hero'
+}
+
 const showGreeting = computed(() => !chat.hasHistory)
 // 로드맵은 화면 이동이 아니라 대화로 만든다. 이미 있으면 서버가 그렇게 답한다.
 const staticChips = computed(() => [
@@ -152,7 +163,7 @@ const conditionChips = computed(() =>
           <div class="bubble user-b">{{ text(m) }}</div>
         </div>
         <div v-else class="bot">
-          <PotenAvatar :size="32" />
+          <PotenAvatar :size="32" :mood="moodFor(m)" />
           <div class="wrap">
             <div v-if="m.pending" class="bubble bot-b typing"><span /><span /><span /></div>
             <div v-else class="bubble bot-b">{{ text(m) }}</div>
@@ -180,9 +191,12 @@ const conditionChips = computed(() =>
         <button type="button" class="chip" @click="useOpener()">{{ t(opener.key) }}</button>
       </div>
 
-      <p v-if="chat.error" class="err">
-        {{ chat.error === 'too_long' ? t('chat.too_long', { n: MAX }) : chat.error === 'send_failed' ? t('chat.failed') : chat.error }}
-      </p>
+      <div v-if="chat.error" class="err-row">
+        <PotenAvatar :size="28" mood="surprised" />
+        <p class="err">
+          {{ chat.error === 'too_long' ? t('chat.too_long', { n: MAX }) : chat.error === 'send_failed' ? t('chat.failed') : chat.error }}
+        </p>
+      </div>
     </div>
 
     <form class="inputbar" @submit.prevent="submit">
@@ -313,6 +327,12 @@ const conditionChips = computed(() =>
   font-weight: 500;
   line-height: 1.4;
   color: var(--gray-900);
+}
+.err-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 .err {
   font-size: 13px;
