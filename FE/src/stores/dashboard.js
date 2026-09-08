@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { goalApi, memberApi, spendingApi, exchangeApi } from '../api'
 import { nationalityOf } from '../i18n'
+import { errorKey } from '../api/http'
 
 /*
  * 대시보드·소비내역·내 정보가 함께 쓰는 읽기 데이터.
@@ -21,8 +22,13 @@ export const useDashboardStore = defineStore('dashboard', {
     fx: null,
     spending: {}, // monthsAgo → 응답
     loading: false,
-    error: '', // 서버가 내려준 메시지. 언어가 고정된 문자열이라 그대로 표시한다.
-    loadFailed: false, // 서버 메시지가 없는 실패(네트워크 끊김 등) — 화면에서 t()로 안내문을 고른다.
+    /*
+     * 실패 안내는 문구가 아니라 i18n 키로 들고 있는다. 여기서 t()로 문구를 확정해 저장하면
+     * 화면 언어를 나중에 바꿔도 저장된 문자열은 그대로라 한 화면만 옛 언어로 남는다.
+     * 서버 message 를 담지 않는 이유는 또 있다 — 그건 한국어로 고정이라 19개 언어 화면에
+     * 그대로 새어 나간다.
+     */
+    errorKey: '',
   }),
 
   getters: {
@@ -77,8 +83,7 @@ export const useDashboardStore = defineStore('dashboard', {
     // 대시보드 첫 진입: 셋을 병렬로. 하나가 실패해도 나머지는 그린다.
     async loadHome(force = false) {
       this.loading = true
-      this.error = ''
-      this.loadFailed = false
+      this.errorKey = ''
       const results = await Promise.allSettled([
         this.loadMe(force).then(() => this.loadFx()),
         this.loadDiagnosis(force),
@@ -86,11 +91,7 @@ export const useDashboardStore = defineStore('dashboard', {
       ])
       const failed = results.find((r) => r.status === 'rejected')
       if (failed) {
-        // 응답 자체가 없는 실패(네트워크 끊김·타임아웃)는 response 가 없어 메시지도 없다. 여기서
-        // t()로 안내문을 확정해 저장하면 화면 언어를 나중에 바꿔도 저장된 문자열은 안 바뀐다 —
-        // 그래서 실패 사실만 loadFailed 로 남기고, 실제 문구는 화면(t() 호출)에서 매번 새로 고른다.
-        this.error = failed.reason?.response?.data?.message || ''
-        this.loadFailed = true
+        this.errorKey = errorKey(failed.reason)
       }
       this.loading = false
     },
@@ -98,14 +99,12 @@ export const useDashboardStore = defineStore('dashboard', {
     // 마이페이지 진입: loadHome()과 달리 me만 있으면 되고, 실패해도 나머지를 그릴 게 없다.
     async loadMePage(force = false) {
       this.loading = true
-      this.error = ''
-      this.loadFailed = false
+      this.errorKey = ''
       try {
         await this.loadMe(force)
         await this.loadFx()
       } catch (err) {
-        this.error = err?.response?.data?.message || ''
-        this.loadFailed = true
+        this.errorKey = errorKey(err)
       } finally {
         this.loading = false
       }

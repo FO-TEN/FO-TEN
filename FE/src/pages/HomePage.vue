@@ -173,8 +173,7 @@ function goChat() {
       </section>
 
       <p v-if="dash.loading && !dx" class="err">{{ t('common.loading') }}</p>
-      <p v-else-if="dash.error && !dx" class="err">{{ dash.error }}</p>
-      <p v-else-if="dash.loadFailed && !dx" class="err">{{ t('common.load_failed') }}</p>
+      <p v-else-if="dash.errorKey && !dx" class="err">{{ t(dash.errorKey) }}</p>
 
       <!-- CTA -->
       <button type="button" class="cta light" @click="router.push({ name: 'products' })">
@@ -220,7 +219,7 @@ function goChat() {
   justify-content: space-between;
   height: var(--header-h);
   padding: 0 16px 0 20px;
-  background: #fff;
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-soft);
 }
 .logo {
@@ -301,7 +300,7 @@ function goChat() {
   display: inline-block;
   white-space: nowrap;
   font-size: 16px;
-  color: #78706b;
+  color: var(--gray-500);
   line-height: 1.4;
 }
 .hero-img {
@@ -326,7 +325,7 @@ function goChat() {
 }
 .track {
   height: 10px;
-  border-radius: 5px;
+  border-radius: var(--r-pill);
   background: rgba(255, 255, 255, 0.8);
   overflow: hidden;
 }
@@ -366,7 +365,7 @@ function goChat() {
   gap: 12px;
   padding: 20px;
   border-radius: var(--r-card-lg);
-  background: #fff;
+  background: var(--surface-card);
 }
 .card.tight {
   gap: 0;
@@ -393,7 +392,7 @@ function goChat() {
 }
 .cs {
   font-size: 14px;
-  color: #a8a39e;
+  color: var(--gray-400);
 }
 .mid {
   font-size: 24px;
@@ -491,7 +490,7 @@ function goChat() {
 }
 /* 추천 조합 행은 흰 카드로, 대화 행(노랑)과 구분한다 */
 .cta.light {
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
 }
 .cta-l {

@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useDashboardStore } from '../stores/dashboard'
 import { useLocaleStore } from '../stores/locale'
 import { comma, won, ym } from '../utils/format'
+import { errorKey } from '../api/http'
 import AppHeader from '../components/layout/AppHeader.vue'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
@@ -47,7 +48,8 @@ async function load() {
     await dash.loadSpending(monthsAgo.value)
     if (monthsAgo.value === 0 && !dash.diagnosis) await dash.loadDiagnosis().catch(() => {})
   } catch (e) {
-    error.value = e?.response?.data?.message || t('common.load_failed')
+    // 서버 message 는 한국어로 고정이라 그대로 쓰면 19개 언어 화면에서 한국어가 샌다.
+    error.value = t(errorKey(e))
   } finally {
     loading.value = false
   }
@@ -163,7 +165,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   padding: 0 10px 0 14px;
   border: 1px solid var(--border-strong);
   border-radius: var(--r-pill);
-  background: #fff;
+  background: var(--surface-card);
   font-size: 15px;
   font-weight: 600;
   color: var(--gray-900);
@@ -184,14 +186,14 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   padding: 6px;
   list-style: none;
   width: 140px;
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
-  border-radius: 14px;
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-menu);
 }
 .mi {
   padding: 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--r-input);
   font-size: 16px;
   color: var(--gray-900);
   cursor: pointer;
@@ -217,7 +219,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   flex-direction: column;
   padding: 18px;
   border-radius: var(--r-card);
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
 }
 .until {
@@ -284,7 +286,7 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   flex-direction: column;
   gap: 4px;
   padding: 12px 14px;
-  border-radius: 10px;
+  border-radius: var(--r-card);
   line-height: 1.45;
 }
 .box.g {

@@ -77,6 +77,21 @@ export const http = axios.create({
 
 - 컴포넌트 스타일은 `<style scoped>` 안에 둔다.
 - 전역 스타일은 한 곳에만 모은다. 컴포넌트에서 전역 셀렉터를 덮어쓰지 않는다.
+- **색상·모서리 반경은 `src/styles/tokens.css`의 토큰을 쓴다. 값을 직접 박지 않는다.** 눈대중으로 `border-radius: 10px`, `color: #78716c` 처럼 적으면 화면마다 미묘하게 어긋난다 (실제로 한 번 전체 화면 훑어서 정리한 적 있음).
+
+  ```css
+  /* X */
+  .card { border-radius: 10px; color: #78716c; }
+
+  /* O */
+  .card { border-radius: var(--r-card); color: var(--gray-500); }
+  ```
+
+  - 자주 쓰는 반경: 입력창·메뉴 항목 `--r-input`(8px) · 카드·드롭다운 메뉴 `--r-card`(12px) · 버튼 `--r-button`(12px) · 대시보드 히어로 카드 `--r-card-lg`(24px) · CTA 버튼 `--r-cta`(16px) · 프로그레스바·칩·완전히 둥근 원 `--r-pill`.
+  - 코너 일부만 둥글 때(막대그래프 위쪽 등)도 토큰으로 조합한다: `border-radius: var(--r-card) var(--r-card) 0 0`.
+  - 딱 맞는 토큰이 없으면(아주 작은 체크박스 등) 억지로 끼워 맞추지 말고, 왜 그 값을 그대로 뒀는지 코멘트를 남긴다.
+  - 카테고리 색처럼 맞는 토큰이 아예 없으면 컴포넌트 안에 새 hex 값을 적지 말고, `tokens.css`에 기존 팔레트 톤에 맞춰 토큰을 추가한 뒤 참조한다.
+- **인라인 SVG 아이콘의 `stroke-width`는 `2.2`로 통일한다** — `assets/icons/` 하위 SVG 전부가 이 값을 쓴다. `CategoryIcon.vue`처럼 컴포넌트 안에 직접 그리는 아이콘도 같은 값을 따른다.
 
 ## 금지
 

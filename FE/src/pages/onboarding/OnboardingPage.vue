@@ -235,7 +235,7 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
 <style scoped>
 .ob {
   min-height: 100dvh;
-  background: #fff;
+  background: var(--surface-card);
   display: flex;
   flex-direction: column;
 }

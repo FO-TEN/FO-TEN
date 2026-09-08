@@ -34,10 +34,13 @@
   --red: #d64545;
   --red-bg: #fbe9e9;
 
-  /* 카테고리 아이콘 배경 */
+  /* 카테고리 아이콘 배경 — 전체가 따뜻한 톤이라 교통·통신도 원색 블루/시안 대신 톤을 맞춘 값 */
   --cat-food: #f5a24a;
   --cat-coffee: #e8607a;
   --cat-bag: #9a6fe0;
+  --cat-transport: #6b93c7;
+  --cat-communication: #4fa89a;
+  --cat-housing: #c17a54;
 
   /* 표면 */
   --surface-card: #ffffff;

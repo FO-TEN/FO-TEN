@@ -99,7 +99,7 @@ function pick(code) {
   list-style: none;
   background: var(--surface-card);
   border: 1px solid var(--border-soft);
-  border-radius: 14px;
+  border-radius: var(--r-card);
   box-shadow: var(--shadow-menu);
 }
 .wrap.left .menu {
@@ -111,7 +111,7 @@ function pick(code) {
   align-items: center;
   justify-content: space-between;
   padding: 10px 10px 10px 12px;
-  border-radius: 8px;
+  border-radius: var(--r-input);
   font-size: 16px;
   line-height: 1.4;
   color: var(--gray-900);
