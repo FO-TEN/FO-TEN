@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 // UI 흐름 v5 의 사용자 버튼을 칩으로. 부를 도구가 있는 단계만 붙인다.
+//
+// 우대조건은 칩 하나를 거치지 않고 체크리스트를 바로 낸다. "우대조건 확인할래" 를 한 번 더
+// 누르게 하면 턴만 하나 늘 뿐, 그 턴에 새로 알려주는 것이 없다.
 @Component
 @RequiredArgsConstructor
 public class RoadmapSuggestionProvider implements SuggestionProvider {
@@ -28,9 +31,6 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     private static final String PLAN_TOOL = "getMonthlyPlan";
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     private static final String FLOW_NEW_SEGMENT = "NEW_SEGMENT";
-    // 구간이 바뀌는 달도 최초 월과 같은 문구를 쓴다. 새 구간에 쓸 조건을 고르는 것이지
-    // 지난 답을 검사하는 것이 아니다. 왜 또 묻는지는 말풍선이 설명한다.
-    private static final Suggestion CHECK_CONDITIONS = Suggestion.ask("우대조건 확인할래");
     private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
     private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
     private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
@@ -60,7 +60,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         // 코드를 옮기려고 질문을 다시 불러온 뒤 제출한 턴도 여기서 걸러진다.
         // 구간이 바뀌는 달은 방식을 정해도 아직 확정 전이다. 조건까지 받아야 끝난다.
         if (tools.contains(CONFIRM_TOOL)) {
-            return isNewSegment(ctx.memberId()) ? List.of(CHECK_CONDITIONS) : List.of(WHOLE_ROADMAP);
+            return isNewSegment(ctx.memberId()) ? conditionChips(ctx.memberId()) : List.of(WHOLE_ROADMAP);
         }
         // 상품이 정해진 직후에는 전체 흐름으로 이어준다.
         if (tools.contains(SUBMIT_TOOL) || tools.contains(COMPOSITION_TOOL)) {
@@ -84,7 +84,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
             return List.of(Suggestion.ask("내 로드맵 만들기"));
         }
         if (!profile.isRateConditionsAnswered()) {
-            return List.of(CHECK_CONDITIONS);
+            return conditionChips(ctx.memberId());
         }
 
         List<Suggestion> deficit = deficitChips(ctx.memberId(), profile);
@@ -93,7 +93,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         }
         // 밀린 금액이 없는 구간 전환은 바로 조건 확인으로 간다.
         if (isNewSegment(ctx.memberId())) {
-            return List.of(CHECK_CONDITIONS);
+            return conditionChips(ctx.memberId());
         }
         // 밀린 금액이 없어도 이번 달 배분표는 만들어야 배분·구간 상세가 열린다.
         // 고를 것이 없는 달이라 방식은 안 묻고, 시작하겠다는 말만 받는다.
@@ -147,8 +147,11 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
         if (conditions == null || conditions.isEmpty()) {
             return List.of();
         }
+        // description 이 "앞으로 급여를 ... 받으실 예정인가요?" 라는 질문이다. 그게 화면에 보여야
+        // 무엇에 답하는지 알 수 있다. 질문이 비어 있는 조건(재가입 등)은 고를 수 있는 대상이 아니다.
         return conditions.stream()
-                .map(c -> Suggestion.rateCondition(c.getConditionCode(), c.getLabel()))
+                .filter(c -> c.getDescription() != null && !c.getDescription().isBlank())
+                .map(c -> Suggestion.rateCondition(c.getConditionCode(), c.getDescription(), c.getLabel()))
                 .toList();
     }
 }

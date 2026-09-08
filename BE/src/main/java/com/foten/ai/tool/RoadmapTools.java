@@ -36,6 +36,16 @@ public class RoadmapTools implements ToolProvider{
     private static final DecimalFormat MONEY = new DecimalFormat("#,###");
     private static final ObjectMapper MAPPER = new ObjectMapper();
     // 화면이 되감을 때 그릴 카드의 종류. 값은 앱이 관리한다(chat_message.card_type).
+    /*
+     * 우대조건 체크리스트는 답변과 함께 화면에 나간다. 그래서 "확인해 드릴까요?" 라고 물으면
+     * 이미 눈앞에 있는 것을 보여줄지 묻는 꼴이 된다. 바로 고르라고 해야 말과 화면이 맞는다.
+     */
+    private static final String CHECKLIST_GUIDE = """
+            우대금리 조건이 답변과 함께 체크리스트로 화면에 나갑니다.
+            확인해 줄지 묻지 말고, 앞으로 지킬 수 있는 것을 모두 골라 달라고 하세요.
+            조건 이름을 하나도 적지 마세요. 목록은 체크리스트가 보여줍니다.
+            """;
+
     private static final String CARD_RECOMMENDATION = "RECOMMENDATION";
     // 전체 기간 동안 돈이 어떻게 쌓이는지 구간별 막대로 그리는 카드.
     private static final String CARD_ROADMAP = "ROADMAP";
@@ -97,8 +107,8 @@ public class RoadmapTools implements ToolProvider{
                         사용자가 앞으로 지키겠다고 답한 우대금리 조건을 제출하고, 그 조건을 반영한
                         적금 상품 구성을 받아옵니다. 상품 가입이 확정되고 되돌릴 수 없습니다.
                         사용자가 조건을 고른 뒤 제출하겠다고 답한 다음에만 부릅니다.
-                        조건에 답한 것만으로는 부족합니다 - 고른 항목을 되읽어 주고
-                        "이대로 제출할까요?" 에 그렇다고 답한 뒤에 부릅니다.
+                        "자동이체, 해외송금을 선택할게요" 처럼 고른 항목을 말한 것은 화면 체크리스트로
+                        보낸 것이라 이미 제출하겠다는 뜻입니다. 되묻지 말고 그 자리에서 부르세요.
                         먼저 getPreferentialConditionQuestions 로 질문과 코드를 확인하세요.
                         해당한다고 답한 조건의 코드만 넘기면 됩니다. 나머지는 서버가 아니오로 처리합니다.
                         아무것도 해당하지 않으면 빈 목록을 넘기세요.
@@ -303,7 +313,8 @@ public class RoadmapTools implements ToolProvider{
     // 상품을 새로 고르는 달은 우대조건부터다. 다만 밀린 금액을 정하는 것이 그보다 앞선다.
     private void appendNextStep(StringBuilder sb, long memberId, RoadmapStatus s) {
         if (FLOW_ONBOARDING.equals(s.flowType()) || FLOW_NEW_SEGMENT.equals(s.flowType())) {
-            sb.append("다음 단계는 우대조건 확인입니다 (getPreferentialConditionQuestions).\n");
+            sb.append("다음 단계는 우대조건 확인입니다.\n");
+            sb.append(CHECKLIST_GUIDE);
             return;
         }
         // 밀린 금액이 없는 달도 이번 달 배분표를 만들어야 뒤 단계가 열린다.
@@ -430,7 +441,8 @@ public class RoadmapTools implements ToolProvider{
                     + "로드맵을 먼저 만들어야 한다고 안내하세요.\n";
         }
         return "로드맵을 막 만든 달이라 이번 달 금액을 따로 정하지 않습니다.\n"
-                + "다음 단계는 우대조건 확인이라고 알리세요.\n";
+                + "다음 단계는 우대조건 확인입니다.\n"
+                + CHECKLIST_GUIDE;
     }
 
     private String describeConfirmed(DeficitChoiceResult result) {
@@ -445,9 +457,10 @@ public class RoadmapTools implements ToolProvider{
         }
         // 구간이 바뀌는 달은 우대조건까지 받아야 확정된다. 다 됐다고 말하면 안 된다.
         sb.append("아직 확정 전입니다. 계산해 본 금액일 뿐입니다.\n");
-        sb.append("이 금액을 알려주고, 우대조건을 확인해야 확정된다고 안내하세요.\n");
+        sb.append("이 금액을 알려주고, 우대조건을 골라야 확정된다고 안내하세요.\n");
         sb.append("다 정해졌다고 말하지 마세요.\n");
         sb.append("새 구간 상품에 붙일 조건을 고르는 것입니다. '다시' 나 '또' 를 붙이지 마세요.\n");
+        sb.append(CHECKLIST_GUIDE);
         return sb.toString();
     }
 
@@ -663,7 +676,7 @@ public class RoadmapTools implements ToolProvider{
         sb.append("- '받을 수 있는 우대금리를 확인할게요. 앞으로 지킬 수 있는 것을 모두 골라주세요'\n");
         sb.append("  이 두 문장만 말하고 끝내세요.\n");
         sb.append("- 제출하겠다는 답을 듣기 전에는 submitPreferentialConditions 를 부르지 마세요.\n");
-        sb.append("이미 고르고 제출하겠다고 말했으면:\n");
+        sb.append("이미 고르고 제출하겠다고 말했으면('... 를 선택할게요' 도 그렇습니다):\n");
         sb.append("- 이 목록은 그 대답을 코드로 옮기려고 가져온 것입니다.\n");
         sb.append("- 질문을 다시 보여주지 말고 이 자리에서 submitPreferentialConditions 를 부르세요.\n");
         sb.append("- 사용자가 말한 항목의 코드만 넘기세요.\n");
