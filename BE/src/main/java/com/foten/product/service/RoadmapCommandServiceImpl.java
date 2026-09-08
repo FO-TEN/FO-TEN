@@ -1,6 +1,7 @@
 package com.foten.product.service;
 
 import com.foten.common.InvalidRequestException;
+import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.goal.domain.Goal;
 import com.foten.goal.domain.StayInfo;
@@ -175,7 +176,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                 .collect(Collectors.toMap(RateConditionAnswer::conditionCode, RateConditionAnswer::willMeet));
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         RoadmapSegmentVO activeSegment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
@@ -419,7 +420,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         }
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
-                .orElseThrow(() -> new IllegalStateException("로드맵이 없습니다."));
+                .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
         RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
