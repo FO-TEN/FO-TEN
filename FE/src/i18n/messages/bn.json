@@ -91,7 +91,7 @@
   "chat.chip_roadmap": "রোডম্যাপ তৈরি করুন",
   "chat.chip_spending": "আমার খরচ দেখুন",
   "chat.chip_goal": "লক্ষ্য বদলান",
-  "chat.chip_month": "এই মাসের অবস্থা বলুন",
+  "chat.chip_roadmap_update": "রোডম্যাপ আপডেট করুন",
   "chat.placeholder": "যা খুশি জিজ্ঞেস করুন",
   "chat.too_long": "{n} অক্ষরের মধ্যে লিখুন",
   "chat.failed": "উত্তর পাওয়া যায়নি। আবার জিজ্ঞেস করুন।",

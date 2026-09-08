@@ -91,7 +91,7 @@
   "chat.chip_roadmap": "สร้างแผนออม",
   "chat.chip_spending": "ดูรายจ่ายของฉัน",
   "chat.chip_goal": "เปลี่ยนเป้าหมาย",
-  "chat.chip_month": "บอกสถานการณ์เดือนนี้หน่อย",
+  "chat.chip_roadmap_update": "อัปเดตแผนออม",
   "chat.placeholder": "ถามอะไรก็ได้",
   "chat.too_long": "กรุณาพิมพ์ไม่เกิน {n} ตัวอักษร",
   "chat.failed": "ไม่ได้รับคำตอบ กรุณาถามอีกครั้ง",
