@@ -31,7 +31,7 @@ public class RoadmapSuggestionProvider implements SuggestionProvider {
     // 구간이 바뀌는 달도 최초 월과 같은 문구를 쓴다. 새 구간에 쓸 조건을 고르는 것이지
     // 지난 답을 검사하는 것이 아니다. 왜 또 묻는지는 말풍선이 설명한다.
     private static final Suggestion CHECK_CONDITIONS = Suggestion.ask("우대조건 확인할래");
-    private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("앞으로 어떻게 모으면 돼?");
+    private static final Suggestion WHOLE_ROADMAP = Suggestion.ask("전체 로드맵 보기");
     private static final Suggestion FIRST_SEGMENT_DETAIL = Suggestion.ask("첫 구간 자세히 볼래");
     private static final Suggestion THIS_SEGMENT_DETAIL = Suggestion.ask("이번 구간 자세히 볼래");
     private static final Suggestion MONTHLY_PLAN = Suggestion.ask("이번 달 계획 세워줘");
