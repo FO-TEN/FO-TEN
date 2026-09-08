@@ -124,7 +124,7 @@ async function submit() {
 .signup {
   position: relative;
   min-height: 100dvh;
-  background: #fff;
+  background: var(--surface-card);
 }
 .toggle {
   position: absolute;

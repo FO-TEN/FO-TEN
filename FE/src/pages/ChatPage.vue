@@ -219,7 +219,7 @@ const conditionChips = computed(() =>
   gap: 8px;
   height: var(--header-h);
   padding: 0 16px 0 20px;
-  background: #fff;
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-soft);
 }
 .title {
@@ -257,7 +257,7 @@ const conditionChips = computed(() =>
   word-break: break-word;
 }
 .bot-b {
-  background: #fff;
+  background: var(--surface-card);
   color: var(--gray-900);
   border-radius: 4px 18px 18px 18px;
 }
@@ -309,7 +309,7 @@ const conditionChips = computed(() =>
 .chip {
   padding: 10px 16px;
   border-radius: var(--r-pill);
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-strong);
   font-size: 16px;
   font-weight: 500;
@@ -328,7 +328,7 @@ const conditionChips = computed(() =>
   gap: 10px;
   height: 68px;
   padding: 0 20px;
-  background: #fff;
+  background: var(--surface-card);
   border-top: 1px solid var(--border-soft);
 }
 .field {

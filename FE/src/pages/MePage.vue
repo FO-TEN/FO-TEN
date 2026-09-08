@@ -115,7 +115,7 @@ async function logout() {
   justify-content: space-between;
   height: var(--header-h);
   padding: 0 16px 0 20px;
-  background: #fff;
+  background: var(--surface-card);
   border-bottom: 1px solid var(--border-soft);
 }
 .hdr h1 {
@@ -164,7 +164,7 @@ async function logout() {
   flex-direction: column;
   padding: 16px 18px;
   border-radius: var(--r-card);
-  background: #fff;
+  background: var(--surface-card);
   border: 1px solid var(--border-soft);
   line-height: 1.45;
 }
