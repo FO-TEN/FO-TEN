@@ -54,7 +54,7 @@ public class SpendingTools implements ToolProvider {
         sb.append("  전체: ").append(money(spending.total())).append("원\n");
         // 화면(홈·소비내역)이 보여주는 것과 같은 값이다. 고정비·변동비를 합쳐 많이 쓴 순으로 뽑은
         // 것이라, 밑의 두 갈래를 모델이 직접 더해 만들 필요가 없다.
-        appendTopCategories(sb, spending.topCategories());
+        appendCategoryTotals(sb, spending.categoryTotals());
         sb.append("  고정비: ").append(money(spending.fixedTotal()))
                 .append("원 (월세·통신요금처럼 매달 나가는 돈)\n");
         appendCategories(sb, spending.fixedByCategory());
@@ -63,13 +63,13 @@ public class SpendingTools implements ToolProvider {
         appendCategories(sb, spending.variableByCategory());
     }
 
-    private void appendTopCategories(StringBuilder sb, List<CategoryTotal> topCategories) {
-        if (topCategories == null || topCategories.isEmpty()) {
+    private void appendCategoryTotals(StringBuilder sb, List<CategoryTotal> categoryTotals) {
+        if (categoryTotals == null || categoryTotals.isEmpty()) {
             return;
         }
         sb.append("  많이 쓴 순 (고정비+변동비 합산):\n");
         int rank = 1;
-        for (CategoryTotal c : topCategories) {
+        for (CategoryTotal c : categoryTotals) {
             sb.append("    ").append(rank++).append(". ").append(c.category())
                     .append(": ").append(money(c.amount())).append("원\n");
         }
