@@ -132,7 +132,12 @@ public class Translator {
                 && languageCode != null && !KOREAN.equals(languageCode);
     }
 
-    // 숫자를 보내지 않으므로 반올림 금지·구분 기호·아라비아 숫자 규칙이 통째로 필요 없어졌다.
+    /*
+     * 숫자를 보내지 않으므로 반올림 금지·구분 기호·아라비아 숫자 규칙이 통째로 필요 없어졌다.
+     *
+     * 고유명사 규칙(5번)이 없으면 언어마다 갈린다 — 같은 "KB국민은행" 을 베트남어는 옮기고
+     * 네팔어는 한글로 남겼다. 한글을 못 읽는 사람에게는 그 자리가 통째로 빈칸이 된다.
+     */
     private String instruction(String languageName) {
         return """
                 당신은 번역가입니다. 주어진 한국어 문장을 %s로 옮깁니다.
@@ -142,6 +147,8 @@ public class Translator {
                 2. 자리표시자의 위치는 %s의 어순에 맞게 옮겨도 됩니다.
                 3. 원문에 없는 내용을 덧붙이지 않습니다.
                 4. 짧고 쉬운 문장을 씁니다. 읽는 사람은 한국에서 일하는 이주노동자입니다.
+                5. 한글을 그대로 남기지 않습니다. 은행 이름 같은 고유명사도 읽는 사람의 문자로 적습니다.
+                   KB국민은행 은 KB Kookmin Bank, KB스타뱅킹 은 KB Star Banking 입니다.
                 """.formatted(languageName, languageName);
     }
 

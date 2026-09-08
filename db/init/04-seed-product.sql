@@ -78,12 +78,12 @@ VALUES
 INSERT IGNORE INTO rate_condition
     (condition_code, label, description, is_behavior_based)
 VALUES
-    ('SALARY_TRANSFER',      '급여이체',         '앞으로 급여를 KB국민은행 계좌로 받으실 예정인가요?', TRUE),
-    ('CARD_PAYMENT',         '카드결제',         '앞으로 KB국민카드 결제대금을 KB국민은행 계좌에서 출금하실 예정인가요?', TRUE),
-    ('OVERSEAS_REMITTANCE',  '해외송금',         '앞으로 KB국민은행을 통해 해외송금을 이용하실 예정인가요?', TRUE),
-    ('AUTO_TRANSFER',        '자동이체',         '앞으로 저축액 납입을 자동이체 등 비대면 방식으로 진행하실 예정인가요?', TRUE),
-    ('STARBANKING_TRANSFER', 'KB스타뱅킹 이체',  '앞으로 KB스타뱅킹 앱으로 계좌 이체를 이용하실 예정인가요?', TRUE),
-    ('SPECIAL_DAY',          '소중한 날 지정',   '본인에게 의미 있는 날짜(생일·기념일 등)를 지정하시겠어요?', TRUE),
+    ('SALARY_TRANSFER',      '급여이체',         '월급 KB국민은행 계좌로 받기', TRUE),
+    ('CARD_PAYMENT',         '카드결제',         '카드값 KB국민은행 계좌에서 내기', TRUE),
+    ('OVERSEAS_REMITTANCE',  '해외송금',         '해외송금 KB국민은행에서 하기', TRUE),
+    ('AUTO_TRANSFER',        '자동이체',         '저축금 자동이체로 넣기', TRUE),
+    ('STARBANKING_TRANSFER', 'KB스타뱅킹 이체',  'KB스타뱅킹 앱으로 이체하기', TRUE),
+    ('SPECIAL_DAY',          '소중한 날 지정',   '생일·기념일 등록하기', TRUE),
     ('REJOIN',               '재가입',           NULL, FALSE),
     ('LONG_TERM_CUSTOMER',   '장기거래',         NULL, FALSE),
     ('FIRST_PRODUCT',        '첫거래',           NULL, FALSE),
