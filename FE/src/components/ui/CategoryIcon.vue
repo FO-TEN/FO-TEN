@@ -15,10 +15,10 @@ const map = {
   '외식 · 카페': { bg: 'var(--cat-coffee)', img: coffee },
   외식: { bg: 'var(--cat-coffee)', img: coffee },
   쇼핑: { bg: 'var(--cat-bag)', img: bag },
-  교통: { bg: '#4f8ef7', glyph: 'bus' },
-  통신: { bg: '#2bb0a5', glyph: 'phone' },
-  주거: { bg: '#c17a54', glyph: 'house' },
-  기타: { bg: '#a8a29e', glyph: 'dots' },
+  교통: { bg: 'var(--cat-transport)', glyph: 'bus' },
+  통신: { bg: 'var(--cat-communication)', glyph: 'phone' },
+  주거: { bg: 'var(--cat-housing)', glyph: 'house' },
+  기타: { bg: 'var(--gray-400)', glyph: 'dots' },
 }
 const info = map[props.category] || map['기타']
 </script>
@@ -27,20 +27,20 @@ const info = map[props.category] || map['기타']
   <span class="ico" :style="{ background: info.bg }">
     <img v-if="info.img" :src="info.img" alt="" width="18" height="18" />
     <svg v-else-if="info.glyph === 'bus'" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <rect x="3" y="2.5" width="12" height="11" rx="2.5" stroke="#fff" stroke-width="1.6" />
-      <path d="M3 8.5h12" stroke="#fff" stroke-width="1.6" />
+      <rect x="3" y="2.5" width="12" height="11" rx="2.5" stroke="#fff" stroke-width="2.2" />
+      <path d="M3 8.5h12" stroke="#fff" stroke-width="2.2" />
       <circle cx="6" cy="11" r="1" fill="#fff" />
       <circle cx="12" cy="11" r="1" fill="#fff" />
-      <path d="M5.5 13.5v2M12.5 13.5v2" stroke="#fff" stroke-width="1.6" stroke-linecap="round" />
+      <path d="M5.5 13.5v2M12.5 13.5v2" stroke="#fff" stroke-width="2.2" stroke-linecap="round" />
     </svg>
     <svg v-else-if="info.glyph === 'phone'" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <rect x="5" y="2" width="8" height="14" rx="2" stroke="#fff" stroke-width="1.6" />
+      <rect x="5" y="2" width="8" height="14" rx="2" stroke="#fff" stroke-width="2.2" />
       <circle cx="9" cy="13" r="0.9" fill="#fff" />
     </svg>
     <svg v-else-if="info.glyph === 'house'" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M3 8.5L9 3.5L15 8.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
-      <path d="M4.5 7.5V14.5H13.5V7.5" stroke="#fff" stroke-width="1.6" stroke-linejoin="round" />
-      <rect x="7.5" y="10.5" width="3" height="4" stroke="#fff" stroke-width="1.4" />
+      <path d="M3 8.5L9 3.5L15 8.5" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+      <path d="M4.5 7.5V14.5H13.5V7.5" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" />
+      <rect x="7.5" y="10.5" width="3" height="4" stroke="#fff" stroke-width="2.2" />
     </svg>
     <svg v-else width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
       <circle cx="4" cy="9" r="1.6" fill="#fff" />

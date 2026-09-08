@@ -84,7 +84,7 @@ async function submit() {
 .login {
   position: relative;
   min-height: 100dvh;
-  background: #fff;
+  background: var(--surface-card);
   display: flex;
   flex-direction: column;
 }

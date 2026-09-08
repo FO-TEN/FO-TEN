@@ -162,7 +162,7 @@ function diffText(v) {
   gap: 12px;
   margin-top: 6px;
   padding: 18px 16px 16px;
-  border-radius: 16px;
+  border-radius: var(--r-card);
   background: var(--surface-card);
 }
 .head {
@@ -217,7 +217,7 @@ function diffText(v) {
   z-index: 1;
   right: 0;
   padding: 2px 7px;
-  border-radius: 6px;
+  border-radius: var(--r-input);
   background: var(--gray-100);
   font-size: 12px;
   font-weight: 500;
@@ -284,7 +284,7 @@ function diffText(v) {
 }
 .bar {
   width: 100%;
-  border-radius: 10px 10px 0 0;
+  border-radius: var(--r-card) var(--r-card) 0 0;
 }
 .bar.actual {
   background: var(--c-actual);
@@ -352,7 +352,7 @@ function diffText(v) {
   flex-direction: column;
   gap: 6px;
   padding: 10px 12px;
-  border-radius: 10px;
+  border-radius: var(--r-card);
   background: var(--gray-100);
 }
 .al-t {

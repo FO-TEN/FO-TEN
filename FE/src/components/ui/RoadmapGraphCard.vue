@@ -145,7 +145,7 @@ const subtitle = computed(() =>
   gap: 12px;
   margin-top: 6px;
   padding: 18px 16px 16px;
-  border-radius: 16px;
+  border-radius: var(--r-card);
   background: var(--surface-card);
 }
 .head {
@@ -186,7 +186,7 @@ const subtitle = computed(() =>
   flex-direction: column;
   width: 100%;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: var(--r-input);
 }
 .layer {
   display: flex;

@@ -22,7 +22,7 @@ function onBack() {
   <header class="hdr">
     <button v-if="props.back" type="button" class="back" aria-label="뒤로" @click="onBack">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M15 5l-7 7 7 7" stroke="#1c1917" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+        <path d="M15 5l-7 7 7 7" stroke="var(--gray-900)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
       </svg>
     </button>
     <div class="title" :class="props.titleStyle">

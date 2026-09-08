@@ -22,9 +22,9 @@ const COLORS = {
   교통: '#71C9CE', // teal
   쇼핑: '#A0C49D', // green
   주거: '#E8B894', // terracotta
-  기타: '#D6D3D1', // gray
+  기타: 'var(--gray-300)',
 }
-const FALLBACK_COLOR = '#d6d3d1'
+const FALLBACK_COLOR = 'var(--gray-300)'
 
 const RADIUS = 45
 const STROKE = 16

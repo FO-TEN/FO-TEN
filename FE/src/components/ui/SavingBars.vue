@@ -114,7 +114,7 @@ const bars = computed(() => [
 }
 .bar {
   width: 60px;
-  border-radius: 6px 6px 0 0;
+  border-radius: var(--r-input) var(--r-input) 0 0;
   display: flex;
   justify-content: center;
   transition: height 0.4s ease;
