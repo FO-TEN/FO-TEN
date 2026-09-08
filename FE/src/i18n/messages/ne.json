@@ -144,7 +144,7 @@
   "products.error_sub": "यो नेटवर्क वा सर्भर समस्या हुन सक्छ। फेरि प्रयास गर्नुहोस्।",
   "products.error_retry": "फेरि प्रयास गर्नुहोस्",
   "card.roadmap_title": "तपाईंको पैसा यसरी जम्मा हुन्छ",
-  "card.roadmap_sub": "{n} महिना · {segs} महिनाका अवधि",
+  "card.roadmap_sub": "{n} महिना = {segs} महिनाका अवधि",
   "card.man": "{n}만",
   "card.about": "लगभग {v}",
   "card.in_progress": "चलिरहेको",
@@ -156,7 +156,8 @@
   "card.legend_interest": "ब्याज",
   "card.roadmap_note": "निक्षेप रकम अघिल्लो अवधिको बचत·निक्षेप परिपक्वता र नगद बचतको योग हो।",
   "card.roadmap_after": "{n} महिना पछि",
-  "card.roadmap_total": "만 वन + अनुमानित ब्याज लगभग {i}만",
+  "card.roadmap_total_mid": "만 वन + अनुमानित ब्याज लगभग ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "{m} महिनाको खर्च",
   "spending.until_day": "{m}/{d} सम्म",

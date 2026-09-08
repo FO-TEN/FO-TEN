@@ -144,7 +144,7 @@
   "products.error_sub": "Ida ne'e bele problema rede ka servidor. Favor tenta fali.",
   "products.error_retry": "Tenta fali",
   "card.roadmap_title": "Ita-nia osan sa’e hanesan ne’e",
-  "card.roadmap_sub": "fulan {n} · períodu fulan {segs}",
+  "card.roadmap_sub": "fulan {n} = períodu fulan {segs}",
   "card.man": "{n}만",
   "card.about": "maizumenus {v}",
   "card.in_progress": "La’o hela",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Juru",
   "card.roadmap_note": "Depózitu mak poupansa·depózitu maturadu husi períodu uluk tau hamutuk ho osan rai.",
   "card.roadmap_after": "Depois fulan {n}",
-  "card.roadmap_total": "만 won + juru estimadu maizumenus {i}만",
+  "card.roadmap_total_mid": "만 won + juru estimadu maizumenus ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "Gastu fulan {m}",
   "spending.until_day": "To'o {d}/{m}",

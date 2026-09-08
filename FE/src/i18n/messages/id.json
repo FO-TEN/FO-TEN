@@ -144,7 +144,7 @@
   "products.error_sub": "Ini mungkin masalah jaringan atau server. Silakan coba lagi.",
   "products.error_retry": "Coba lagi",
   "card.roadmap_title": "Begini uangmu bertambah",
-  "card.roadmap_sub": "{n} bulan · periode {segs} bulan",
+  "card.roadmap_sub": "{n} bulan = periode {segs} bulan",
   "card.man": "{n}만",
   "card.about": "sekitar {v}",
   "card.in_progress": "Berjalan",
@@ -156,7 +156,8 @@
   "card.legend_interest": "Bunga",
   "card.roadmap_note": "Deposito adalah tabungan·deposito jatuh tempo periode sebelumnya ditambah tabungan tunai.",
   "card.roadmap_after": "Setelah {n} bulan",
-  "card.roadmap_total": "만 won + perkiraan bunga sekitar {i}만",
+  "card.roadmap_total_mid": "만 won + perkiraan bunga sekitar ",
+  "card.roadmap_total_suffix": "만",
 
   "spending.title": "Pengeluaran bulan {m}",
   "spending.until_day": "Sampai {d}/{m}",

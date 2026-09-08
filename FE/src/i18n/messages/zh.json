@@ -144,7 +144,7 @@
   "products.error_sub": "可能是网络或服务器问题，请重试。",
   "products.error_retry": "重试",
   "card.roadmap_title": "钱会这样积累起来",
-  "card.roadmap_sub": "{n}个月 · {segs}个月区间",
+  "card.roadmap_sub": "{n}个月 = {segs}个月区间",
   "card.man": "{n}万",
   "card.about": "约{v}",
   "card.in_progress": "进行中",
@@ -156,7 +156,8 @@
   "card.legend_interest": "利息",
   "card.roadmap_note": "定期存款金额是上一区间零存整取·定期到期金额加上现金储蓄。",
   "card.roadmap_after": "{n}个月后",
-  "card.roadmap_total": "万韩元 + 预计利息约{i}万",
+  "card.roadmap_total_mid": "万韩元 + 预计利息约",
+  "card.roadmap_total_suffix": "万",
 
   "spending.title": "{m}月消费",
   "spending.until_day": "截至 {m}月{d}日",
