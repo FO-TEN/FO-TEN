@@ -6,13 +6,15 @@ import { comma, won, ym } from '../utils/format'
 import AppHeader from '../components/layout/AppHeader.vue'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
+import SpendingDonut from '../components/ui/SpendingDonut.vue'
 
 /*
  * Figma 09_소비 내역(217:1874).
  *  GET /spending?monthsAgo=N → { month:'2026-09', daysCovered, total, fixedTotal, variableTotal,
- *                                fixedByCategory{}, variableByCategory{}, topCategories:[{category,amount}] }
- *  고정비/변동비 구분 표시는 화면에서 뺐다(카테고리 TOP3로 대체) — fixedTotal/variableTotal 등은
- *  챗봇(SpendingTools)이 여전히 쓰므로 API 응답에는 남아있고, 이 화면만 topCategories를 쓴다.
+ *                                fixedByCategory{}, variableByCategory{}, categoryTotals:[{category,amount}] }
+ *  고정비/변동비 구분 표시는 화면에서 뺐다(카테고리별 도넛+전체 목록으로 대체) — fixedTotal/variableTotal 등은
+ *  챗봇(SpendingTools)이 여전히 쓰므로 API 응답에는 남아있고, 이 화면은 categoryTotals만 쓴다.
+ *  홈 화면은 categoryTotals 중 앞 3개만 잘라 쓰고, 이 화면은 전체를 보여준다.
  *  "지난달 같은 날" 비교는 안 하기로 해서 뺐다. 이번 달일 때만 저축 예상 카드(진단 API)를 붙인다.
  *  헤더에 LangSwitch 추가 (규칙 10). 월 선택은 헤더 아래 monthbar 에 둔다.
  */
@@ -104,12 +106,13 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
           <div class="fh">
             <span class="fname">{{ t('spending.top_categories') }}</span>
           </div>
+          <SpendingDonut v-if="data.categoryTotals.length" :categories="data.categoryTotals" :total="data.total" />
           <div class="rows">
-            <div v-for="c in data.topCategories" :key="c.category" class="r">
+            <div v-for="c in data.categoryTotals" :key="c.category" class="r">
               <span class="rl">{{ t('cat.' + c.category) }}</span>
               <span class="rv num">{{ won(c.amount) }}</span>
             </div>
-            <p v-if="!data.topCategories.length" class="empty">{{ t('spending.none') }}</p>
+            <p v-if="!data.categoryTotals.length" class="empty">{{ t('spending.none') }}</p>
           </div>
         </section>
 

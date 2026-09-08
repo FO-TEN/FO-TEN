@@ -165,7 +165,7 @@ function goChat() {
           </div>
           <p class="amt"><span class="num mid">{{ comma(sp.total) }}</span><span class="won16">{{ t('common.won') }}</span></p>
         </div>
-        <div v-for="c in sp.topCategories" :key="c.category" class="sprow">
+        <div v-for="c in sp.categoryTotals.slice(0, 3)" :key="c.category" class="sprow">
           <span class="spl">{{ t('cat.' + c.category) }}</span>
           <span class="num spv">{{ comma(c.amount) }} {{ t('common.won') }}</span>
         </div>
