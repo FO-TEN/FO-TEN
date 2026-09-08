@@ -371,7 +371,8 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     }
 
     // 완료 구간 — 전부 실제 값. 적금 원금은 실제 납입 합, 예금 원금은 initial_principal,
-    // 이자는 각 구독의 maturity_amount-원금 합, 현금성은 그 구간 마지막 실제 스냅샷.
+    // 이자는 각 구독의 maturity_amount(세전, DB)-원금을 세후로 변환한 값, 현금성은 그 구간
+    // 마지막 실제 스냅샷.
     private RoadmapGraph.SegmentSummary summarizeCompletedSegment(RoadmapSegmentVO segment) {
         BigDecimal savingsAmount = BigDecimal.ZERO;
         BigDecimal depositAmount = BigDecimal.ZERO;
@@ -386,7 +387,8 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                         .stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
                 savingsAmount = savingsAmount.add(principal);
             }
-            interestAmount = interestAmount.add(subscription.getMaturityAmount().subtract(principal));
+            BigDecimal preTaxInterest = subscription.getMaturityAmount().subtract(principal);
+            interestAmount = interestAmount.add(roadmapCalculationService.calculateAfterTaxInterest(preTaxInterest));
         }
         BigDecimal cashAmount = assetSnapshotMapper.selectLatestBySegment(segment.getSegmentId())
                 .map(AssetSnapshotVO::getCashSavingBalance)
@@ -414,8 +416,9 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         BigDecimal interestAmount = BigDecimal.ZERO;
         if (depositSubscription != null) {
             depositAmount = depositSubscription.getInitialPrincipal();
-            interestAmount = interestAmount.add(roadmapCalculationService.calculateDepositInterest(
-                    depositAmount, depositSubscription.getExpectedAppliedRate(), depositSubscription.getTermMonths()));
+            BigDecimal depositInterest = roadmapCalculationService.calculateDepositInterest(
+                    depositAmount, depositSubscription.getExpectedAppliedRate(), depositSubscription.getTermMonths());
+            interestAmount = interestAmount.add(roadmapCalculationService.calculateAfterTaxInterest(depositInterest));
         }
 
         List<ProductAllocationCandidate> candidates = savingsSubscriptions.stream()
@@ -452,8 +455,9 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
             }
             BigDecimal pastPrincipal = pastPayments.stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
             savingsAmount = savingsAmount.add(pastPrincipal).add(futureSavingsAmount);
-            interestAmount = interestAmount.add(roadmapCalculationService.calculateSavingsInterest(
-                    allPayments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate()));
+            BigDecimal savingsInterest = roadmapCalculationService.calculateSavingsInterest(
+                    allPayments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate());
+            interestAmount = interestAmount.add(roadmapCalculationService.calculateAfterTaxInterest(savingsInterest));
         }
 
         int remainingMonthsInSegment = Math.max(0, segment.getPlannedMonths() - monthsAlreadyPaid);
@@ -498,8 +502,9 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         if (chosenDeposit.isPresent()) {
             depositAmount = lumpSum;
             undepositedLumpSum = BigDecimal.ZERO;
-            interestAmount = interestAmount.add(roadmapCalculationService.calculateDepositInterest(
-                    lumpSum, chosenDeposit.get().appliedRate(), plannedMonths));
+            BigDecimal depositInterest = roadmapCalculationService.calculateDepositInterest(
+                    lumpSum, chosenDeposit.get().appliedRate(), plannedMonths);
+            interestAmount = interestAmount.add(roadmapCalculationService.calculateAfterTaxInterest(depositInterest));
         }
 
         List<ProductRateCandidate> savingsCandidates = productMapper.selectSavingsCandidates(plannedMonths);
@@ -524,8 +529,9 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                 payments.add(new SavingsPaymentRecord(entry.allocatedAmount(), startDate.plusMonths(i).atStartOfDay()));
             }
             savingsAmount = savingsAmount.add(entry.allocatedAmount().multiply(BigDecimal.valueOf(plannedMonths)));
-            interestAmount = interestAmount.add(roadmapCalculationService.calculateSavingsInterest(
-                    payments, savingsRateByProductId.get(entry.productId()), endDate));
+            BigDecimal savingsInterest = roadmapCalculationService.calculateSavingsInterest(
+                    payments, savingsRateByProductId.get(entry.productId()), endDate);
+            interestAmount = interestAmount.add(roadmapCalculationService.calculateAfterTaxInterest(savingsInterest));
         }
 
         // 목돈이 예금 최소가입금액에 못 미쳐 예금이 안 열리면(드문 경우지만) 목돈 전체가

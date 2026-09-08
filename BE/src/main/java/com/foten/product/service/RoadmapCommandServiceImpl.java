@@ -195,9 +195,11 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
             // 구간 자체도 COMPLETED. 적금이 여러 개일 수 있어 전부 순회한다.
             BigDecimal lumpSum = BigDecimal.ZERO;
             for (ProductSubscriptionVO subscription : productSubscriptionMapper.selectActiveBySegment(activeSegment.getSegmentId())) {
-                BigDecimal maturityAmount = calculateMaturityAmount(subscription);
+                MaturityBreakdown breakdown = calculateMaturityBreakdown(subscription);
+                BigDecimal maturityAmount = breakdown.principal().add(breakdown.preTaxInterest()); // 세전 — DB 저장용
                 productSubscriptionMapper.matureAndClose(subscription.getProductSubscriptionId(), maturityAmount);
-                lumpSum = lumpSum.add(maturityAmount);
+                BigDecimal afterTaxInterest = roadmapCalculationService.calculateAfterTaxInterest(breakdown.preTaxInterest());
+                lumpSum = lumpSum.add(breakdown.principal()).add(afterTaxInterest); // 세후 — 실제 롤오버 금액(§7-2)
             }
             // 목돈 합산(§7-2) = 위 만기금 합 + 그 구간 마지막 실제 현금성 저축액.
             BigDecimal cashSavingBalance = assetSnapshotMapper.selectLatest(roadmap.getSavingsRoadmapId())
@@ -517,19 +519,25 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                 : status.requiredAmount();
     }
 
-    // 구독 하나의 만기금(세전, 원금+이자 합산) 계산 — 이자_계산식_결정.md 공식.
-    private BigDecimal calculateMaturityAmount(ProductSubscriptionVO subscription) {
+    // 구독 하나의 만기 원금·세전이자 — 이자_계산식_결정.md 공식. DB(product_subscription.
+    // maturity_amount)엔 이 둘을 합친 세전 금액을 그대로 저장하고, 실제 다음 구간으로 넘어가는
+    // lumpSum은 이자 부분만 세후로 변환해서 더한다 — 만기 시 은행이 이자소득세를 원천징수하고
+    // 남은 돈만 실제로 손에 들어와 재투자할 수 있기 때문이다(세전으로 굴리면 구간이 넘어갈
+    // 때마다 실제보다 많은 돈이 들어가고, 구간이 여러 개면 그 차이가 복리로 누적된다).
+    private record MaturityBreakdown(BigDecimal principal, BigDecimal preTaxInterest) {}
+
+    private MaturityBreakdown calculateMaturityBreakdown(ProductSubscriptionVO subscription) {
         if (ROLLOVER_DEPOSIT.equals(subscription.getSubscriptionRole())) {
             BigDecimal interest = roadmapCalculationService.calculateDepositInterest(
                     subscription.getInitialPrincipal(), subscription.getExpectedAppliedRate(), subscription.getTermMonths());
-            return subscription.getInitialPrincipal().add(interest);
+            return new MaturityBreakdown(subscription.getInitialPrincipal(), interest);
         }
         List<SavingsPaymentRecord> payments =
                 transactionHistoryMapper.selectSavingsPaymentsBySubscription(subscription.getProductSubscriptionId());
         BigDecimal principal = payments.stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
         BigDecimal interest = roadmapCalculationService.calculateSavingsInterest(
                 payments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate());
-        return principal.add(interest);
+        return new MaturityBreakdown(principal, interest);
     }
 
     // 로드맵 전체 기준 누적 저축실적(§2-5) — 지금 이 순간(구간 전환 커밋 시점) 기준으로 다시 계산한다.
