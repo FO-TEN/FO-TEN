@@ -460,3 +460,26 @@ JOIN (SELECT '주거' AS category, 1 AS item_order, 100000 AS amount, '월세' A
       SELECT '기타', 4,  10000, '회비' UNION ALL
       SELECT '기타', 5,  10000, '잡비') f ON TRUE
 WHERE m.login_id = 'natty03';
+
+-- ------------------------------------------------------------
+-- 급여(SALARY)/송금(REMITTANCE) — cycle1~6(이미 끝난 달)만. 매달 25일 급여·26일 송금,
+-- 온보딩 때 넣은 재무조건(financial_info: 월급여 2,500,000 / 월송금액 626,604) 그대로
+-- 한 달도 빠짐없이 들어왔다고 가정한다. 이번 달(cycle7)은 아직 25일이 지나지 않아서
+-- (오늘이 9일) 넣지 않는다 — 급여가 미래 시점에 들어온 것처럼 보이면 안 되니까.
+-- balance_after 는 09-fix-transaction-balance.sql 이 마지막에 다시 계산하므로 0으로 둔다.
+-- ------------------------------------------------------------
+INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
+SELECT m.member_id, DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-25'), INTERVAL mo.months_ago MONTH),
+       'SALARY', 'IN', 2500000, 0, '급여'
+FROM member m
+JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
+      SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) mo
+WHERE m.login_id = 'natty03';
+
+INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
+SELECT m.member_id, DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-26'), INTERVAL mo.months_ago MONTH),
+       'REMITTANCE', 'OUT', 626604, 0, '본국 송금'
+FROM member m
+JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
+      SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) mo
+WHERE m.login_id = 'natty03';
