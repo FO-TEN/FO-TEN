@@ -12,6 +12,7 @@ import RecommendationCard from '../components/ui/RecommendationCard.vue'
 import ConditionChecklist from '../components/ui/ConditionChecklist.vue'
 import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
 import SegmentDetailCard from '../components/ui/SegmentDetailCard.vue'
+import SpendingCard from '../components/ui/SpendingCard.vue'
 import sendIcon from '../assets/icons/send.svg'
 
 /*
@@ -159,6 +160,7 @@ const conditionChips = computed(() =>
             <RecommendationCard v-if="m.card && m.card.type === 'RECOMMENDATION'" :payload="m.card.payload" />
             <RoadmapGraphCard v-else-if="m.card && m.card.type === 'ROADMAP'" :payload="m.card.payload" />
             <SegmentDetailCard v-else-if="m.card && m.card.type === 'SEGMENT_DETAIL'" :payload="m.card.payload" />
+            <SpendingCard v-else-if="m.card && m.card.type === 'SPENDING'" :payload="m.card.payload" />
           </div>
         </div>
       </template>

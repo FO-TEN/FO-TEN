@@ -1,20 +1,29 @@
 package com.foten.ai.tool;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.foten.ai.dto.ChatCard;
 import com.foten.spending.domain.CategoryTotal;
 import com.foten.spending.domain.MonthlySpending;
 import com.foten.spending.service.SpendingQueryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SpendingTools implements ToolProvider {
     private static final DecimalFormat MONEY = new DecimalFormat("#,###");
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+    // 카테고리별 소비를 도넛으로 그리는 카드. 값은 앱이 관리한다(chat_message.card_type).
+    private static final String CARD_SPENDING = "SPENDING";
+
     private final SpendingQueryService spendingQueryService;
 
     @Override
@@ -27,16 +36,21 @@ public class SpendingTools implements ToolProvider {
                 사용자가 얼마 썼는지·무엇에 많이 썼는지·어떤 항목에 얼마 썼는지 물을 때 사용합니다.
                 이미 쓴 금액만 알려줍니다. 앞으로 얼마나 줄일 수 있는지는 diagnoseGoal 을 씁니다.
                 """,
-                (arguments, context) -> describe(context.memberId())));
+                (arguments, context) -> describe(context)));
     }
 
-    private String describe(long memberId) {
+    private String describe(ToolContext context) {
+        long memberId = context.memberId();
         MonthlySpending current = spendingQueryService.getMonthlySpending(memberId, 0);
         MonthlySpending previous = spendingQueryService.getMonthlySpending(memberId, 1);
 
         if(current.total().signum() == 0 && previous.total().signum() == 0) {
             return "소비 내역이 아직 없습니다.";
         }
+
+        // 이번 달만 그린다. 지난달까지 두 장을 띄우면 말풍선 하나에 그림이 두 개가 되고,
+        // 두 기간의 길이가 달라(이번 달은 오늘까지) 나란히 놓으면 견주게 된다 - 아래 규칙이 막는 바로 그 일이다.
+        addSpendingCard(context, current);
 
         StringBuilder sb = new StringBuilder("[소비 내역]\n");
         sb.append("\n이번 달 ").append(current.month().getMonthValue()).append("월 1일~")
@@ -87,8 +101,36 @@ public class SpendingTools implements ToolProvider {
         sb.append("항목별에 없는 항목은 0원입니다.\n");
         sb.append("무엇에 많이 썼는지 물으면 '많이 쓴 순'을 그대로 옮기세요. 화면도 같은 값을 보여줍니다.\n");
         sb.append("고정비 항목과 변동비 항목을 직접 더하지 마세요. 합친 값이 필요하면 '많이 쓴 순'에 있습니다.\n");
+        sb.append("이번 달 항목별 도넛 그래프 카드가 답변과 함께 나갑니다. 항목을 하나씩 읊지 말고\n");
+        sb.append("가장 많이 쓴 것 한둘만 말한 뒤 자세한 것은 아래 카드에서 보라고 알려주세요.\n");
         sb.append("각 항목을 얼마나 줄일 수 있는지는 이 결과에 없습니다.\n");
         sb.append("소비가 늘거나 줄어든 이유는 이 결과에 없습니다. 금액만 말하고 이유를 지어내지 마세요.");
+    }
+
+    /*
+     * 소비내역 화면의 도넛과 같은 값을 그대로 보낸다 — categoryTotals 는 이미 금액 내림차순이고
+     * SpendingDonut 이 그 순서를 그대로 그린다.
+     *
+     * 달 이름을 글자로 만들지 않고 월 번호만 보낸다. 서버가 "9월" 이라고 적어 보내면 19개 언어
+     * 화면에 한국어가 그대로 나간다 - 표기는 화면이 제 언어로 고른다.
+     */
+    private void addSpendingCard(ToolContext context, MonthlySpending spending) {
+        if (spending.categoryTotals() == null || spending.categoryTotals().isEmpty()) {
+            return;
+        }
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("monthValue", spending.month().getMonthValue());
+        payload.put("daysCovered", spending.daysCovered());
+        payload.put("total", spending.total());
+        payload.put("categoryTotals", spending.categoryTotals());
+
+        try {
+            context.cards().add(new ChatCard(CARD_SPENDING, MAPPER.writeValueAsString(payload)));
+        }
+        catch (Exception e) {
+            // 카드를 못 만들어도 답변은 나가야 한다. 예외 메시지에 금액이 실려 종류만 남긴다.
+            log.warn("카드를 만들지 못했습니다. type={} ({})", CARD_SPENDING, e.getClass().getSimpleName());
+        }
     }
 
     private String money(BigDecimal value) {
