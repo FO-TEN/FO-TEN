@@ -151,12 +151,24 @@ async function loadOpener() {
   if (chat.suggestions.length) return
   try {
     const status = await roadmapApi.status()
-    opener.value = status.roadmapExists
-      ? { key: 'chat.chip_roadmap_update', message: '로드맵 업데이트하기' }
-      : { key: 'chat.chip_roadmap', message: '내 로드맵 만들기' }
+    if (status.roadmapExists) {
+      // 이번 달 안내를 이미 받았으면 갱신할 게 없다. 다음 달에 다시 띄운다
+      if (guidedThisMonth()) return
+      opener.value = { key: 'chat.chip_roadmap_update', message: '로드맵 업데이트하기' }
+    } else {
+      opener.value = { key: 'chat.chip_roadmap', message: '내 로드맵 만들기' }
+    }
   } catch {
     /* 상태를 못 읽으면 띄우지 않는다. 잘못 짚느니 없는 편이 낫다 */
   }
+}
+// 마지막 구간 상세 카드가 이번 달 것인지. 서버가 따로 알려주지 않아 이력으로 판단한다
+function guidedThisMonth() {
+  const last = [...chat.messages].reverse().find((m) => m.role !== 'USER' && m.card?.type === 'SEGMENT_DETAIL')
+  if (!last?.createdAt) return false
+  const at = new Date(last.createdAt)
+  const now = new Date()
+  return at.getFullYear() === now.getFullYear() && at.getMonth() === now.getMonth()
 }
 
 /*
