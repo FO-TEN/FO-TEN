@@ -59,12 +59,13 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         int elapsedMonths = calcElapsedMonths(goal.getCreatedAt());
         BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
         BigDecimal actualCumulativeSavings =
-                calcActualCumulativeSavings(memberId, goal.getCreatedAt(), elapsedMonths).setScale(0, RoundingMode.HALF_UP);
+                calcActualCumulativeSavings(memberId, goal.getCreatedAt()).setScale(0, RoundingMode.HALF_UP);
         // KRW는 소수점 없는 정수 단위(스키마 전체가 DECIMAL(n,0))인데, 평균 계산 과정에서
         // SQL 나눗셈으로 늘어난 스케일이 그대로 남아있어 명시적으로 0자리로 맞춘다.
         BigDecimal cumulativeShortfall =
                 cumulativeTarget.subtract(actualCumulativeSavings);
-        BigDecimal achievementRate = calcAchievementRate(actualCumulativeSavings, cumulativeTarget);
+        BigDecimal achievementRate = calcAchievementRate(
+                financialInfo.getCurrentSavings(), actualCumulativeSavings, goal.getTargetAmountKrw());
 
         return new GoalDiagnosisResponse(
                 goal.getTargetBaselineAmount(),
@@ -91,8 +92,10 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         return Math.max(totalMonths, 1);
     }
 
-    // 누적저축실적(PDF 최종안) = 적금 실제 납입액 누계 + 직전월말 현금성 저축액
-    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt, int elapsedMonths) {
+    // 누적저축실적(PDF 최종안) = 적금 실제 납입액 누계 + 현금성 저축 순증분(직전월말 잔액 -
+    // goal 생성 시점 잔액). goal 생성 이전부터 있던 돈이 섞여 들어가지 않도록 생성 시점
+    // 잔액을 기준선으로 뺀다.
+    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt) {
         BigDecimal cumulativeSavingsPayment =
                 transactionSummaryMapper.findCumulativeSavingsPayment(memberId, goalCreatedAt);
 
@@ -100,27 +103,23 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
         LocalDateTime endOfPreviousMonth = currentMonth.minusMonths(1).atEndOfMonth().atTime(LocalTime.MAX);
         BigDecimal balanceAsOfLastMonth =
                 transactionSummaryMapper.findBalanceAsOf(memberId, endOfPreviousMonth).orElse(BigDecimal.ZERO);
+        BigDecimal balanceAtGoalCreation =
+                transactionSummaryMapper.findBalanceAsOf(memberId, goalCreatedAt).orElse(BigDecimal.ZERO);
 
-        // 목표 생성 후 아직 6개월이 안 지났으면, 데이터가 없는 달까지 분모에 넣어 평균을
-        // 왜곡시키지 않도록 실제 경과개월만큼만으로 나눈다.
-        int avgMonths = Math.min(HISTORY_MONTHS, elapsedMonths);
-        LocalDateTime avgWindowEnd = currentMonth.atDay(1).atStartOfDay();
-        LocalDateTime avgWindowStart = currentMonth.minusMonths(avgMonths).atDay(1).atStartOfDay();
-        BigDecimal averageMonthlyExpense = transactionSummaryMapper.findAverageMonthlyExpense(
-                memberId, avgWindowStart, avgWindowEnd, avgMonths);
-
-        BigDecimal cashSavings = balanceAsOfLastMonth.subtract(averageMonthlyExpense).max(BigDecimal.ZERO);
+        BigDecimal cashSavings = balanceAsOfLastMonth.subtract(balanceAtGoalCreation).max(BigDecimal.ZERO);
 
         return cumulativeSavingsPayment.add(cashSavings);
     }
 
-    // 실제누적저축액 / (목표기준액 x 경과개월) x 100. 분모가 0 이하인 비정상 케이스만 방어.
-    private BigDecimal calcAchievementRate(BigDecimal actualCumulativeSavings, BigDecimal cumulativeTarget) {
-        if (cumulativeTarget.compareTo(BigDecimal.ZERO) <= 0) {
+    // (financial_info.current_savings + 실제누적저축액) / target_amount_krw x 100.
+    // 분모가 0 이하인 비정상 케이스만 방어.
+    private BigDecimal calcAchievementRate(
+            BigDecimal currentSavings, BigDecimal actualCumulativeSavings, BigDecimal targetAmountKrw) {
+        if (targetAmountKrw.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
-        return actualCumulativeSavings
-                .divide(cumulativeTarget, PERCENTAGE_SCALE + 2, RoundingMode.HALF_UP)
+        return currentSavings.add(actualCumulativeSavings)
+                .divide(targetAmountKrw, PERCENTAGE_SCALE + 2, RoundingMode.HALF_UP)
                 .multiply(BigDecimal.valueOf(100))
                 .setScale(PERCENTAGE_SCALE, RoundingMode.HALF_UP);
     }

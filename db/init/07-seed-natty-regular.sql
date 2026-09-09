@@ -58,8 +58,11 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2500000, 300000, 626604, 400000
 FROM member WHERE login_id = 'natty03';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 1200000000, 'VND', 1092287, 1092287
+-- created_at = @natty03_start(entry_date/로드맵 start_date와 동일 — 온보딩일 = 목표를 세운
+-- 시점). remainingMonths=58-1=57 → target_amount_krw = 1,092,287×57+400,000=62,660,359
+-- (현재 환율로 역산해도 1,200,000,000÷19.15≈62,663,185로 거의 일치 — 교차검증됨).
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 1200000000, 'VND', 1092287, 62660359, 1092287, @natty03_start
 FROM member WHERE login_id = 'natty03';
 
 -- natty02 실제 응답 그대로: 카드결제·해외송금만 TRUE.

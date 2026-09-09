@@ -59,17 +59,26 @@ FROM member WHERE login_id = 'sok01';
 --   nguyen01: 목표기준액 1,200,000 <= 필요저축액 1,300,000            → 순조
 --   rai01   : 목표기준액 3,500,000 >> 필요저축액 1,000,000            → 뒤처짐
 --   sok01   : 목표기준액   690,000 <= 필요저축액   700,000 (막 시작)  → 순조
+--
+--   세 계정 다 아직 savings_roadmap 이 없는 "막 온보딩한" 상태라 목표를 세운 시점(created_at)을
+--   오늘로 잡는다(재적용 시점 그대로). target_amount_krw 는 target_baseline_amount 로부터
+--   역산했다: target_amount_krw = target_baseline_amount × remainingMonths + current_savings
+--   (remainingMonths = GoalCalculationServiceImpl.calcRemainingMonths()와 동일한 규칙 —
+--   Period.between(created_at, expected_return_date) 총개월수 - 1).
+--     nguyen01: remainingMonths=4-1=3  → 1,200,000×3+18,000,000=21,600,000
+--     rai01   : remainingMonths=6-1=5  → 3,500,000×5+9,000,000=26,500,000
+--     sok01   : remainingMonths=34-1=33 → 690,000×33+1,500,000=24,270,000
 -- ============================================================
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 420000000, 'VND', 1200000, 1300000
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 420000000, 'VND', 1200000, 21600000, 1300000, CURDATE()
 FROM member WHERE login_id = 'nguyen01';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 3000000, 'NPR', 3500000, 1000000
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 3000000, 'NPR', 3500000, 26500000, 1000000, CURDATE()
 FROM member WHERE login_id = 'rai01';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 75000000, 'KHR', 690000, 700000
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 75000000, 'KHR', 690000, 24270000, 700000, CURDATE()
 FROM member WHERE login_id = 'sok01';
 
 -- ============================================================

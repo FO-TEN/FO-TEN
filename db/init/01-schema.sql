@@ -77,13 +77,20 @@ CREATE TABLE financial_info (
 -- goal — 귀국 목표 (복수 목표 제외 범위이므로 회원당 1건)
 --
 -- target_baseline_amount 은 "목표기준액" — 목표 달성에 필요한 월 저축액의 고정 스냅샷이다.
---   계산: (target_amount − 스냅샷 시점의 현재자산) / 남은개월수
+--   계산: (target_amount_krw − 스냅샷 시점의 현재자산) / 남은개월수
 --   재계산 시점: target_amount 또는 stay_info.expected_return_date 가 바뀔 때만.
 --   financial_info.current_savings 가 매달 갱신된다고 해서 이 값을 같이 재계산하지 않는다 —
 --   월별 채점 기준이 매달 흔들리면 미달성이 잘게 쪼개져 흡수되어 "성적 나쁨" 신호가
 --   사라지는 문제가 확인되었다 (팀 시뮬레이션으로 검증됨).
---   달성률(achievementRate)의 분모는 반드시 이 값이다 — monthly_required_saving 을 쓰면
---   채점 기준 자체가 매달 흔들려 무의미해진다.
+--   (예전엔 achievementRate의 분모도 이 값(× 경과개월)이었지만, 목표 생성 시점과 로드맵
+--   시작 시점이 어긋난 시드에서 비정상적으로 큰 값이 나오는 문제가 있어 target_amount_krw
+--   기준으로 바뀌었다 — 아래 target_amount_krw 설명 참고. 이 컬럼 자체는 여전히
+--   monthly_saving_plan 배분 등 다른 곳에서 채점 기준으로 쓰인다.)
+--
+-- target_amount_krw 는 목표금액(target_amount)을 온보딩 시점 환율로 KRW 환산한 고정
+--   스냅샷이다. 환율이 나중에 바뀌어도 이 값은 고정된다(target_baseline_amount와 같은 원칙).
+--   achievementRate(달성률)의 분모는 반드시 이 값이다 — 목표기준액×경과개월을 쓰면
+--   목표 생성 시점과 로드맵 시작 시점이 어긋날 때 값이 크게 왜곡된다.
 --
 -- monthly_required_saving 은 "필요저축액" — 유동값이며 사용자 입력이 아니다.
 --   매달 배치로 재계산되어 이 컬럼에 갱신되고, goal 도메인 BE는 저장된 값을 SELECT 만 한다.
@@ -95,6 +102,7 @@ CREATE TABLE goal (
     target_amount               DECIMAL(14,0) NOT NULL,   -- 목표 금액 (본국 통화 기준)
     target_currency              VARCHAR(3)    NOT NULL,   -- 예: VND, NPR
     target_baseline_amount        DECIMAL(12,0) NOT NULL,  -- 목표기준액 (고정 스냅샷, KRW)
+    target_amount_krw             DECIMAL(14,0) NOT NULL,  -- 목표금액의 KRW 환산 고정 스냅샷 (achievementRate 분모)
     monthly_required_saving         DECIMAL(12,0) NOT NULL DEFAULT 0,  -- 필요저축액 (유동, 배치 계산값, KRW)
     created_at                        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at                        DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP

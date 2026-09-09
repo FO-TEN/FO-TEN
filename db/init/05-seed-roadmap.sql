@@ -89,8 +89,11 @@ FROM member WHERE login_id = 'lan01';
 -- 실제로는 온보딩 절차가 계산해서 넣어야 하지만 그 절차가 이 계정을 거치지 않으므로
 -- 여기서 대신 채운다). monthly_required_saving 은 "죽은 컬럼"이라 초기값만 채우고
 -- product 도메인이 이후 갱신한다.
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 300000000, 'VND', 500000, 500000
+-- created_at = @lan01_start(entry_date/로드맵 start_date와 동일 — 온보딩일 = 목표를 세운
+-- 시점). target_amount_krw는 target_baseline_amount로부터 역산: remainingMonths=23-1=22,
+-- 500,000×22+1,200,000=12,200,000.
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 300000000, 'VND', 500000, 12200000, 500000, @lan01_start
 FROM member WHERE login_id = 'lan01';
 
 -- 행동기반 우대조건 6개 중 KB Global Star 적금(product_id=3)에 걸리는 3개만 TRUE —
@@ -276,8 +279,9 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2400000, 850000, 350000, 1200000
 FROM member WHERE login_id = 'lan02';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 300000000, 'VND', 500000, 500000
+-- created_at = @lan02_start — lan01과 같은 이유·같은 역산(target_amount_krw=12,200,000).
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 300000000, 'VND', 500000, 12200000, 500000, @lan02_start
 FROM member WHERE login_id = 'lan02';
 
 INSERT IGNORE INTO member_rate_condition_response (member_id, condition_code, will_meet)
@@ -436,8 +440,9 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2400000, 850000, 350000, 1200000
 FROM member WHERE login_id = 'lan03';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 300000000, 'VND', 500000, 500000
+-- created_at = @lan03_start — 같은 이유·같은 역산(target_amount_krw=12,200,000).
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 300000000, 'VND', 500000, 12200000, 500000, @lan03_start
 FROM member WHERE login_id = 'lan03';
 
 INSERT IGNORE INTO member_rate_condition_response (member_id, condition_code, will_meet)

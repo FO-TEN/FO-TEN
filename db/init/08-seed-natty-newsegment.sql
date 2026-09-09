@@ -58,8 +58,12 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2500000, 300000, 626604, 400000
 FROM member WHERE login_id = 'natty04';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 1200000000, 'VND', 1092287, 1092287
+-- created_at = @natty04_start — natty03과 같은 이유·같은 역산(target_amount_krw=62,660,359).
+-- 지금까지는 created_at을 안 넣어 INSERT 시점(오늘)이 기본값으로 들어갔는데, @natty04_start
+-- (어제-12개월)와 크게 어긋나 remainingMonths가 실제보다 훨씬 짧게 잡히면서 achievementRate가
+-- 비정상적으로 튀는 버그의 대표 사례였다.
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 1200000000, 'VND', 1092287, 62660359, 1092287, @natty04_start
 FROM member WHERE login_id = 'natty04';
 
 -- natty02 실제 응답과 동일: 카드결제·해외송금만 TRUE.

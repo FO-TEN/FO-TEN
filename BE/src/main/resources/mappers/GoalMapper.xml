@@ -10,6 +10,7 @@
                target_amount,
                target_currency,
                target_baseline_amount,
+               target_amount_krw,
                monthly_required_saving,
                created_at,
                updated_at
@@ -18,12 +19,13 @@
     </select>
 
     <insert id="upsert" parameterType="com.foten.goal.domain.Goal">
-        INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount)
-        VALUES (#{memberId}, #{targetAmount}, #{targetCurrency}, #{targetBaselineAmount}) AS newrow
+        INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw)
+        VALUES (#{memberId}, #{targetAmount}, #{targetCurrency}, #{targetBaselineAmount}, #{targetAmountKrw}) AS newrow
         ON DUPLICATE KEY UPDATE
                              target_amount = newrow.target_amount,
                              target_currency = newrow.target_currency,
-                             target_baseline_amount = newrow.target_baseline_amount
+                             target_baseline_amount = newrow.target_baseline_amount,
+                             target_amount_krw = newrow.target_amount_krw
     </insert>
 
     <update id="updateMonthlyRequiredSaving">
