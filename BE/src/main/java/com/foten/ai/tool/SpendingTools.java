@@ -46,7 +46,7 @@ public class SpendingTools implements ToolProvider {
                         "getSpendingBreakdown",
                         """
                         이번 달 소비를 항목별 도넛 그래프 카드로 보여줍니다.
-                        "전체 내역 볼래" "항목별로 다 보여줘" "소비 내역 보여줘" 처럼
+                        "전체 소비 내역 보기" "전체 내역 볼래" "항목별로 다 보여줘" "소비 내역 보여줘" 처럼
                         목록 전체를 펼쳐 달라고 할 때만 씁니다.
                         항목 하나로 답이 끝나는 질문에는 절대 쓰지 않습니다.
                         "제일 많이 쓴 항목" "가장 큰 비중" "식비 얼마" 는 모두 getSpendingSummary 입니다.
@@ -131,7 +131,7 @@ public class SpendingTools implements ToolProvider {
         // 며칠까지인지는 이 답에 꼭 필요한 값이 아니라 아예 말하지 않게 한다.
         sb.append("- 날짜 범위는 말하지 마세요. \"이번 달\" 이라고만 합니다.\n");
         sb.append("- 전체 금액만 한 문장으로 말하고 아래 카드를 보라고 알려주세요.\n");
-        sb.append("- 예: \"이번 달 834,650원 쓰셨어요. 항목별로는 아래에서 확인해 보세요.\"\n");
+        sb.append("- 예: \"이번 달 834,650원 쓰셨습니다. 항목별로는 아래에서 확인해 주세요.\"\n");
         sb.append("- 소비가 늘거나 줄어든 이유는 이 결과에 없습니다. 지어내지 마세요.\n");
         return sb.toString();
     }

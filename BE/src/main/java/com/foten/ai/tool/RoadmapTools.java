@@ -78,7 +78,8 @@ public class RoadmapTools implements ToolProvider{
                         "로드맵 업데이트하기" 처럼 갱신해 달라는 말도 여기입니다. 무엇을 바꿀지
                         되묻지 마세요 — 이번 달 상황을 봐야 이번 달에 정할 것이 무엇인지 알 수 있고,
                         그것이 곧 갱신입니다.
-                        목표를 이룰 수 있는지 묻는 질문은 diagnoseGoal 을 씁니다.
+                        목표를 이룰 수 있는지, 이번 달에 얼마나 모을 수 있는지, 어디서 소비를 줄일 수
+                        있는지 묻는 질문은 diagnoseGoal 을 씁니다.
                         이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
                         """,
                         (arguments, context) -> describeStatus(
