@@ -95,7 +95,7 @@
 
   "chat.title": "फोटेन",
   "chat.greeting": "नमस्ते, {name}।\nयो महिनाको बचत सँगै हेरौँ?",
-  "chat.chip_roadmap": "रोडम्याप बनाउनुहोस्",
+  "chat.chip_roadmap_intro": "रोडम्याप बुझ्ने",
   "chat.chip_spending": "मेरो खर्च हेर्ने",
   "chat.chip_goal": "लक्ष्य बदल्ने",
   "chat.chip_roadmap_update": "रोडम्याप अपडेट गर्नुहोस्",

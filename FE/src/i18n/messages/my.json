@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "မင်္ဂလာပါ {name}။\nဒီလ ငွေစုကို အတူကြည့်မလား?",
-  "chat.chip_roadmap": "စုငွေအစီအစဉ် ဖန်တီးရန်",
+  "chat.chip_roadmap_intro": "လမ်းပြမြေပုံ လေ့လာရန်",
   "chat.chip_spending": "ကျွန်ုပ်အသုံးစရိတ် ကြည့်ရန်",
   "chat.chip_goal": "ပန်းတိုင်ပြောင်းရန်",
   "chat.chip_roadmap_update": "စုငွေအစီအစဉ် အပ်ဒိတ်လုပ်ရန်",

@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Olá, {name}.\nMai ita haree poupansa fulan ida-ne'e hamutuk?",
-  "chat.chip_roadmap": "Halo roadmap",
+  "chat.chip_roadmap_intro": "Hatene mapa dalan",
   "chat.chip_spending": "Haree ha'u-nia gastu",
   "chat.chip_goal": "Troka objetivu",
   "chat.chip_roadmap_update": "Atualiza roadmap",

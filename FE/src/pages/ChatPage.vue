@@ -129,7 +129,7 @@ function moodFor(m) {
 
 const showGreeting = computed(() => !chat.hasHistory)
 
-// 첫 화면 칩. 첫 칩은 opener 가 정한다: 로드맵 없음 → "로드맵 만들기", 있음 → "로드맵 업데이트하기"
+// 첫 화면 칩. 첫 칩은 opener 가 정한다: 로드맵 없음 → "로드맵 알아보기", 있음 → "로드맵 업데이트하기"
 // 상태를 못 읽었으면 첫 칩은 빼고 나머지 둘만 낸다
 const staticChips = computed(() => {
   const chips = []
@@ -156,7 +156,8 @@ async function loadOpener() {
       if (guidedThisMonth()) return
       opener.value = { key: 'chat.chip_roadmap_update', message: '로드맵 업데이트하기' }
     } else {
-      opener.value = { key: 'chat.chip_roadmap', message: '내 로드맵 만들기' }
+      // 누르면 홈 "로드맵 생성하기" 와 같은 소개 턴
+      opener.value = { key: 'chat.chip_roadmap_intro', intro: true }
     }
   } catch {
     /* 상태를 못 읽으면 띄우지 않는다. 잘못 짚느니 없는 편이 낫다 */
@@ -192,7 +193,14 @@ async function pickChip(s) {
   await ask(s.value)
 }
 async function useOpener() {
-  await ask(opener.value.message)
+  const o = opener.value
+  if (o.intro) {
+    // 칩 문구를 사용자 말풍선으로 남기고 소개 턴을 잇는다
+    chat.pushLocal({ role: 'USER', contentKo: dict.ko[o.key], contentLocal: t(o.key) })
+    showRoadmapIntro()
+    return
+  }
+  await ask(o.message)
 }
 
 // 우대조건은 여러 개를 골라 한 번에 보낸다. 서버가 그 종류로 내려주면 버튼 대신 체크박스로 그린다.

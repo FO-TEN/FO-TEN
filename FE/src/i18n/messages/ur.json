@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "سلام، {name}۔\nاس ماہ کی بچت مل کر دیکھیں؟",
-  "chat.chip_roadmap": "روڈ میپ بنائیں",
+  "chat.chip_roadmap_intro": "روڈ میپ کے بارے میں جانیں",
   "chat.chip_spending": "میرے اخراجات دیکھیں",
   "chat.chip_goal": "ہدف بدلیں",
   "chat.chip_roadmap_update": "روڈ میپ اپ ڈیٹ کریں",

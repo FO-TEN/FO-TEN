@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Салам, {name}.\nБул айдагы топтоону чогуу көрөбүзбү?",
-  "chat.chip_roadmap": "Жол картасын түзүү",
+  "chat.chip_roadmap_intro": "Жол картасы менен таанышуу",
   "chat.chip_spending": "Чыгашамды көрүү",
   "chat.chip_goal": "Максатты өзгөртүү",
   "chat.chip_roadmap_update": "Жол картасын жаңыртуу",

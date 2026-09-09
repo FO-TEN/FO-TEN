@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "สวัสดี {name}\nมาดูเงินเก็บเดือนนี้ด้วยกันไหม?",
-  "chat.chip_roadmap": "สร้างแผนออม",
+  "chat.chip_roadmap_intro": "รู้จักแผนการออม",
   "chat.chip_spending": "ดูรายจ่ายของฉัน",
   "chat.chip_goal": "เปลี่ยนเป้าหมาย",
   "chat.chip_roadmap_update": "อัปเดตแผนออม",

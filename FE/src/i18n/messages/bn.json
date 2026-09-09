@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "হ্যালো, {name}।\nএই মাসের সঞ্চয় একসাথে দেখি?",
-  "chat.chip_roadmap": "রোডম্যাপ তৈরি করুন",
+  "chat.chip_roadmap_intro": "রোডম্যাপ সম্পর্কে জানুন",
   "chat.chip_spending": "আমার খরচ দেখুন",
   "chat.chip_goal": "লক্ষ্য বদলান",
   "chat.chip_roadmap_update": "রোডম্যাপ আপডেট করুন",

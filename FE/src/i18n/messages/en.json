@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Hello, {name}.\nShall we look at this month's savings together?",
-  "chat.chip_roadmap": "Create my roadmap",
+  "chat.chip_roadmap_intro": "Learn about roadmaps",
   "chat.chip_spending": "See my spending",
   "chat.chip_goal": "Change my goal",
   "chat.chip_roadmap_update": "Update my roadmap",

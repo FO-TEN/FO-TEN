@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Halo, {name}.\nMau lihat tabungan bulan ini bersama?",
-  "chat.chip_roadmap": "Buat peta tabungan",
+  "chat.chip_roadmap_intro": "Kenali peta jalan",
   "chat.chip_spending": "Lihat pengeluaran saya",
   "chat.chip_goal": "Ubah target",
   "chat.chip_roadmap_update": "Perbarui peta tabungan",

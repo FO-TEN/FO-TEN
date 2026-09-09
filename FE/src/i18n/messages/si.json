@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "ආයුබෝවන් {name}.\nමේ මාසේ ඉතිරිකිරීම එකට බලමුද?",
-  "chat.chip_roadmap": "ඉතුරුම් සැලැස්ම සාදන්න",
+  "chat.chip_roadmap_intro": "මාර්ග සිතියම ගැන දැනගන්න",
   "chat.chip_spending": "මගේ වියදම් බලන්න",
   "chat.chip_goal": "ඉලක්කය වෙනස් කරන්න",
   "chat.chip_roadmap_update": "ඉතුරුම් සැලැස්ම යාවත්කාලීන කරන්න",

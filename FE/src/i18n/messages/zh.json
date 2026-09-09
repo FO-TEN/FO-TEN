@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "{name}，你好。\n一起看看这个月的储蓄吧？",
-  "chat.chip_roadmap": "创建储蓄计划",
+  "chat.chip_roadmap_intro": "了解路线图",
   "chat.chip_spending": "查看我的消费",
   "chat.chip_goal": "更改目标",
   "chat.chip_roadmap_update": "更新储蓄计划",

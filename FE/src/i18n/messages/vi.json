@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Chào {name}.\nCùng xem tiết kiệm tháng này nhé?",
-  "chat.chip_roadmap": "Tạo lộ trình",
+  "chat.chip_roadmap_intro": "Tìm hiểu lộ trình",
   "chat.chip_spending": "Xem chi tiêu của tôi",
   "chat.chip_goal": "Đổi mục tiêu",
   "chat.chip_roadmap_update": "Cập nhật lộ trình",

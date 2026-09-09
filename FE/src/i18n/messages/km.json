@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "សួស្តី {name}។\nមើលការសន្សំខែនេះជាមួយគ្នាទេ?",
-  "chat.chip_roadmap": "បង្កើតផែនការសន្សំ",
+  "chat.chip_roadmap_intro": "ស្វែងយល់ពីផែនទី",
   "chat.chip_spending": "មើលការចំណាយរបស់ខ្ញុំ",
   "chat.chip_goal": "ប្តូរគោលដៅ",
   "chat.chip_roadmap_update": "ធ្វើបច្ចុប្បន្នភាពផែនការសន្សំ",

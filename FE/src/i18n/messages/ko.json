@@ -95,7 +95,7 @@
 
   "chat.title": "포텐이",
   "chat.greeting": "{name} 님, 안녕하세요.\n이번 달 저축을 같이 볼까요?",
-  "chat.chip_roadmap": "로드맵 만들기",
+  "chat.chip_roadmap_intro": "로드맵 알아보기",
   "chat.chip_spending": "내 소비 보기",
   "chat.chip_goal": "목표 바꾸기",
   "chat.chip_roadmap_update": "로드맵 업데이트하기",

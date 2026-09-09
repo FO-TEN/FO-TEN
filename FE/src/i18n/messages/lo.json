@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "ສະບາຍດີ {name}.\nມາເບິ່ງເງິນເກັບເດືອນນີ້ນຳກັນບໍ?",
-  "chat.chip_roadmap": "ສ້າງແຜນເກັບເງິນ",
+  "chat.chip_roadmap_intro": "ຮູ້ຈັກແຜນການອອມ",
   "chat.chip_spending": "ເບິ່ງລາຍຈ່າຍຂ້ອຍ",
   "chat.chip_goal": "ປ່ຽນເປົ້າໝາຍ",
   "chat.chip_roadmap_update": "ອັບເດດແຜນເກັບເງິນ",

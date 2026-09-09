@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Салом, {name}.\nПасандози ин моҳро якҷоя бинем?",
-  "chat.chip_roadmap": "Харитаи роҳ сохтан",
+  "chat.chip_roadmap_intro": "Шиносоӣ бо харитаи роҳ",
   "chat.chip_spending": "Хароҷоти манро дидан",
   "chat.chip_goal": "Ҳадафро тағйир додан",
   "chat.chip_roadmap_update": "Харитаи роҳро нав кардан",

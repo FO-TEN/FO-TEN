@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Salom, {name}.\nBu oygi jamgʻarmani birga koʻramizmi?",
-  "chat.chip_roadmap": "Yoʻl xaritasi tuzish",
+  "chat.chip_roadmap_intro": "Yo‘l xaritasi bilan tanishish",
   "chat.chip_spending": "Xarajatlarimni koʻrish",
   "chat.chip_goal": "Maqsadni oʻzgartirish",
   "chat.chip_roadmap_update": "Yoʻl xaritasini yangilash",

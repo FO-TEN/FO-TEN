@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Сайн уу, {name}.\nЭнэ сарын хуримтлалыг хамт харах уу?",
-  "chat.chip_roadmap": "Замын зураг үүсгэх",
+  "chat.chip_roadmap_intro": "Төлөвлөгөөтэй танилцах",
   "chat.chip_spending": "Миний зарлагыг харах",
   "chat.chip_goal": "Зорилго өөрчлөх",
   "chat.chip_roadmap_update": "Замын зургийг шинэчлэх",

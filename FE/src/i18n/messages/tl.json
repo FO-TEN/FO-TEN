@@ -95,7 +95,7 @@
 
   "chat.title": "Foten",
   "chat.greeting": "Kumusta, {name}.\nTingnan natin ang ipon ngayong buwan?",
-  "chat.chip_roadmap": "Gumawa ng roadmap",
+  "chat.chip_roadmap_intro": "Alamin ang roadmap",
   "chat.chip_spending": "Tingnan ang gastos ko",
   "chat.chip_goal": "Baguhin ang layunin",
   "chat.chip_roadmap_update": "I-update ang roadmap",
