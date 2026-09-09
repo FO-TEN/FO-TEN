@@ -269,15 +269,17 @@ function toChat(question) {
 .page {
   display: flex;
   flex-direction: column;
-  min-height: 100dvh;
+  height: 100dvh; /* 화면 높이에 고정하고 .body 만 안에서 스크롤한다 — 헤더·하단바는 화면 밖으로 밀려나지 않는다 */
   background: var(--dash-bg);
 }
 .body {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-height: 0; /* flex 항목 기본 min-height:auto 면 내용만큼 늘어나 overflow-y 가 안 먹는다 */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  padding: 16px var(--page-x) calc(var(--nav-h) + 24px);
+  padding: 16px var(--page-x) 24px; /* 하단바가 더는 .body 위에 겹쳐 뜨지 않아 nav 높이만큼 더 줄 필요가 없다 */
 }
 .hint {
   padding: 40px 0;

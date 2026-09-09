@@ -151,15 +151,13 @@ function goCreate() {
 
 <style scoped>
 .home {
-  min-height: 100dvh;
+  height: 100dvh; /* 화면 높이에 고정하고 .body 만 안에서 스크롤한다 — 헤더·하단바는 화면 밖으로 밀려나지 않는다 */
   display: flex;
   flex-direction: column;
   background: var(--dash-bg);
 }
 .hdr {
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -174,7 +172,9 @@ function goCreate() {
   object-fit: contain;
 }
 .body {
-  flex: 1 0 auto;
+  flex: 1 1 0;
+  min-height: 0; /* flex 항목 기본 min-height:auto 면 내용만큼 늘어나 overflow-y 가 안 먹는다 */
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 14px;
