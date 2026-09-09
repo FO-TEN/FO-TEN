@@ -1,4 +1,4 @@
--- FO:TEN "첫 온보딩 → 첫 달 로드맵 생성" 시연용 계정 — natty01
+-- FO:TEN "첫 온보딩 → 첫 달 로드맵 생성" 시연용 계정 — lin01
 --
 -- natty 시리즈(natty03 일반 월 / natty04·05 구간 전환)는 전부 "이미 몇 달치 이력이 쌓인" 상태를
 -- 재현한다. 이 계정은 그 반대 끝 — 오늘 막 입국해서 처음 가입한 사람이 온보딩을 거쳐 첫 달
@@ -7,8 +7,8 @@
 -- asset_snapshot)·우대조건 응답·대화 이력·거래내역(소비 포함)은 하나도 넣지 않는다 — 전부
 -- 시연 중에 실제 API 가 만들어야 할 행들이다.
 --
--- natty01 은 원래 db/init/ 시드에 없는 수동 생성 계정이라 환경마다 값이 달랐다. 이 파일은
--- 그 계정에 남아있던 데이터를 전부 지우고(아래 DELETE) 여기 적힌 값으로 다시 채운다 —
+-- lin01 은 이 파일에서만 만드는 계정이다. 다시 적용할 때는 이 계정에 남아있던 데이터(시연 중에 만든
+-- 로드맵·대화 포함)를 전부 지우고(아래 DELETE) 여기 적힌 값으로 다시 채운다 —
 -- 다른 계정과 product / exchange_rate 등 마스터 데이터에는 손대지 않는다.
 --
 -- 파일 번호가 09-fix-transaction-balance.sql("모든 시드가 끝난 뒤 가장 마지막에 실행")보다 뒤인
@@ -44,7 +44,7 @@
 --   목표기준액 = (목표금액 KRW 환산 − 현재 저축액) / 57 — 이 파일이 exchange_rate 의 최신 VND
 --   고시값으로 그 자리에서 계산한다(OnboardingServiceImpl.register() 와 같은 순서: 환산은
 --   ROUND(HALF_UP, 0), 나눗셈도 ROUND(HALF_UP, 0)). 02-seed.sql 의 고시값(19.150858 VND/KRW)
---   기준으로는 78,325,433원 / 57 = 1,374,130원, 저축 가능액의 87.5% 다.
+--   기준으로는 78,325,472원 / 57 = 1,374,131원, 저축 가능액의 87.5% 다.
 --   12개월 구간에서 자유적립식 후보는 product 3(한도 500,000) + product 5(한도 3,000,000)이라
 --   현금성 저축 없이 두 상품에 전부 담긴다.
 --   시연 중 온보딩을 다시 밟으면 register() 가 같은 값을 upsert 하고 기준액을 그날 환율로
@@ -62,7 +62,7 @@
 SET NAMES utf8mb4;
 
 -- ============================================================
--- natty01 에 남아있던 데이터 전부 삭제 — FK 자식부터.
+-- lin01 에 남아있던 데이터 전부 삭제 — FK 자식부터.
 -- transaction_history → monthly_saving_allocation → monthly_saving_plan → product_subscription
 -- → asset_snapshot → roadmap_segment → savings_roadmap → member_rate_condition_response
 -- → chat_message → goal → financial_info → stay_info. member 행은 지우지 않고 아래에서
@@ -70,62 +70,62 @@ SET NAMES utf8mb4;
 -- ============================================================
 DELETE th FROM transaction_history th
 JOIN member m ON m.member_id = th.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE msa FROM monthly_saving_allocation msa
 JOIN monthly_saving_plan msp ON msp.monthly_saving_plan_id = msa.monthly_saving_plan_id
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE msp FROM monthly_saving_plan msp
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE ps FROM product_subscription ps
 JOIN member m ON m.member_id = ps.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE ans FROM asset_snapshot ans
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = ans.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE rs FROM roadmap_segment rs
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = rs.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE sr FROM savings_roadmap sr
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE r FROM member_rate_condition_response r
 JOIN member m ON m.member_id = r.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE c FROM chat_message c
 JOIN member m ON m.member_id = c.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE g FROM goal g
 JOIN member m ON m.member_id = g.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE f FROM financial_info f
 JOIN member m ON m.member_id = f.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 DELETE s FROM stay_info s
 JOIN member m ON m.member_id = s.member_id
-WHERE m.login_id = 'natty01';
+WHERE m.login_id = 'lin01';
 
 -- ============================================================
 -- member — 없으면 만들고, 있으면 이름·국적·언어·비밀번호를 이 값으로 덮어쓴다.
 -- ============================================================
 INSERT INTO member (login_id, password, name, nationality, language_code) VALUES
-    ('natty01', '$2b$10$n29e29y3iQykR13fevsGX.0WxzbNMKsG24pxZWsbbOX0NG4rKwaB2', '팜 린', 'VIETNAM', 'vi') AS newrow
+    ('lin01', '$2b$10$n29e29y3iQykR13fevsGX.0WxzbNMKsG24pxZWsbbOX0NG4rKwaB2', '팜 린', 'VIETNAM', 'vi') AS newrow
 ON DUPLICATE KEY UPDATE
     password      = newrow.password,
     name          = newrow.name,
@@ -137,29 +137,29 @@ ON DUPLICATE KEY UPDATE
 -- ============================================================
 INSERT INTO stay_info (member_id, visa_type, entry_date, expected_return_date)
 SELECT member_id, 'E-9', CURDATE(), DATE_ADD(CURDATE(), INTERVAL 58 MONTH)
-FROM member WHERE login_id = 'natty01';
+FROM member WHERE login_id = 'lin01';
 
 -- ============================================================
 -- financial_info — 위 출처의 평균값. 저축 가능액 1,570,000원/월.
 -- ============================================================
 INSERT INTO financial_info (member_id, monthly_income, monthly_living_cost, monthly_remittance, current_savings)
 SELECT member_id, 2700000, 400000, 730000, 0
-FROM member WHERE login_id = 'natty01';
+FROM member WHERE login_id = 'lin01';
 
 -- ============================================================
 -- goal — 15억 VND. 목표기준액은 exchange_rate 의 최신 VND 고시값으로 계산한다
 -- (02-seed.sql 이 먼저 실행되어 항상 값이 있지만, 혹시 없으면 같은 파일의 오늘 고시값
 -- 19.150858 로 대체한다). 첫 달이라 필요저축액 = 목표기준액.
 -- ============================================================
-SET @natty01_target_vnd := 1500000000;
-SET @natty01_current_savings := 0;
-SET @natty01_remaining_months := 57;
-SET @natty01_vnd_rate := COALESCE(
+SET @lin01_target_vnd := 1500000000;
+SET @lin01_current_savings := 0;
+SET @lin01_remaining_months := 57;
+SET @lin01_vnd_rate := COALESCE(
     (SELECT rate FROM exchange_rate WHERE currency_code = 'VND' ORDER BY base_date DESC LIMIT 1),
     19.150858);
-SET @natty01_target_krw := ROUND(@natty01_target_vnd / @natty01_vnd_rate, 0);
-SET @natty01_baseline := ROUND((@natty01_target_krw - @natty01_current_savings) / @natty01_remaining_months, 0);
+SET @lin01_target_krw := ROUND(@lin01_target_vnd / @lin01_vnd_rate, 0);
+SET @lin01_baseline := ROUND((@lin01_target_krw - @lin01_current_savings) / @lin01_remaining_months, 0);
 
-INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, @natty01_target_vnd, 'VND', @natty01_baseline, @natty01_baseline
-FROM member WHERE login_id = 'natty01';
+INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving)
+SELECT member_id, @lin01_target_vnd, 'VND', @lin01_baseline, @lin01_target_krw, @lin01_baseline
+FROM member WHERE login_id = 'lin01';
