@@ -82,6 +82,7 @@ public class OnboardingServiceImpl implements OnboardingService{
                 .targetAmount(request.targetAmount())
                 .targetCurrency(currencyCode)
                 .targetBaselineAmount(calculated.targetBaselineAmount())
+                .targetAmountKrw(converted.krwAmount())
                 .build()
         );
 

@@ -29,8 +29,10 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2400000, 850000, 350000, 1200000
 FROM member WHERE login_id = 'err01';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 300000000, 'VND', 500000, 500000
+-- 로드맵이 아예 없는 "막 온보딩한" 상태라 created_at=오늘(entry_date는 입국일일 뿐 목표를
+-- 세운 시점과는 무관). remainingMonths=23-1=22 → target_amount_krw=500,000×22+1,200,000=12,200,000.
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 300000000, 'VND', 500000, 12200000, 500000, CURDATE()
 FROM member WHERE login_id = 'err01';
 
 -- savings_roadmap 은 절대 만들지 않는다 — 이게 이 계정의 핵심이다.
@@ -54,8 +56,11 @@ INSERT IGNORE INTO financial_info (member_id, monthly_income, monthly_living_cos
 SELECT member_id, 2400000, 850000, 350000, 1200000
 FROM member WHERE login_id = 'err02';
 
-INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, 300000000, 'VND', 500000, 500000
+-- created_at = 로드맵 start_date(=오늘-13개월)와 동일 — 온보딩일 = 목표를 세운 시점.
+-- remainingMonths=Period(오늘-13개월, 오늘+11개월)=24-1=23 → target_amount_krw=
+-- 500,000×23+1,200,000=12,700,000.
+INSERT IGNORE INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
+SELECT member_id, 300000000, 'VND', 500000, 12700000, 500000, DATE_SUB(CURDATE(), INTERVAL 13 MONTH)
 FROM member WHERE login_id = 'err02';
 
 -- 로드맵 계열은 자연키가 없어 err02 것만 지우고 다시 넣는다. 이 계정엔 product_subscription/
