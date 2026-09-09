@@ -158,6 +158,7 @@
   "card.roadmap_after": "{n}개월 뒤",
   "card.roadmap_total_mid": "만 원 + 예상 이자 약 ",
   "card.roadmap_total_suffix": "만 원",
+  "card.roadmap_total_full": "원 + 예상 이자 약 {i}원",
 
   "spending.title": "{m}월 소비",
   "spending.until_day": "{m}월 {d}일까지",
