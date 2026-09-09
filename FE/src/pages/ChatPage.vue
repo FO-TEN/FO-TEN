@@ -14,7 +14,6 @@ import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
 import RoadmapStepsCard from '../components/ui/RoadmapStepsCard.vue'
 import SegmentDetailCard from '../components/ui/SegmentDetailCard.vue'
 import SpendingCard from '../components/ui/SpendingCard.vue'
-import sendIcon from '../assets/icons/send.svg'
 import { messages as dict } from '../i18n'
 import { ROADMAP_EXAMPLE } from '../data/roadmapExample'
 
@@ -119,14 +118,6 @@ function chipLabel(s) {
 // 구간 상세 카드가 "지난달 실적"(ACTUAL)이 목표기준액보다 낮다고 보여주는 바로 그 메시지만
 // 곤란한 표정으로 — 문구를 뒤져서 "부족액" 같은 단어를 찾는 대신, 카드가 이미 구조화해둔
 // 값(SegmentDetailCard.vue가 배지 색을 정할 때 쓰는 것과 같은 diff)으로 판단한다.
-function moodFor(m) {
-  if (m.card?.type === 'SEGMENT_DETAIL') {
-    const bar = m.card.payload?.bars?.find((b) => b.type === 'ACTUAL')
-    if (bar && Number(bar.amount) < Number(m.card.payload.baselineAmount)) return 'sorry'
-  }
-  return 'hero'
-}
-
 const showGreeting = computed(() => !chat.hasHistory)
 
 // 첫 화면 칩. 첫 칩은 opener 가 정한다: 로드맵 없음 → "로드맵 알아보기", 있음 → "로드맵 업데이트하기"
@@ -214,7 +205,7 @@ const conditionChips = computed(() =>
 <template>
   <main class="chatpage">
     <header class="hdr">
-      <PotenAvatar :size="28" />
+      <PotenAvatar :size="40" />
       <h1 class="title">{{ t('chat.title') }}</h1>
       <LangSwitch class="switch" />
     </header>
@@ -222,7 +213,7 @@ const conditionChips = computed(() =>
     <div ref="scroller" class="chat">
       <!-- 첫 인사 (이력이 없을 때만) -->
       <div v-if="showGreeting" class="bot">
-        <PotenAvatar :size="32" />
+        <PotenAvatar :size="44" mood="profile" />
         <div class="wrap">
           <div class="bubble bot-b">{{ t('chat.greeting', { name: auth.firstName }) }}</div>
         </div>
@@ -233,7 +224,7 @@ const conditionChips = computed(() =>
           <div class="bubble user-b">{{ text(m) }}</div>
         </div>
         <div v-else class="bot">
-          <PotenAvatar :size="32" :mood="moodFor(m)" />
+          <PotenAvatar :size="44" mood="profile" />
           <div class="wrap">
             <div v-if="m.pending" class="bubble bot-b typing"><span /><span /><span /></div>
             <div v-else class="bubble bot-b">{{ text(m) }}</div>
@@ -282,7 +273,8 @@ const conditionChips = computed(() =>
 
     <form class="inputbar" @submit.prevent="submit">
       <input
-        v-model="draft"
+        :value="draft"
+        @input="draft = $event.target.value"
         class="field"
         :placeholder="t('chat.placeholder')"
         :maxlength="MAX"
@@ -290,7 +282,13 @@ const conditionChips = computed(() =>
         autocomplete="off"
       />
       <button type="submit" class="send" :disabled="!draft.trim() || chat.sending" aria-label="전송">
-        <img :src="sendIcon" alt="" width="42" height="42" />
+        <svg width="42" height="42" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="48" height="48" rx="24" :fill="draft.trim() ? 'var(--on-primary)' : '#292524'" />
+          <g transform="translate(13,13)" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none">
+            <path d="M22 2 11 13" />
+            <path d="M22 2 15 22 11 13 2 9 22 2" />
+          </g>
+        </svg>
       </button>
     </form>
 
@@ -317,7 +315,7 @@ const conditionChips = computed(() =>
 }
 .title {
   flex: 1 0 0;
-  font-size: 22px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.5;
   color: var(--gray-900);
@@ -335,24 +333,45 @@ const conditionChips = computed(() =>
 .bot {
   display: flex;
   align-items: flex-start;
-  gap: 4px;
+  gap: 18px;
 }
 .wrap {
   flex: 1 0 0;
   min-width: 0;
-  padding-top: 26px;
+  padding-top: 34px;
 }
 .bubble {
+  position: relative;
+  z-index: 1;
   padding: 13px 16px;
   font-size: 17px;
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
+  border-radius: 18px;
 }
 .bot-b {
   background: var(--surface-card);
   color: var(--gray-900);
-  border-radius: 4px 18px 18px 18px;
+  border-top-left-radius: 6px;
+}
+.bot-b::before,
+.bot-b::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  width: 14px;
+  height: 16px;
+}
+.bot-b::before {
+  left: -6px;
+  background: var(--surface-card);
+  border-top-right-radius: 12px;
+}
+.bot-b::after {
+  left: -14px;
+  background: var(--chat-bg);
+  border-top-right-radius: 8px;
 }
 .user {
   display: flex;
@@ -360,9 +379,27 @@ const conditionChips = computed(() =>
   padding-left: 60px;
 }
 .user-b {
-  background: var(--gray-900);
+  background: var(--on-primary);
   color: #fff;
-  border-radius: 18px 4px 18px 18px;
+  border-bottom-right-radius: 6px;
+}
+.user-b::before,
+.user-b::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  width: 14px;
+  height: 16px;
+}
+.user-b::before {
+  right: -6px;
+  background: var(--on-primary);
+  border-bottom-left-radius: 12px;
+}
+.user-b::after {
+  right: -14px;
+  background: var(--chat-bg);
+  border-bottom-left-radius: 8px;
 }
 .typing {
   display: inline-flex;
@@ -397,17 +434,22 @@ const conditionChips = computed(() =>
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  padding-left: 32px;
+  padding-left: 62px;
 }
 .chip {
   padding: 10px 16px;
   border-radius: var(--r-pill);
-  background: var(--surface-card);
-  border: 1px solid var(--border-strong);
+  background: var(--chip-bg);
+  border: 1px solid var(--chip-border);
   font-size: 16px;
   font-weight: 500;
   line-height: 1.4;
-  color: var(--gray-900);
+  color: var(--gray-850);
+  transition: background-color 0.15s ease;
+}
+.chip:hover,
+.chip:active {
+  background: var(--chip-border);
 }
 .err-row {
   display: flex;
