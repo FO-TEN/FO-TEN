@@ -85,6 +85,13 @@
   "home.cta_question": "Di mana saya bisa berhemat bulan ini?",
   "home.products_title": "Paket rekomendasi saya",
   "home.products_sub": "Lihat produk dan perkiraan bunga",
+  "home.roadmap_section": "Peta jalan menabung",
+  "home.roadmap_title": "Peta jalan {m}/{y}",
+  "home.roadmap_sub": "Sampai {m}/{y} · {n} bulan · {k} tahap",
+  "home.roadmap_empty_title": "Ayo buat peta jalan menabung",
+  "home.roadmap_empty_sub": "Lihat kapan dan berapa yang perlu ditabung sampai pulang",
+  "home.roadmap_create": "Buat peta jalan",
+  "home.roadmap_unavailable": "Peta jalan tidak dapat dimuat",
 
   "chat.title": "Foten",
   "chat.greeting": "Halo, {name}.\nMau lihat tabungan bulan ini bersama?",

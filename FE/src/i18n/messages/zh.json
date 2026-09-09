@@ -85,6 +85,13 @@
   "home.cta_question": "这个月我可以从哪里省钱？",
   "home.products_title": "我的推荐组合",
   "home.products_sub": "查看产品和预计利息",
+  "home.roadmap_section": "储蓄路线图",
+  "home.roadmap_title": "{y}年{m}月路线图",
+  "home.roadmap_sub": "至{y}年{m}月 · {n}个月 · {k}个阶段",
+  "home.roadmap_empty_title": "一起制定储蓄路线图",
+  "home.roadmap_empty_sub": "一目了然地看到回国前何时存、存多少",
+  "home.roadmap_create": "创建路线图",
+  "home.roadmap_unavailable": "无法加载路线图",
 
   "chat.title": "Foten",
   "chat.greeting": "{name}，你好。\n一起看看这个月的储蓄吧？",

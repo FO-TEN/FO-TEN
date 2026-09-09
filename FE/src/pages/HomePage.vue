@@ -5,24 +5,17 @@ import { useAuthStore } from '../stores/auth'
 import { useDashboardStore } from '../stores/dashboard'
 import { useChatStore } from '../stores/chat'
 import { useLocaleStore } from '../stores/locale'
-import { comma, dday, dotMonth, daysLeftInMonth, todayMonthDay } from '../utils/format'
+import { comma, dday, dotMonth } from '../utils/format'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
-import SavingBars from '../components/ui/SavingBars.vue'
-import CategoryIcon from '../components/ui/CategoryIcon.vue'
 import PotenAvatar from '../components/ui/PotenAvatar.vue'
+import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
+import RoadmapEmptyCard from '../components/ui/RoadmapEmptyCard.vue'
 import logo from '../assets/img/foten_logo.png'
 import ellipse from '../assets/img/hero_ellipse.svg'
-import chev from '../assets/icons/chevron_right.svg'
 
-/*
- * Figma 04c_대시보드 v3(217:3047).
- *  히어로       GET /users/me + 환율 + 진단 achievementRate  ("모은 돈"은 #25 뒤 표시)
- *  이번 달 저축  진단 currentExpectedSaving / maxExpectedSaving / monthlyBaseline / additionalNeeded
- *  줄일 수 있는 곳  진단 topSavingCategory / topSavingAmount (1개)
- *  이번 달 소비  GET /spending?monthsAgo=0  ← "지난달 이맘때보다" 카드 대신 (비교는 안 하기로 함)
- *  CTA          대화 탭으로 이동 + 질문 자동 전송
- */
+// Figma 04d_홈 · 로드맵 / 04d-0_홈 · 로드맵 생성 전 (#121)
+// 저축 로드맵은 /roadmap/status 의 roadmapExists 로 갈린다. 없으면 생성 카드, 있으면 그래프 카드
 const router = useRouter()
 const auth = useAuthStore()
 const dash = useDashboardStore()
@@ -34,8 +27,6 @@ onMounted(() => dash.loadHome())
 
 const me = computed(() => dash.me)
 const dx = computed(() => dash.diagnosis)
-const sp = computed(() => dash.spending[0])
-const md = todayMonthDay()
 
 // 히어로: 모은 돈이 오면 그걸, 아니면 목표 금액을 크게 (#25)
 const heroAmount = computed(() => dash.savedAmount ?? dash.targetKrw)
@@ -74,12 +65,34 @@ const heroLabel = computed(() =>
   dash.savedAmount !== null ? t('home.saved_so_far', { name: auth.firstName }) : t('home.goal_amount_label', { name: auth.firstName }),
 )
 const rate = computed(() => Number(dx.value?.achievementRate ?? 0))
-// additionalNeeded 는 "지금처럼 쓰면" 모자라는 돈이다. "줄여도 모자라요" 문장은 다 줄인 뒤의 차액이어야
-// 하므로 목표(monthlyBaseline) − 최대 예상 저축(maxExpectedSaving) 을 직접 뺀다. 음수면 여유.
-const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number(dx.value.maxExpectedSaving) : null))
 
-function goChat() {
-  chat.queue(t('home.cta_question'))
+// 상태를 읽기 전에는 카드를 그리지 않는다. 생성 카드가 잠깐 떴다가 그래프로 바뀌면 어색하다
+const roadmapLoaded = computed(() => dash.roadmapStatus !== null)
+const hasRoadmap = computed(() => dash.roadmapStatus?.roadmapExists === true)
+const graph = computed(() => dash.roadmapGraph)
+
+// 제목은 보는 달, 부제는 로드맵이 끝나는 달(예상 귀국일 − 1개월) · 총 개월 · 구간 수
+const today = new Date()
+const roadmapTitle = computed(() => t('home.roadmap_title', { y: today.getFullYear(), m: today.getMonth() + 1 }))
+const roadmapEnd = computed(() => {
+  const iso = me.value?.residence?.expectedReturnDate
+  if (!iso) return null
+  const d = new Date(iso + 'T00:00:00')
+  d.setMonth(d.getMonth() - 1)
+  return { y: d.getFullYear(), m: d.getMonth() + 1 }
+})
+const roadmapSub = computed(() =>
+  t('home.roadmap_sub', {
+    y: roadmapEnd.value?.y ?? '—',
+    m: roadmapEnd.value?.m ?? '—',
+    n: graph.value?.totalMonths ?? 0,
+    k: graph.value?.segments?.length ?? 0,
+  }),
+)
+
+// 생성은 대화가 맡는다. 소개 턴 뒤 "내 로드맵 만들기" 칩을 눌러야 서버 흐름이 시작된다
+function goCreate() {
+  chat.queueIntro('roadmap')
   router.push({ name: 'chat' })
 }
 </script>
@@ -113,90 +126,23 @@ function goChat() {
         </div>
       </section>
 
-      <h2 class="sect">{{ t('home.how_this_month') }}</h2>
+      <h2 class="sect">{{ t('home.roadmap_section') }}</h2>
 
-      <!-- 이번 달 저축 -->
-      <section v-if="dx" class="card">
-        <div class="row-between">
-          <div class="col1">
-            <p class="ct">{{ t('home.saving_this_month') }}</p>
-            <p class="cs">{{ t('home.as_of', { m: md.month, d: md.day }) }}</p>
-          </div>
-          <p class="amt"><span class="num mid">{{ comma(dx.currentExpectedSaving) }}</span><span class="won16">{{ t('common.won') }}</span></p>
-        </div>
-        <p class="desc">{{ t('home.if_you_keep') }}</p>
-        <SavingBars
-          :current="dx.currentExpectedSaving"
-          :saving="dx.maxExpectedSaving"
-          :target="dx.monthlyBaseline"
-          :label-current="t('home.bar_now')"
-          :label-saving="t('home.bar_saving')"
-          :label-target="t('home.bar_target')"
-          :unit="t('common.won')"
+      <!-- 저축 로드맵: 없으면 생성 카드, 있으면 그래프 -->
+      <template v-if="roadmapLoaded">
+        <RoadmapEmptyCard v-if="!hasRoadmap" @create="goCreate" />
+        <RoadmapGraphCard
+          v-else-if="graph"
+          :payload="graph"
+          :title="roadmapTitle"
+          :subtitle="roadmapSub"
+          :show-note="false"
+          class="graph"
         />
-        <p v-if="gap > 0" class="warn">{{ t('home.short_even_if', { amt: comma(gap) }) }}</p>
-        <p v-else class="ok">{{ t('home.surplus', { amt: comma(-gap) }) }}</p>
-      </section>
-
-      <!-- 줄일 수 있는 곳 -->
-      <section v-if="dx && dx.topSavingCategory" class="card tight">
-        <div class="row-between pb6">
-          <div class="col1">
-            <p class="ct">{{ t('home.where_to_cut') }}</p>
-            <p class="cs">{{ t('home.days_left_month', { n: daysLeftInMonth() }) }}</p>
-          </div>
-          <p class="amt"><span class="num mid green">+{{ comma(dash.savingRoom) }}</span><span class="won16">{{ t('common.won') }}</span></p>
-        </div>
-        <div class="tip">
-          <div class="tip-l">
-            <CategoryIcon :category="dx.topSavingCategory" />
-            <span class="tip-name">{{ t('cat.' + dx.topSavingCategory) }}</span>
-          </div>
-          <p class="amt"><span class="num semi">−{{ comma(dx.topSavingAmount) }}</span><span class="won14">{{ t('common.won') }}</span></p>
-        </div>
-      </section>
-
-      <!-- 이번 달 소비 (지난달 비교 카드 대신) -->
-      <section v-if="sp" class="card">
-        <div class="row-between">
-          <div class="col1">
-            <p class="ct">{{ t('home.spending_this_month') }}</p>
-            <p class="cs">{{ t('home.until', { m: md.month, d: sp.daysCovered }) }}</p>
-          </div>
-          <p class="amt"><span class="num mid">{{ comma(sp.total) }}</span><span class="won16">{{ t('common.won') }}</span></p>
-        </div>
-        <div v-for="c in sp.categoryTotals.slice(0, 3)" :key="c.category" class="sprow">
-          <span class="spl">{{ t('cat.' + c.category) }}</span>
-          <span class="num spv">{{ comma(c.amount) }} {{ t('common.won') }}</span>
-        </div>
-        <button type="button" class="link" @click="router.push({ name: 'spending' })">{{ t('home.see_all_spending') }} →</button>
-      </section>
-
-      <p v-if="dash.loading && !dx" class="err">{{ t('common.loading') }}</p>
-      <p v-else-if="dash.errorKey && !dx" class="err">{{ t(dash.errorKey) }}</p>
-
-      <!-- CTA -->
-      <button type="button" class="cta light" @click="router.push({ name: 'products' })">
-        <span class="cta-l">
-          <PotenAvatar :size="36" />
-          <span class="cta-t">
-            <span class="c1">{{ t('home.products_title') }}</span>
-            <span class="c2">{{ t('home.products_sub') }}</span>
-          </span>
-        </span>
-        <img :src="chev" alt="" width="16" height="16" />
-      </button>
-
-      <button type="button" class="cta" @click="goChat">
-        <span class="cta-l">
-          <PotenAvatar :size="36" />
-          <span class="cta-t">
-            <span class="c1">{{ t('home.cta_title') }}</span>
-            <span class="c2">{{ t('home.cta_sub') }}</span>
-          </span>
-        </span>
-        <img :src="chev" alt="" width="16" height="16" />
-      </button>
+        <p v-else class="err">{{ t('home.roadmap_unavailable') }}</p>
+      </template>
+      <p v-else-if="dash.loading" class="err">{{ t('common.loading') }}</p>
+      <p v-else-if="dash.errorKey" class="err">{{ t(dash.errorKey) }}</p>
     </div>
 
     <BottomNav />
@@ -358,158 +304,17 @@ function goChat() {
   line-height: 1.4;
 }
 
-/* 카드 공통 */
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 20px;
+/* 대화 카드 기본값을 홈 카드 규격으로 */
+.graph {
+  margin-top: 0;
+  padding: 20px 20px 18px;
   border-radius: var(--r-card-lg);
-  background: var(--surface-card);
-}
-.card.tight {
-  gap: 0;
-}
-.row-between {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-.pb6 {
-  padding-bottom: 6px;
-}
-.col1 {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  line-height: 1.4;
-}
-.ct {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--gray-850);
-}
-.cs {
-  font-size: 14px;
-  color: var(--gray-400);
-}
-.mid {
-  font-size: 24px;
-  font-weight: 700;
-  line-height: 28px;
-  letter-spacing: -0.12px;
-  color: var(--gray-850);
-}
-.mid.green {
-  color: var(--green);
-}
-.won16 {
-  font-size: 16px;
-  color: var(--gray-700);
-}
-.won14 {
-  font-size: 14px;
-  color: var(--gray-700);
-}
-.desc {
-  font-size: 16px;
-  color: var(--gray-700);
-  line-height: 1.4;
-}
-.warn {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--orange);
-}
-.ok {
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--green);
-}
-.tip {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-}
-.tip-l {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.tip-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: var(--gray-850);
-}
-.semi {
-  font-size: 18px;
-  font-weight: 600;
-  line-height: 22px;
-  color: var(--gray-850);
 }
 
-.sprow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  font-size: 15px;
-}
-.spl {
-  flex: 1 0 0;
-  color: var(--gray-700);
-}
-.spv {
-  font-weight: 600;
-  color: var(--gray-850);
-}
-.link {
-  align-self: flex-start;
-  font-size: 14px;
-  font-weight: 500;
-  color: var(--yellow-link);
-}
 .err {
   font-size: 14px;
   color: var(--gray-500);
   text-align: center;
   padding: 12px;
-}
-
-/* CTA */
-.cta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 14px 14px 16px;
-  border-radius: var(--r-cta);
-  background: var(--yellow-100);
-  text-align: left;
-}
-/* 추천 조합 행은 흰 카드로, 대화 행(노랑)과 구분한다 */
-.cta.light {
-  background: var(--surface-card);
-  border: 1px solid var(--border-soft);
-}
-.cta-l {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.cta-t {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.4;
-}
-.c1 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--gray-850);
-}
-.c2 {
-  font-size: 14px;
-  color: var(--gray-500);
 }
 </style>

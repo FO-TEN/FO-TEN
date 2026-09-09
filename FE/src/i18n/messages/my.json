@@ -85,6 +85,13 @@
   "home.cta_question": "ဒီလ ဘယ်နေရာ ချွေတာနိုင်မလဲ?",
   "home.products_title": "ကျွန်ုပ်၏ အကြံပြုပေါင်းစပ်မှု",
   "home.products_sub": "ထုတ်ကုန်နှင့် ခန့်မှန်းအတိုး ကြည့်ရန်",
+  "home.roadmap_section": "စုငွေလမ်းပြမြေပုံ",
+  "home.roadmap_title": "{y} ခုနှစ် {m} လ လမ်းပြမြေပုံ",
+  "home.roadmap_sub": "{y}/{m} အထိ · {n} လ · {k} အဆင့်",
+  "home.roadmap_empty_title": "စုငွေလမ်းပြမြေပုံ ဖန်တီးကြရအောင်",
+  "home.roadmap_empty_sub": "အိမ်ပြန်ချိန်အထိ ဘယ်တော့ ဘယ်လောက်စုရမလဲ တစ်နေရာတည်းမှာ ကြည့်ပါ",
+  "home.roadmap_create": "လမ်းပြမြေပုံ ဖန်တီးမည်",
+  "home.roadmap_unavailable": "လမ်းပြမြေပုံ ဖွင့်၍မရပါ",
 
   "chat.title": "Foten",
   "chat.greeting": "မင်္ဂလာပါ {name}။\nဒီလ ငွေစုကို အတူကြည့်မလား?",

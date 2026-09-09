@@ -85,6 +85,13 @@
   "home.cta_question": "এই মাসে আমি কোথায় খরচ কমাতে পারি?",
   "home.products_title": "আমার প্রস্তাবিত সমন্বয়",
   "home.products_sub": "পণ্য ও প্রত্যাশিত সুদ দেখুন",
+  "home.roadmap_section": "সঞ্চয় রোডম্যাপ",
+  "home.roadmap_title": "{m}/{y} রোডম্যাপ",
+  "home.roadmap_sub": "{m}/{y} পর্যন্ত · {n} মাস · {k} ধাপ",
+  "home.roadmap_empty_title": "চলুন সঞ্চয় রোডম্যাপ তৈরি করি",
+  "home.roadmap_empty_sub": "দেশে ফেরা পর্যন্ত কখন কত সঞ্চয় করবেন এক নজরে দেখুন",
+  "home.roadmap_create": "রোডম্যাপ তৈরি করুন",
+  "home.roadmap_unavailable": "রোডম্যাপ লোড করা যায়নি",
 
   "chat.title": "Foten",
   "chat.greeting": "হ্যালো, {name}।\nএই মাসের সঞ্চয় একসাথে দেখি?",

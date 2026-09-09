@@ -85,6 +85,13 @@
   "home.cta_question": "이번 달 어디서 줄일 수 있을까?",
   "home.products_title": "내 추천 조합",
   "home.products_sub": "상품과 예상 이자 보기",
+  "home.roadmap_section": "저축 로드맵",
+  "home.roadmap_title": "{y}년 {m}월 로드맵",
+  "home.roadmap_sub": "{y}년 {m}월까지 · {n}개월 · {k}구간",
+  "home.roadmap_empty_title": "저축 로드맵을 만들어요",
+  "home.roadmap_empty_sub": "귀국까지 언제 얼마씩 넣을지 한눈에 보여드려요",
+  "home.roadmap_create": "로드맵 생성하기",
+  "home.roadmap_unavailable": "로드맵을 불러오지 못했어요",
 
   "chat.title": "포텐이",
   "chat.greeting": "{name} 님, 안녕하세요.\n이번 달 저축을 같이 볼까요?",

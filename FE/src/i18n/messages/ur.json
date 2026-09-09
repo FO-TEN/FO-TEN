@@ -85,6 +85,13 @@
   "home.cta_question": "اس مہینے میں کہاں کمی کر سکتا ہوں؟",
   "home.products_title": "میرا تجویز کردہ مجموعہ",
   "home.products_sub": "پروڈکٹس اور متوقع سود دیکھیں",
+  "home.roadmap_section": "بچت روڈ میپ",
+  "home.roadmap_title": "{m}/{y} روڈ میپ",
+  "home.roadmap_sub": "{m}/{y} تک · {n} ماہ · {k} مراحل",
+  "home.roadmap_empty_title": "آئیے بچت کا روڈ میپ بنائیں",
+  "home.roadmap_empty_sub": "گھر واپسی تک کب اور کتنی بچت کرنی ہے ایک نظر میں دیکھیں",
+  "home.roadmap_create": "روڈ میپ بنائیں",
+  "home.roadmap_unavailable": "روڈ میپ لوڈ نہیں ہو سکا",
 
   "chat.title": "Foten",
   "chat.greeting": "سلام، {name}۔\nاس ماہ کی بچت مل کر دیکھیں؟",

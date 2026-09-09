@@ -85,6 +85,13 @@
   "home.cta_question": "ខែនេះខ្ញុំអាចកាត់បន្ថយត្រង់ណាបាន?",
   "home.products_title": "កញ្ចប់ណែនាំរបស់ខ្ញុំ",
   "home.products_sub": "មើលផលិតផល និងការប្រាក់ប៉ាន់ស្មាន",
+  "home.roadmap_section": "ផែនទីសន្សំ",
+  "home.roadmap_title": "ផែនទីសន្សំខែ {m}/{y}",
+  "home.roadmap_sub": "ដល់ {m}/{y} · {n} ខែ · {k} ដំណាក់កាល",
+  "home.roadmap_empty_title": "តោះបង្កើតផែនទីសន្សំ",
+  "home.roadmap_empty_sub": "មើលថាត្រូវសន្សំពេលណា និងប៉ុន្មានរហូតដល់ថ្ងៃត្រឡប់ទៅផ្ទះ",
+  "home.roadmap_create": "បង្កើតផែនទីសន្សំ",
+  "home.roadmap_unavailable": "មិនអាចផ្ទុកផែនទីសន្សំបានទេ",
 
   "chat.title": "Foten",
   "chat.greeting": "សួស្តី {name}។\nមើលការសន្សំខែនេះជាមួយគ្នាទេ?",

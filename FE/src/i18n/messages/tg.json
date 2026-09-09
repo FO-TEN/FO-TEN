@@ -85,6 +85,13 @@
   "home.cta_question": "Ин моҳ аз куҷо сарфа кунам?",
   "home.products_title": "Маҷмӯаи тавсияшудаи ман",
   "home.products_sub": "Дидани маҳсулот ва фоизи тахминӣ",
+  "home.roadmap_section": "Харитаи роҳи пасандоз",
+  "home.roadmap_title": "Харитаи роҳи {m}/{y}",
+  "home.roadmap_sub": "То {m}/{y} · {n} моҳ · {k} марҳила",
+  "home.roadmap_empty_title": "Биёед харитаи роҳи пасандоз созем",
+  "home.roadmap_empty_sub": "То бозгашт ба хона кай ва чӣ қадар пасандоз карданро дар як ҷо бинед",
+  "home.roadmap_create": "Сохтани харитаи роҳ",
+  "home.roadmap_unavailable": "Харитаи роҳ бор нашуд",
 
   "chat.title": "Foten",
   "chat.greeting": "Салом, {name}.\nПасандози ин моҳро якҷоя бинем?",

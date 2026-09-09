@@ -85,6 +85,13 @@
   "home.cta_question": "Бул айда кайдан үнөмдөй алам?",
   "home.products_title": "Менин сунушталган топтомум",
   "home.products_sub": "Продукттар жана күтүлгөн пайызды көрүү",
+  "home.roadmap_section": "Топтоо жол картасы",
+  "home.roadmap_title": "{y}-ж. {m}-ай жол картасы",
+  "home.roadmap_sub": "{y}/{m} чейин · {n} ай · {k} этап",
+  "home.roadmap_empty_title": "Топтоо жол картасын түзөлү",
+  "home.roadmap_empty_sub": "Үйгө кайтканга чейин качан жана канча топтоону бир жерден көрүңүз",
+  "home.roadmap_create": "Жол картасын түзүү",
+  "home.roadmap_unavailable": "Жол картасы жүктөлгөн жок",
 
   "chat.title": "Foten",
   "chat.greeting": "Салам, {name}.\nБул айдагы топтоону чогуу көрөбүзбү?",

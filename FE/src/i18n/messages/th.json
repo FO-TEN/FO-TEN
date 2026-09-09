@@ -85,6 +85,13 @@
   "home.cta_question": "เดือนนี้ฉันประหยัดตรงไหนได้บ้าง?",
   "home.products_title": "แพ็กเกจแนะนำของฉัน",
   "home.products_sub": "ดูผลิตภัณฑ์และดอกเบี้ยคาดการณ์",
+  "home.roadmap_section": "แผนการออม",
+  "home.roadmap_title": "แผนการออมเดือน {m}/{y}",
+  "home.roadmap_sub": "ถึง {m}/{y} · {n} เดือน · {k} ช่วง",
+  "home.roadmap_empty_title": "มาสร้างแผนการออมกัน",
+  "home.roadmap_empty_sub": "ดูว่าต้องออมเมื่อไหร่และเท่าไหร่จนถึงวันกลับบ้าน",
+  "home.roadmap_create": "สร้างแผนการออม",
+  "home.roadmap_unavailable": "โหลดแผนการออมไม่สำเร็จ",
 
   "chat.title": "Foten",
   "chat.greeting": "สวัสดี {name}\nมาดูเงินเก็บเดือนนี้ด้วยกันไหม?",

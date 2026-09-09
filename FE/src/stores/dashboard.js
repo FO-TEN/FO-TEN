@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { goalApi, memberApi, spendingApi, exchangeApi } from '../api'
+import { goalApi, memberApi, spendingApi, exchangeApi, roadmapApi } from '../api'
 import { nationalityOf } from '../i18n'
 import { errorKey } from '../api/http'
 
@@ -21,6 +21,9 @@ export const useDashboardStore = defineStore('dashboard', {
     diagnosis: null,
     fx: null,
     spending: {}, // monthsAgo → 응답
+    // 홈 저축 로드맵 (#121). status 는 로드맵이 없어도 200, graph 는 있을 때만 (챗봇 ROADMAP 카드와 같은 모양)
+    roadmapStatus: null,
+    roadmapGraph: null,
     loading: false,
     /*
      * 실패 안내는 문구가 아니라 i18n 키로 들고 있는다. 여기서 t()로 문구를 확정해 저장하면
@@ -80,14 +83,30 @@ export const useDashboardStore = defineStore('dashboard', {
       return data
     },
 
-    // 대시보드 첫 진입: 셋을 병렬로. 하나가 실패해도 나머지는 그린다.
+    // 상태 → 있으면 그래프까지. 그래프만 실패하면 상태는 남긴다
+    async loadRoadmap(force = false) {
+      if (this.roadmapStatus && !force) return this.roadmapStatus
+      this.roadmapStatus = await roadmapApi.status()
+      if (this.roadmapStatus?.roadmapExists) {
+        try {
+          this.roadmapGraph = await roadmapApi.graph()
+        } catch {
+          this.roadmapGraph = null
+        }
+      } else {
+        this.roadmapGraph = null
+      }
+      return this.roadmapStatus
+    },
+
+    // 대시보드 첫 진입: 병렬로. 하나가 실패해도 나머지는 그린다.
     async loadHome(force = false) {
       this.loading = true
       this.errorKey = ''
       const results = await Promise.allSettled([
         this.loadMe(force).then(() => this.loadFx()),
         this.loadDiagnosis(force),
-        this.loadSpending(0, force),
+        this.loadRoadmap(force),
       ])
       const failed = results.find((r) => r.status === 'rejected')
       if (failed) {
@@ -115,6 +134,8 @@ export const useDashboardStore = defineStore('dashboard', {
       this.diagnosis = null
       this.fx = null
       this.spending = {}
+      this.roadmapStatus = null
+      this.roadmapGraph = null
     },
   },
 })

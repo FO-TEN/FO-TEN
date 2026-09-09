@@ -85,6 +85,13 @@
   "home.cta_question": "Saan ako puwedeng magtipid ngayong buwan?",
   "home.products_title": "Ang aking inirekomendang kombinasyon",
   "home.products_sub": "Tingnan ang mga produkto at inaasahang interes",
+  "home.roadmap_section": "Roadmap ng ipon",
+  "home.roadmap_title": "Roadmap ng {m}/{y}",
+  "home.roadmap_sub": "Hanggang {m}/{y} · {n} buwan · {k} yugto",
+  "home.roadmap_empty_title": "Gumawa tayo ng roadmap ng ipon",
+  "home.roadmap_empty_sub": "Tingnan kung kailan at magkano ang iipunin hanggang sa pag-uwi",
+  "home.roadmap_create": "Gumawa ng roadmap",
+  "home.roadmap_unavailable": "Hindi ma-load ang roadmap",
 
   "chat.title": "Foten",
   "chat.greeting": "Kumusta, {name}.\nTingnan natin ang ipon ngayong buwan?",

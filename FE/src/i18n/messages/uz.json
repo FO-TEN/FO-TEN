@@ -85,6 +85,13 @@
   "home.cta_question": "Bu oy qayerda tejashim mumkin?",
   "home.products_title": "Mening tavsiya toʻplamim",
   "home.products_sub": "Mahsulotlar va kutilayotgan foizni koʻrish",
+  "home.roadmap_section": "Jamg‘arma yo‘l xaritasi",
+  "home.roadmap_title": "{y}/{m} yo‘l xaritasi",
+  "home.roadmap_sub": "{y}/{m} gacha · {n} oy · {k} bosqich",
+  "home.roadmap_empty_title": "Jamg‘arma yo‘l xaritasini tuzamiz",
+  "home.roadmap_empty_sub": "Uyga qaytguncha qachon va qancha jamg‘arishni bir joyda ko‘ring",
+  "home.roadmap_create": "Yo‘l xaritasini yaratish",
+  "home.roadmap_unavailable": "Yo‘l xaritasini yuklab bo‘lmadi",
 
   "chat.title": "Foten",
   "chat.greeting": "Salom, {name}.\nBu oygi jamgʻarmani birga koʻramizmi?",

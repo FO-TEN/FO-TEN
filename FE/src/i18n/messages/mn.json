@@ -85,6 +85,13 @@
   "home.cta_question": "Энэ сард хаанаас хэмнэж болох вэ?",
   "home.products_title": "Миний санал болгох багц",
   "home.products_sub": "Бүтээгдэхүүн ба таамаг хүүг харах",
+  "home.roadmap_section": "Хуримтлалын төлөвлөгөө",
+  "home.roadmap_title": "{y} оны {m}-р сарын төлөвлөгөө",
+  "home.roadmap_sub": "{y}/{m} хүртэл · {n} сар · {k} үе шат",
+  "home.roadmap_empty_title": "Хуримтлалын төлөвлөгөө гаргая",
+  "home.roadmap_empty_sub": "Нутаг буцах хүртэл хэзээ хэдийг хадгалахаа нэг дор харна",
+  "home.roadmap_create": "Төлөвлөгөө үүсгэх",
+  "home.roadmap_unavailable": "Төлөвлөгөөг ачаалж чадсангүй",
 
   "chat.title": "Foten",
   "chat.greeting": "Сайн уу, {name}.\nЭнэ сарын хуримтлалыг хамт харах уу?",

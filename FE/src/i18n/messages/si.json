@@ -85,6 +85,13 @@
   "home.cta_question": "මේ මාසේ මට කොහෙන් අඩු කරන්න පුළුවන්?",
   "home.products_title": "මගේ නිර්දේශිත සංයෝජනය",
   "home.products_sub": "නිෂ්පාදන සහ අපේක්ෂිත පොලිය බලන්න",
+  "home.roadmap_section": "ඉතුරුම් මාර්ග සිතියම",
+  "home.roadmap_title": "{y}/{m} මාර්ග සිතියම",
+  "home.roadmap_sub": "{y}/{m} දක්වා · මාස {n} · අදියර {k}",
+  "home.roadmap_empty_title": "ඉතුරුම් මාර්ග සිතියමක් සාදමු",
+  "home.roadmap_empty_sub": "ගෙදර යන තුරු කවදා කොපමණ ඉතුරු කරන්නද කියා එකවර බලන්න",
+  "home.roadmap_create": "මාර්ග සිතියම සාදන්න",
+  "home.roadmap_unavailable": "මාර්ග සිතියම පූරණය කළ නොහැක",
 
   "chat.title": "Foten",
   "chat.greeting": "ආයුබෝවන් {name}.\nමේ මාසේ ඉතිරිකිරීම එකට බලමුද?",

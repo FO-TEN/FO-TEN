@@ -85,6 +85,13 @@
   "home.cta_question": "यो महिना कहाँ खर्च घटाउन सक्छु?",
   "home.products_title": "मेरो सिफारिस संयोजन",
   "home.products_sub": "उत्पादन र अनुमानित ब्याज हेर्ने",
+  "home.roadmap_section": "बचत रोडम्याप",
+  "home.roadmap_title": "{y} साल {m} महिनाको रोडम्याप",
+  "home.roadmap_sub": "{y}/{m} सम्म · {n} महिना · {k} चरण",
+  "home.roadmap_empty_title": "बचत रोडम्याप बनाऔं",
+  "home.roadmap_empty_sub": "घर फर्कनुअघि कहिले कति बचत गर्ने एकै ठाउँमा हेर्नुहोस्",
+  "home.roadmap_create": "रोडम्याप बनाउनुहोस्",
+  "home.roadmap_unavailable": "रोडम्याप लोड गर्न सकिएन",
 
   "chat.title": "फोटेन",
   "chat.greeting": "नमस्ते, {name}।\nयो महिनाको बचत सँगै हेरौँ?",

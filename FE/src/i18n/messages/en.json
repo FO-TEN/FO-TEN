@@ -85,6 +85,13 @@
   "home.cta_question": "Where can I cut back this month?",
   "home.products_title": "My recommended mix",
   "home.products_sub": "See products and expected interest",
+  "home.roadmap_section": "Savings roadmap",
+  "home.roadmap_title": "{m}/{y} roadmap",
+  "home.roadmap_sub": "Through {m}/{y} · {n} months · {k} periods",
+  "home.roadmap_empty_title": "Let's build your savings roadmap",
+  "home.roadmap_empty_sub": "See when and how much to save until you go home",
+  "home.roadmap_create": "Create roadmap",
+  "home.roadmap_unavailable": "Couldn't load the roadmap",
 
   "chat.title": "Foten",
   "chat.greeting": "Hello, {name}.\nShall we look at this month's savings together?",

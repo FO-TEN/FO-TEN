@@ -85,6 +85,13 @@
   "home.cta_question": "Fulan ida-ne'e ha'u bele hamenus iha ne'ebé?",
   "home.products_title": "Ha’u-nia kombinasaun rekomendadu",
   "home.products_sub": "Haree produtu no juru estimadu",
+  "home.roadmap_section": "Mapa dalan poupansa",
+  "home.roadmap_title": "Mapa dalan {m}/{y}",
+  "home.roadmap_sub": "To’o {m}/{y} · fulan {n} · faze {k}",
+  "home.roadmap_empty_title": "Mai ita harii mapa dalan poupansa",
+  "home.roadmap_empty_sub": "Haree bainhira no hira mak tenke rai to’o fila ba uma",
+  "home.roadmap_create": "Kria mapa dalan",
+  "home.roadmap_unavailable": "La bele karrega mapa dalan",
 
   "chat.title": "Foten",
   "chat.greeting": "Olá, {name}.\nMai ita haree poupansa fulan ida-ne'e hamutuk?",

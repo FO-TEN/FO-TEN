@@ -85,6 +85,13 @@
   "home.cta_question": "ເດືອນນີ້ຂ້ອຍປະຢັດບ່ອນໃດໄດ້?",
   "home.products_title": "ຊຸດແນະນຳຂອງຂ້ອຍ",
   "home.products_sub": "ເບິ່ງຜະລິດຕະພັນ ແລະ ດອກເບ້ຍຄາດຄະເນ",
+  "home.roadmap_section": "ແຜນການອອມ",
+  "home.roadmap_title": "ແຜນການອອມເດືອນ {m}/{y}",
+  "home.roadmap_sub": "ຮອດ {m}/{y} · {n} ເດືອນ · {k} ໄລຍະ",
+  "home.roadmap_empty_title": "ມາສ້າງແຜນການອອມກັນ",
+  "home.roadmap_empty_sub": "ເບິ່ງວ່າຕ້ອງອອມເມື່ອໃດ ແລະ ເທົ່າໃດຈົນຮອດມື້ກັບບ້ານ",
+  "home.roadmap_create": "ສ້າງແຜນການອອມ",
+  "home.roadmap_unavailable": "ໂຫຼດແຜນການອອມບໍ່ໄດ້",
 
   "chat.title": "Foten",
   "chat.greeting": "ສະບາຍດີ {name}.\nມາເບິ່ງເງິນເກັບເດືອນນີ້ນຳກັນບໍ?",
