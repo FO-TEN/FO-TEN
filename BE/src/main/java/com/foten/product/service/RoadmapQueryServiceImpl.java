@@ -160,15 +160,42 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                 : BigDecimal.ZERO;
         boolean hasShortfall = shortfallAmount.signum() > 0;
 
-        // STEP 10. 결과 조립. rolloverAmount(지난 구간에서 모은 돈)는 구간을 실제로 마감하는 로직이
-        // 아직 없어서 항상 null — 그 로직을 만들 때 함께 채운다.
+        // STEP 10. 결과 조립. rolloverAmount(지난 구간에서 모은 돈)는 구간이 끝나 전환을 기다리는
+        // 달에만 미리 계산해 준다 — 대화가 채울 방식을 묻기 전에 "지난 구간에서 모은 돈"을 먼저
+        // 알려줘야 해서다. 전환 커밋(RoadmapCommandServiceImpl STEP 3-A)과 같은 식이고 저장은 없다.
         String flowType = pendingSegmentTransition ? "NEW_SEGMENT" : "REGULAR_MONTH";
         BigDecimal lastMonthActualAmount = latestSnapshot.map(AssetSnapshotVO::getMonthlyPayment).orElse(null);
+        BigDecimal rolloverAmount = pendingSegmentTransition
+                ? previewRolloverAmount(segment.getSegmentId(), cashSavingBalance)
+                : null;
 
         return new RoadmapStatus(
                 true, flowType, cycleNo, segment.getSegmentNo(), segment.getIsLastSegment(),
                 pendingSegmentTransition, lastMonthActualAmount, hasShortfall,
-                hasShortfall ? shortfallAmount : null, null, baselineAmount, requiredAmount);
+                hasShortfall ? shortfallAmount : null, rolloverAmount, baselineAmount, requiredAmount);
+    }
+
+    // 구간을 마감하면 손에 쥐게 될 목돈(§7-2) = 구독별 (원금 + 세후 만기 이자) 합 + 그 구간 마지막
+    // 현금성 저축액. 전환 커밋과 같은 식이라 대화에서 말한 금액과 실제 예금 원금이 어긋나지 않는다.
+    private BigDecimal previewRolloverAmount(long segmentId, BigDecimal cashSavingBalance) {
+        BigDecimal lumpSum = BigDecimal.ZERO;
+        for (ProductSubscriptionVO subscription : productSubscriptionMapper.selectActiveBySegment(segmentId)) {
+            BigDecimal principal;
+            BigDecimal preTaxInterest;
+            if (ROLLOVER_DEPOSIT.equals(subscription.getSubscriptionRole())) {
+                principal = subscription.getInitialPrincipal();
+                preTaxInterest = roadmapCalculationService.calculateDepositInterest(
+                        principal, subscription.getExpectedAppliedRate(), subscription.getTermMonths());
+            } else {
+                List<SavingsPaymentRecord> payments =
+                        transactionHistoryMapper.selectSavingsPaymentsBySubscription(subscription.getProductSubscriptionId());
+                principal = payments.stream().map(SavingsPaymentRecord::amount).reduce(BigDecimal.ZERO, BigDecimal::add);
+                preTaxInterest = roadmapCalculationService.calculateSavingsInterest(
+                        payments, subscription.getExpectedAppliedRate(), subscription.getMaturityDate());
+            }
+            lumpSum = lumpSum.add(principal).add(roadmapCalculationService.calculateAfterTaxInterest(preTaxInterest));
+        }
+        return lumpSum.add(cashSavingBalance);
     }
 
     @Override
@@ -575,8 +602,18 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         BigDecimal futureAmount = SPREAD.equals(currentPlan.getDeficitChoice())
                 ? currentPlan.getRequiredSnapshot() : status.baselineAmount();
 
+        // 지난달 막대는 지난달이 이 구간에 속할 때만 그린다. 구간이 막 바뀐 첫 달의 지난달은 지난
+        // 구간 마지막 달이라, 새 구간 계획과 나란히 놓으면 다른 기준의 금액을 견주게 된다.
+        RoadmapSegmentVO activeSegment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
+                .orElseThrow(() -> new IllegalStateException(
+                        "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
+        boolean lastMonthInSegment = monthlySavingPlanMapper
+                .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth.minusMonths(1))
+                .map(p -> Objects.equals(p.getSegmentId(), activeSegment.getSegmentId()))
+                .orElse(false);
+
         List<SegmentDetail.Bar> bars = new ArrayList<>();
-        if (status.lastMonthActualAmount() != null) {
+        if (status.lastMonthActualAmount() != null && lastMonthInSegment) {
             bars.add(new SegmentDetail.Bar("지난달", "ACTUAL", status.lastMonthActualAmount()));
         }
         bars.add(new SegmentDetail.Bar("이번 달", "PLAN", currentPlan.getMonthlySavingAmount()));
