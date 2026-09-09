@@ -2,12 +2,13 @@
 import { ref, computed, onMounted, watch } from 'vue'
 import { useDashboardStore } from '../stores/dashboard'
 import { useLocaleStore } from '../stores/locale'
-import { comma, won, ym } from '../utils/format'
+import { won, ym } from '../utils/format'
 import { errorKey } from '../api/http'
 import AppHeader from '../components/layout/AppHeader.vue'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
 import SpendingDonut from '../components/ui/SpendingDonut.vue'
+import SpendingLegend from '../components/ui/SpendingLegend.vue'
 
 /*
  * Figma 09_소비 내역(217:1874).
@@ -109,13 +110,8 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
             <span class="fname">{{ t('spending.top_categories') }}</span>
           </div>
           <SpendingDonut v-if="data.categoryTotals.length" :categories="data.categoryTotals" :total="data.total" />
-          <div class="rows">
-            <div v-for="c in data.categoryTotals" :key="c.category" class="r">
-              <span class="rl">{{ t('cat.' + c.category) }}</span>
-              <span class="rv num">{{ won(c.amount) }}</span>
-            </div>
-            <p v-if="!data.categoryTotals.length" class="empty">{{ t('spending.none') }}</p>
-          </div>
+          <SpendingLegend v-if="data.categoryTotals.length" :categories="data.categoryTotals" />
+          <p v-else class="empty">{{ t('spending.none') }}</p>
         </section>
 
         <!-- 이번 달 저축 예상 (진단 API) -->
@@ -131,11 +127,16 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
               <p class="bv num">{{ won(dx.maxExpectedSaving) }}</p>
             </div>
           </div>
-          <p class="sentence">
-            <template v-if="dx.topSavingCategory">{{ t('spending.tip', { cat: t('cat.' + dx.topSavingCategory), amt: won(dash.savingRoom) }) }} </template>
-            <template v-if="gap > 0">{{ t('spending.short', { goal: won(dx.monthlyBaseline), amt: won(gap) }) }}</template>
-            <template v-else>{{ t('spending.enough', { goal: won(dx.monthlyBaseline) }) }}</template>
-          </p>
+          <!--
+            두 문장을 한 문단에 담으면 붙어서 나온다. <template> 안에 넣은 뒤 공백은
+            Vue 가 빌드할 때 지운다("...모을 수 있어요.줄이면 목표..."). 서로 다른 이야기이니
+            줄을 나눈다 — 하나는 무엇을 줄이라는 말이고, 하나는 그래서 목표에 닿느냐는 말이다.
+          -->
+          <div class="sentences">
+            <p v-if="dx.topSavingCategory">{{ t('spending.tip', { cat: t('cat.' + dx.topSavingCategory), amt: won(dash.savingRoom) }) }}</p>
+            <p v-if="gap > 0">{{ t('spending.short', { goal: won(dx.monthlyBaseline), amt: won(gap) }) }}</p>
+            <p v-else>{{ t('spending.enough', { goal: won(dx.monthlyBaseline) }) }}</p>
+          </div>
         </section>
       </template>
     </div>
@@ -247,26 +248,6 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   font-weight: 700;
   color: var(--gray-900);
 }
-.rows {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 12px;
-  font-size: 14px;
-  line-height: 1.45;
-}
-.r {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.rl {
-  flex: 1 0 0;
-  color: var(--gray-700);
-}
-.rv {
-  color: var(--gray-900);
-}
 .empty {
   font-size: 14px;
   color: var(--gray-400);
@@ -306,7 +287,10 @@ const gap = computed(() => (dx.value ? Number(dx.value.monthlyBaseline) - Number
   font-weight: 700;
   color: var(--gray-900);
 }
-.sentence {
+.sentences {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   padding-top: 12px;
   font-size: 14px;
   line-height: 1.45;
