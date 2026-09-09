@@ -7,6 +7,14 @@
       "runtimeArgs": ["run", "dev"],
       "cwd": "FE",
       "port": 5173
+    },
+    {
+      "name": "fe-dev-host",
+      "autoPort": true,
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--host", "0.0.0.0"],
+      "cwd": "FE",
+      "port": 5174
     }
   ]
 }

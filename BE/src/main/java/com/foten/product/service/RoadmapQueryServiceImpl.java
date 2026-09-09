@@ -396,7 +396,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
                 .add(last.interestAmount()).add(last.cashAmount())
                 .subtract(finalAmount);
 
-        return new RoadmapGraph(roadmap.getTotalMonths(), summaries, finalAmount, expectedInterestTotal);
+        return new RoadmapGraph(roadmap.getTotalMonths(), summaries, finalAmount, expectedInterestTotal, latestPlan.getPlanMonth());
     }
 
     // 완료 구간 — 전부 실제 값. 적금 원금은 실제 납입 합, 예금 원금은 initial_principal,

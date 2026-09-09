@@ -5,7 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import { useDashboardStore } from '../stores/dashboard'
 import { useChatStore } from '../stores/chat'
 import { useLocaleStore } from '../stores/locale'
-import { comma, dday, dotMonth } from '../utils/format'
+import { comma, dday, dotMonth, ym } from '../utils/format'
 import { today as clockToday, serverToday } from '../utils/clock'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
@@ -75,7 +75,14 @@ const graph = computed(() => dash.roadmapGraph)
 // 제목은 보는 달, 부제는 로드맵이 끝나는 달(예상 귀국일 − 1개월) · 총 개월 · 구간 수
 // 서버 "오늘"(시연 계정은 미래 날짜)을 따른다. serverToday 를 읽어 값이 바뀌면 다시 계산된다.
 const today = computed(() => (serverToday.value, clockToday()))
-const roadmapTitle = computed(() => t('home.roadmap_title', { y: today.value.getFullYear(), m: today.value.getMonth() + 1 }))
+// 제목의 달 = 가장 최근에 확정한 회차의 달(그래프 API latestPlanMonth). 이번 달 계획을 아직 확정하지 않았으면
+// 지난달 로드맵으로 보이고, 확정하면 이번 달로 바뀐다. 값이 없으면(온보딩 직후) 오늘의 달.
+const roadmapTitle = computed(() => {
+  const latest = graph.value?.latestPlanMonth ? ym(graph.value.latestPlanMonth) : null
+  const y = latest?.year ?? today.value.getFullYear()
+  const m = latest?.month ?? today.value.getMonth() + 1
+  return t('home.roadmap_title', { y, m })
+})
 const roadmapEnd = computed(() => {
   const iso = me.value?.residence?.expectedReturnDate
   if (!iso) return null

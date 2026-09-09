@@ -6,7 +6,8 @@ import vue from '@vitejs/plugin-vue'
 export default defineConfig({
   plugins: [vue()],
   server: {
-    port: 5173,
+    // PORT 환경변수가 있으면 그 포트(프리뷰 도구·컨테이너용), 없으면 5173.
+    port: Number(process.env.PORT) || 5173,
     proxy: {
       '/api': {
         target: 'http://localhost:8080',
