@@ -11,6 +11,8 @@ import { computed } from 'vue'
  */
 const props = defineProps({
   label: { type: String, required: true },
+  // 'md' 14px(로그인) / 'lg' 16px(회원가입 · 온보딩 — 항목이 많아 라벨을 조금 더 키운다)
+  labelSize: { type: String, default: 'md' },
   modelValue: { type: [String, Number], default: '' },
   type: { type: String, default: 'text' },
   unit: { type: String, default: '' },
@@ -38,7 +40,7 @@ function onMoney(e) {
 
 <template>
   <label class="input">
-    <span class="lbl">{{ label }}</span>
+    <span class="lbl" :class="labelSize">{{ label }}</span>
     <span class="field" :class="{ err: !!error }">
       <select
         v-if="type === 'select'"
@@ -88,6 +90,10 @@ function onMoney(e) {
   font-size: 14px;
   font-weight: 500;
   color: var(--gray-700);
+}
+.lbl.lg {
+  font-size: 16px;
+  font-weight: 700;
 }
 .field {
   display: flex;

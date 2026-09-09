@@ -59,6 +59,21 @@ watch(
   },
   { immediate: true },
 )
+
+// 3단계는 목표를 본국 통화로 생각하는 게 자연스러워 원화 대신 본국 통화를 기본값으로 둔다.
+// "수정"(prefill)이거나 이미 값을 적었으면 건드리지 않는다 — 처음 들어왔을 때 한 번만 바꾼다.
+// 2단계 칸별 단위(financeUnits)는 이 토글과 별개라 원화 기본값이 그대로 유지된다.
+let targetUnitDefaulted = false
+watch(
+  () => step.value,
+  (s) => {
+    if (s === 3 && !fromMe.value && !targetUnitDefaulted && ob.targetAmount === '' && ob.targetUnit === 'KRW') {
+      targetUnitDefaulted = true
+      ob.targetUnit = ob.currency.code
+    }
+  },
+  { immediate: true },
+)
 const fxDate = computed(() => {
   const d = ob.rateDate
   return d ? `${d.slice(5, 7)}.${d.slice(8, 10)}` : ''
@@ -66,7 +81,7 @@ const fxDate = computed(() => {
 // 2단계 네 칸. 칸 밑에는 항상 반대쪽 통화 금액을 보여준다 — 원으로 적으면 "≈ 48,147,268 ₫", 본국 통화로 적으면 "≈ ₩2,500,000".
 const financeFields = [
   { key: 'monthlyIncome', label: 'onboarding.income' },
-  { key: 'currentSavings', label: 'onboarding.savings', hint: 'onboarding.savings_hint' },
+  { key: 'currentSavings', label: 'onboarding.savings' },
   { key: 'monthlyRemittance', label: 'onboarding.remit' },
   { key: 'monthlyLivingCost', label: 'onboarding.fixed' },
 ]
@@ -153,10 +168,11 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
 
       <!-- 1 · 체류 정보 -->
       <template v-if="step === 1">
-        <BaseInput v-model="ob.entryDate" :label="t('onboarding.entry')" type="date" />
+        <BaseInput v-model="ob.entryDate" :label="t('onboarding.entry')" label-size="lg" type="date" />
         <BaseInput
           v-model="ob.expectedReturnDate"
           :label="t('onboarding.return')"
+          label-size="lg"
           type="date"
           :hint="t('onboarding.return_hint')"
           :error="ob.entryDate && ob.expectedReturnDate && ob.entryDate >= ob.expectedReturnDate ? t('onboarding.return_err') : ''"
@@ -175,6 +191,7 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
           :key="f.key"
           v-model="ob[f.key]"
           :label="t(f.label)"
+          label-size="lg"
           type="money"
           :hint="financeHint(f)"
         >
@@ -187,15 +204,11 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
             />
           </template>
         </BaseInput>
-        <div class="note">
-          <p class="n1">{{ t('onboarding.s2.note1') }}</p>
-          <p class="n2">{{ t('onboarding.s2.note2') }}</p>
-        </div>
       </template>
 
       <!-- 3 · 목표 설정 -->
       <template v-else>
-        <BaseInput v-model="ob.targetAmount" :label="t('onboarding.target')" type="money">
+        <BaseInput v-model="ob.targetAmount" :label="t('onboarding.target')" label-size="lg" type="money">
           <template #unit>
             <!-- 원(기본) ↔ 본국 통화. 환율이 없으면 본국 통화로 고정(백엔드는 본국 통화만 받는다). -->
             <UnitSwitch :model-value="ob.targetUnit" :currency="ob.currency" :disabled="!ob.rate" @update:model-value="ob.setUnit" />
@@ -333,8 +346,13 @@ const mood = { 1: 'hero', 2: 'wink', 3: 'happy' }
   font-size: 15px;
 }
 .fxdate {
+  flex: 0 0 auto;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  background: var(--yellow-50);
   font-size: 12px;
-  color: var(--gray-400);
+  font-weight: 700;
+  color: var(--on-primary);
 }
 .error {
   font-size: 14px;

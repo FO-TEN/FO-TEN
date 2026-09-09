@@ -84,11 +84,12 @@ async function submit() {
 
       <div class="form">
         <!-- 이름이 맨 위. 아이디·비밀번호 사이에 두면 비밀번호를 이름 칸에 치는 실수가 나왔다. -->
-        <BaseInput v-model="form.name" :label="locale.t('signup.name')" autocomplete="name" :maxlength="50" />
-        <BaseInput v-model="form.loginId" :label="locale.t('login.id')" autocomplete="username" :maxlength="50" />
+        <BaseInput v-model="form.name" :label="locale.t('signup.name')" label-size="lg" autocomplete="name" :maxlength="50" />
+        <BaseInput v-model="form.loginId" :label="locale.t('login.id')" label-size="lg" autocomplete="username" :maxlength="50" />
         <BaseInput
           v-model="form.password"
           :label="locale.t('login.pw')"
+          label-size="lg"
           type="password"
           autocomplete="new-password"
           :hint="locale.t('signup.pw_hint')"
@@ -97,6 +98,7 @@ async function submit() {
         <BaseInput
           v-model="form.nationality"
           :label="locale.t('signup.nationality')"
+          label-size="lg"
           type="select"
           :options="nationalityOptions"
           :placeholder="locale.t('common.select')"
@@ -104,6 +106,7 @@ async function submit() {
         <BaseInput
           v-model="form.languageCode"
           :label="locale.t('signup.language')"
+          label-size="lg"
           type="select"
           :options="languageOptions"
           :placeholder="locale.t('common.select')"
