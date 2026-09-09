@@ -120,7 +120,7 @@
   "detail.bar_actual": "Oʻtgan oy",
   "detail.bar_plan": "Bu oy",
   "detail.bar_future": "Keyingi oydan",
-  "detail.sub": "Oʻtgan oy · bu oy · keyingi oydan",
+  "detail.sub": "O'tgan oydagi jamg'arma bilan solishtirib, kelgusi rejani ko'rsatamiz",
   "detail.now": "Hozir",
   "detail.plan": "Reja",
   "detail.baseline": "Maqsad {v}",

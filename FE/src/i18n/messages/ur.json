@@ -120,7 +120,7 @@
   "detail.bar_actual": "پچھلا مہینہ",
   "detail.bar_plan": "یہ مہینہ",
   "detail.bar_future": "اگلے مہینے سے",
-  "detail.sub": "پچھلا مہینہ · یہ مہینہ · اگلے مہینے سے",
+  "detail.sub": "پچھلے مہینے کی بچت سے موازنہ کر کے آگے کا منصوبہ بتاتے ہیں",
   "detail.now": "ابھی",
   "detail.plan": "منصوبہ",
   "detail.baseline": "ہدف {v}",

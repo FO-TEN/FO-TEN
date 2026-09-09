@@ -120,7 +120,7 @@
   "detail.bar_actual": "ខែមុន",
   "detail.bar_plan": "ខែនេះ",
   "detail.bar_future": "ចាប់ពីខែក្រោយ",
-  "detail.sub": "ខែមុន · ខែនេះ · ចាប់ពីខែក្រោយ",
+  "detail.sub": "ប្រៀបធៀបជាមួយសន្សំខែមុន ដើម្បីប្រាប់អំពីផែនការខាងមុខ",
   "detail.now": "ឥឡូវ",
   "detail.plan": "ផែនការ",
   "detail.baseline": "គោលដៅ {v}",

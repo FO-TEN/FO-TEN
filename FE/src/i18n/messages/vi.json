@@ -120,7 +120,7 @@
   "detail.bar_actual": "Tháng trước",
   "detail.bar_plan": "Tháng này",
   "detail.bar_future": "Từ tháng sau",
-  "detail.sub": "Tháng trước · tháng này · từ tháng sau",
+  "detail.sub": "So sánh với khoản tiết kiệm tháng trước để cho biết kế hoạch sắp tới",
   "detail.now": "Hiện tại",
   "detail.plan": "Kế hoạch",
   "detail.baseline": "Mục tiêu {v}",

@@ -120,7 +120,7 @@
   "detail.bar_actual": "Last month",
   "detail.bar_plan": "This month",
   "detail.bar_future": "From next month",
-  "detail.sub": "Last month · this month · from next month",
+  "detail.sub": "Comparing with last month's savings, here's your plan ahead",
   "detail.now": "Now",
   "detail.plan": "Plan",
   "detail.baseline": "Target {v}",

@@ -120,7 +120,7 @@
   "detail.bar_actual": "Nakaraang buwan",
   "detail.bar_plan": "Ngayong buwan",
   "detail.bar_future": "Mula sa susunod",
-  "detail.sub": "Nakaraang buwan · ngayong buwan · mula sa susunod",
+  "detail.sub": "Ikinukumpara sa ipon noong nakaraang buwan para ipakita ang plano sa hinaharap",
   "detail.now": "Ngayon",
   "detail.plan": "Plano",
   "detail.baseline": "Target {v}",

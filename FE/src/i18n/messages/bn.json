@@ -120,7 +120,7 @@
   "detail.bar_actual": "গত মাস",
   "detail.bar_plan": "এই মাস",
   "detail.bar_future": "পরের মাস থেকে",
-  "detail.sub": "গত মাস · এই মাস · পরের মাস থেকে",
+  "detail.sub": "গত মাসের সঞ্চয়ের সাথে তুলনা করে সামনের পরিকল্পনা জানাই",
   "detail.now": "এখন",
   "detail.plan": "পরিকল্পনা",
   "detail.baseline": "লক্ষ্য {v}",

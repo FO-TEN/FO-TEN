@@ -120,7 +120,7 @@
   "detail.bar_actual": "පසුගිය මාසය",
   "detail.bar_plan": "මේ මාසය",
   "detail.bar_future": "ඊළඟ මාසයේ සිට",
-  "detail.sub": "පසුගිය මාසය · මේ මාසය · ඊළඟ මාසයේ සිට",
+  "detail.sub": "පසුගිය මාසයේ ඉතිරිකිරීම හා සසඳා ඉදිරි සැලැස්ම පෙන්වයි",
   "detail.now": "දැන්",
   "detail.plan": "සැලැස්ම",
   "detail.baseline": "ඉලක්කය {v}",

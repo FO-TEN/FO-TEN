@@ -120,7 +120,7 @@
   "detail.bar_actual": "ເດືອນແລ້ວ",
   "detail.bar_plan": "ເດືອນນີ້",
   "detail.bar_future": "ຕັ້ງແຕ່ເດືອນໜ້າ",
-  "detail.sub": "ເດືອນແລ້ວ · ເດືອນນີ້ · ຕັ້ງແຕ່ເດືອນໜ້າ",
+  "detail.sub": "ປຽບທຽບກັບເງິນຝາກປະຢັດເດືອນແລ້ວ ເພື່ອບອກແຜນການຂ້າງໜ້າ",
   "detail.now": "ຕອນນີ້",
   "detail.plan": "ແຜນ",
   "detail.baseline": "ເປົ້າໝາຍ {v}",
