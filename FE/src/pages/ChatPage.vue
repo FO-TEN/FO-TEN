@@ -78,8 +78,17 @@ function showRoadmapIntro() {
       steps: true,
     })
     introChips.value = [{ key: 'chat.chip_roadmap_make', message: '내 로드맵 만들기' }]
-    scrollBottom()
+    scrollToLatestTurn()
   }, INTRO_TYPING_MS)
+}
+
+// 소개 턴은 화면보다 길다. 맨 아래로 내리면 말풍선이 위로 밀려 가려지므로 턴의 첫 줄이 위에 오게 맞춘다.
+async function scrollToLatestTurn() {
+  await nextTick()
+  const box = scroller.value
+  const turn = box ? [...box.querySelectorAll('.bot')].pop() : null
+  if (!box || !turn) return
+  box.scrollTop += turn.getBoundingClientRect().top - box.getBoundingClientRect().top - 12
 }
 
 // 카드를 눌러 다른 화면에 갔다 돌아오면 있던 자리로. 매번 맨 아래로 내려가버리면 보던 곳을 잃는다.
