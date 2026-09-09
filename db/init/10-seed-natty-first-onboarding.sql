@@ -44,7 +44,7 @@
 --   목표기준액 = (목표금액 KRW 환산 − 현재 저축액) / 57 — 이 파일이 exchange_rate 의 최신 VND
 --   고시값으로 그 자리에서 계산한다(OnboardingServiceImpl.register() 와 같은 순서: 환산은
 --   ROUND(HALF_UP, 0), 나눗셈도 ROUND(HALF_UP, 0)). 02-seed.sql 의 고시값(19.150858 VND/KRW)
---   기준으로는 78,325,433원 / 57 = 1,374,130원, 저축 가능액의 87.5% 다.
+--   기준으로는 78,325,472원 / 57 = 1,374,131원, 저축 가능액의 87.5% 다.
 --   12개월 구간에서 자유적립식 후보는 product 3(한도 500,000) + product 5(한도 3,000,000)이라
 --   현금성 저축 없이 두 상품에 전부 담긴다.
 --   시연 중 온보딩을 다시 밟으면 register() 가 같은 값을 upsert 하고 기준액을 그날 환율로
@@ -160,6 +160,6 @@ SET @natty01_vnd_rate := COALESCE(
 SET @natty01_target_krw := ROUND(@natty01_target_vnd / @natty01_vnd_rate, 0);
 SET @natty01_baseline := ROUND((@natty01_target_krw - @natty01_current_savings) / @natty01_remaining_months, 0);
 
-INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, monthly_required_saving)
-SELECT member_id, @natty01_target_vnd, 'VND', @natty01_baseline, @natty01_baseline
+INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving)
+SELECT member_id, @natty01_target_vnd, 'VND', @natty01_baseline, @natty01_target_krw, @natty01_baseline
 FROM member WHERE login_id = 'natty01';
