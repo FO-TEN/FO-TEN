@@ -213,7 +213,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
             // 시점부터 이어서 시작한다(대화한 날짜가 아니라 — 목돈이 노는 공백을 두지 않음).
             int remainingMonths = roadmapCalculationService.calculateRemainingMonths(
                     activeSegment.getEndDate(), roadmap.getEndDate());
-            FirstSegmentPlan nextSegmentPlan = roadmapCalculationService.calculateFirstSegment(remainingMonths);
+            FirstSegmentPlan nextSegmentPlan = roadmapCalculationService.calculateNextSegment(remainingMonths);
             LocalDate newSegmentEndDate = roadmapCalculationService.calculateSegmentEndDate(
                     activeSegment.getEndDate(), nextSegmentPlan.plannedMonths(),
                     nextSegmentPlan.isLastSegment(), roadmap.getEndDate());

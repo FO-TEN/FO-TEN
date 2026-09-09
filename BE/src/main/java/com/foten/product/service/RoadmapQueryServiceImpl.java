@@ -332,7 +332,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
             BigDecimal lumpSum = previous.savingsAmount().add(previous.depositAmount())
                     .add(previous.interestAmount()).add(previous.cashAmount());
 
-            FirstSegmentPlan futurePlan = roadmapCalculationService.calculateFirstSegment(
+            FirstSegmentPlan futurePlan = roadmapCalculationService.calculateNextSegment(
                     roadmap.getTotalMonths() - monthsSoFar);
             LocalDate segmentEndDate = roadmapCalculationService.calculateSegmentEndDate(
                     cursor, futurePlan.plannedMonths(), futurePlan.isLastSegment(), roadmap.getEndDate());
