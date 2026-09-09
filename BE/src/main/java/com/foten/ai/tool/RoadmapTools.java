@@ -51,6 +51,8 @@ public class RoadmapTools implements ToolProvider{
     private static final String CARD_ROADMAP = "ROADMAP";
     // 지난달·이번 달·이후를 나란히 놓고 이번 달 배분까지 함께 보여주는 카드.
     private static final String CARD_SEGMENT_DETAIL = "SEGMENT_DETAIL";
+    // 구간이 끝난 달의 첫 답에 붙는 카드: 지난 구간 목돈 · 지난달 결과 · 채울 방식 질문.
+    private static final String CARD_SEGMENT_END = "SEGMENT_END";
     // 우대조건을 받을 수 있는 유일한 시점. 그 외에는 제출이 NOT_APPLICABLE 로 막힌다.
     private static final String FLOW_ONBOARDING = "ONBOARDING";
     // 구간이 바뀌는 달에도 우대조건을 다시 받아 다음 구간 상품을 고른다.
@@ -83,7 +85,7 @@ public class RoadmapTools implements ToolProvider{
                         이 도구는 읽기만 하므로 사용자에게 묻지 말고 바로 부릅니다.
                         """,
                         (arguments, context) -> describeStatus(
-                                context.memberId(), roadmapQueryService.getStatus(context.memberId()))),
+                                context, roadmapQueryService.getStatus(context.memberId()))),
 
                 ToolSpec.noArgs(
                         "getPreferentialConditionQuestions",
@@ -149,7 +151,7 @@ public class RoadmapTools implements ToolProvider{
                         "밀린 금액을 채우는 방식. 밀린 금액이 없으면 넘기지 않습니다.",
                         List.of(FULL_RECOVERY, SPREAD),
                         (arguments, context) -> confirmMonthlySaving(
-                                context.memberId(), ToolArguments.string(arguments, "choice"))),
+                                context, ToolArguments.string(arguments, "choice"))),
 
                 ToolSpec.noArgs(
                         "getSegmentComposition",
@@ -202,7 +204,8 @@ public class RoadmapTools implements ToolProvider{
                         (arguments, context) -> describeGraph(context)));
     }
 
-    private String describeStatus(long memberId, RoadmapStatus s) {
+    private String describeStatus(ToolContext context, RoadmapStatus s) {
+        long memberId = context.memberId();
         StringBuilder sb = new StringBuilder("[저축 로드맵 상태]\n");
 
         if (!s.roadmapExists()) {
@@ -220,11 +223,76 @@ public class RoadmapTools implements ToolProvider{
         appendSegment(sb, s);
         appendLastMonth(sb, s);
         appendAmounts(sb, s, pendingChoice);
-        if (!appendDeficitGuide(sb, memberId, s)) {
+        if (FLOW_NEW_SEGMENT.equals(s.flowType())) {
+            // 확정·제출 전의 첫 안내 턴에만 카드를 붙인다. 확정이나 제출이 같은 턴에 이어지면 그쪽이 지운다.
+            if (pendingChoice || !isMonthlySavingConfirmed(memberId)) {
+                addCard(context, CARD_SEGMENT_END, segmentEndPayload(s, pendingChoice));
+            }
+            appendNewSegmentAnswer(sb, memberId, s, pendingChoice);
+        }
+        else if (!appendDeficitGuide(sb, memberId, s)) {
             appendNextStep(sb, memberId, s);
         }
         sb.append("위 금액들의 차액을 직접 빼서 구하지 마세요. 필요한 값은 이미 위에 있습니다.");
         return sb.toString();
+    }
+
+    // 구간이 바뀌는 달의 첫 답 (UI 흐름 v5 §3). 지난 구간 목돈·지난달 결과·채울 방식 질문은 카드가
+    // 보여주므로 말풍선은 구간이 끝났다는 한 문단만 말한다. 밀린 금액이 없으면 그 문단에 우대조건
+    // 안내를 이어 붙이고 체크리스트로 넘어간다.
+    private void appendNewSegmentAnswer(StringBuilder sb, long memberId, RoadmapStatus s, boolean pendingChoice) {
+        sb.append("답하는 방법: 지난 구간에서 모은 돈, 지난달 결과, 채울 방식 질문은 카드가 답변과 함께 나갑니다.\n");
+        sb.append("글로 되풀이하지 마세요. 아래 문장만 한 문단으로 말합니다.\n");
+        sb.append("\"").append(ordinal(s.currentSegmentNo()))
+                .append(" 운용 구간이 끝났습니다. 이제 다음 구간의 저축 계획과 상품 구성을 새로 정합니다.\"\n");
+        if (pendingChoice) {
+            sb.append("고르는 칩은 화면이 붙입니다. 사용자가 어느 쪽인지 답하면 그 자리에서 confirmMonthlySaving 을 부르세요.\n");
+            sb.append("사용자가 이미 '다 채울게요' 나 '나눠서 채울게요' 처럼 방식을 말한 뒤라면 위 문장은 말하지 말고,\n");
+            sb.append("이 결과는 확인용일 뿐이니 바로 confirmMonthlySaving 을 부르세요.\n");
+            sb.append("이번 달 금액이 정해지기 전에는 상품이나 우대조건 이야기를 꺼내지 마세요.\n");
+            sb.append("코드 이름은 내부용입니다. 사용자에게 보여주지 마세요.\n");
+            return;
+        }
+        if (isMonthlySavingConfirmed(memberId)) {
+            sb.append("이번 달에 모을 금액은 이미 정해졌습니다. 같은 문단에 \"이번 달에는 ")
+                    .append(money(s.requiredAmount()))
+                    .append("원을 모으기로 했습니다.\" 를 이어 붙이고 우대조건 확인으로 넘어가세요.\n");
+        }
+        sb.append("같은 문단에 \"더 높은 금리를 받을 수 있는지 확인하겠습니다. 앞으로 이용할 항목을 모두 선택해 주세요.\" 를 이어 붙이세요.\n");
+        sb.append(CHECKLIST_GUIDE);
+    }
+
+    // 상태 도구가 확인용으로 먼저 불린 턴이면 구간 마무리 카드가 담겨 있다. 확정·제출 답에는 어울리지
+    // 않으니 뺀다 — 카드는 처음 안내 턴에서 이미 보여줬다.
+    private void dropSegmentEndCard(ToolContext context) {
+        context.cards().removeIf(card -> CARD_SEGMENT_END.equals(card.type()));
+    }
+
+    // 카드가 그리는 값만 담는다. "실제" 는 계획에서 밀린 금액을 뺀 값이라 여기서 빼서 준다.
+    private Map<String, Object> segmentEndPayload(RoadmapStatus s, boolean pendingChoice) {
+        BigDecimal planned = s.baselineAmount();
+        BigDecimal shortfall = Boolean.TRUE.equals(s.hasShortfall()) ? s.shortfallAmount() : null;
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("segmentNo", s.currentSegmentNo());
+        payload.put("rolloverAmount", s.rolloverAmount());
+        payload.put("plannedAmount", planned);
+        payload.put("actualAmount", shortfall == null ? planned : planned.subtract(shortfall));
+        payload.put("shortfallAmount", shortfall);
+        payload.put("askChoice", pendingChoice);
+        return payload;
+    }
+
+    private String ordinal(Integer n) {
+        if (n == null) {
+            return "이번";
+        }
+        return switch (n) {
+            case 1 -> "첫 번째";
+            case 2 -> "두 번째";
+            case 3 -> "세 번째";
+            case 4 -> "네 번째";
+            default -> n + "번째";
+        };
     }
 
     private String flowGuide(String flowType) {
@@ -391,6 +459,7 @@ public class RoadmapTools implements ToolProvider{
     // 모델이 코드를 빠뜨리거나 지어낼 수 있어, 실제 조건 목록에 맞춰 예/아니오를 채운다.
     private String submitConditions(ToolContext context, List<String> agreedCodes, String deficitChoice) {
         long memberId = context.memberId();
+        dropSegmentEndCard(context);
         List<RateConditionAnswer> answers = roadmapQueryService.getRateConditions().stream()
                 .map(condition -> new RateConditionAnswer(
                         condition.getConditionCode(),
@@ -422,7 +491,9 @@ public class RoadmapTools implements ToolProvider{
                 .orElse(false);
     }
 
-    private String confirmMonthlySaving(long memberId, String choice) {
+    private String confirmMonthlySaving(ToolContext context, String choice) {
+        long memberId = context.memberId();
+        dropSegmentEndCard(context);
         try {
             return describeConfirmed(roadmapCommandService.confirmDeficitChoice(memberId, choice));
         }
@@ -464,10 +535,25 @@ public class RoadmapTools implements ToolProvider{
             return sb.toString();
         }
         // 구간이 바뀌는 달은 우대조건까지 받아야 확정된다. 다 됐다고 말하면 안 된다.
-        sb.append("아직 확정 전입니다. 계산해 본 금액일 뿐입니다.\n");
-        sb.append("이 금액을 알려주고, 우대조건을 골라야 확정된다고 안내하세요.\n");
-        sb.append("다 정해졌다고 말하지 마세요.\n");
+        // 이번 달에만 더 채우는 금액은 여기서 빼서 준다. 모델이 빼면 다른 숫자가 나온다.
+        BigDecimal extra = result.monthlySavingAmount().subtract(result.productBaselineAmount());
+        sb.append("아직 확정 전입니다. 우대조건을 골라야 확정됩니다. 다 정해졌다고 말하지 마세요.\n");
+        sb.append("답하는 방법: 아래 두 문단을 빈 줄로 나눠 그대로 말하세요.\n");
+        // 구간 내내 쓸 기준을 먼저 말하고 이번 달 예외를 "다만" 으로 붙인다. 이번 달 금액을 먼저 말하면
+        // 상품 기준액과 헷갈린다.
+        if (extra.signum() > 0) {
+            sb.append("첫째 문단: \"이번 구간에는 월 ").append(money(result.productBaselineAmount()))
+                    .append("원 기준으로 상품을 추천합니다. 이번 달만 추가 ").append(money(extra))
+                    .append("원을 포함해 ").append(money(result.monthlySavingAmount()))
+                    .append("원을 모으면 됩니다.\"\n");
+        }
+        else {
+            sb.append("첫째 문단: \"이번 구간에는 월 ").append(money(result.productBaselineAmount()))
+                    .append("원 기준으로 상품을 추천합니다. 밀린 금액을 남은 기간에 나눠 더한 금액이라 이번 달부터 매달 이만큼 모으면 됩니다.\"\n");
+        }
+        sb.append("둘째 문단: \"더 높은 금리를 받을 수 있는지 확인하겠습니다. 앞으로 이용할 항목을 모두 선택해 주세요.\"\n");
         sb.append("새 구간 상품에 붙일 조건을 고르는 것입니다. '다시' 나 '또' 를 붙이지 마세요.\n");
+        sb.append("체크리스트는 화면이 붙입니다. 조건 목록 도구를 더 부르지 말고 위 두 문단으로 바로 답하세요.\n");
         sb.append(CHECKLIST_GUIDE);
         return sb.toString();
     }
@@ -627,10 +713,19 @@ public class RoadmapTools implements ToolProvider{
         // 같은 값이 카드로도 나간다. 다 읽으면 화면에 같은 숫자가 두 번 보인다.
         sb.append("말하는 방법:\n");
         sb.append("- 이 내용은 카드로도 함께 나갑니다. 상품 이름과 금액을 하나씩 읊지 마세요.\n");
-        sb.append("- 조건을 반영해 상품을 골랐다는 것과 매달 모을 금액만 한두 문장으로 말하세요.\n");
-        sb.append("- 상품이 몇 개인지는 말해도 됩니다. 자세한 것은 아래 카드에서 보라고 알려주세요.\n");
+        sb.append("- 조건을 반영해 상품 몇 개로 구성했는지, 매달 모을 금액, 카드 안내를 한 문단으로 말하세요.\n");
+        sb.append("  예: \"선택한 우대조건을 반영해 2개 상품으로 구성했습니다. 매달 모을 금액은 ")
+                .append(money(c.monthlyBaseline()))
+                .append("원입니다. 자세한 상품 내용은 아래 카드에서 확인하세요.\"\n");
+        if (c.deposit() != null) {
+            sb.append("- 예금이 있으니 매달 모을 금액 문장 뒤에 \"지난 구간에서 모은 ")
+                    .append(money(c.deposit().principal()))
+                    .append("원은 예금으로 운용합니다.\" 를 넣으세요.\n");
+        }
+        else {
+            sb.append("- 예금이 없으면 목돈이 아직 없어서라고 알려주세요.\n");
+        }
         sb.append("- 말하게 되는 금액은 위 값 그대로 옮기고 직접 더하거나 빼지 마세요.\n");
-        sb.append("- 예금이 없으면 목돈이 아직 없어서라고 알려주세요.\n");
         sb.append("- 예금 만기 금액과 이자는 위에 적혀 있습니다. 물으면 그 값을 그대로 옮기세요.\n");
         sb.append("- 로드맵 전체 예상 이자와 목표 달성률은 카드가 보여줍니다. 값이 위에 없으니 말로 옮기지 말고,\n");
         sb.append("  숫자를 물으면 getRoadmapGraph 를 부르세요.\n");
@@ -681,8 +776,9 @@ public class RoadmapTools implements ToolProvider{
         sb.append("아직 고르지 않았으면:\n");
         sb.append("- 이 항목들은 체크박스로도 함께 나갑니다. 항목 이름을 하나도 적지 마세요.\n");
         sb.append("- 번호도 기호도 붙이지 말고 목록 자체를 만들지 마세요. 목록은 체크박스가 보여줍니다.\n");
-        sb.append("- '받을 수 있는 우대금리를 확인할게요. 앞으로 지킬 수 있는 것을 모두 골라주세요'\n");
-        sb.append("  이 두 문장만 말하고 끝내세요.\n");
+        sb.append("- \"더 높은 금리를 받을 수 있는지 확인하겠습니다. 앞으로 이용할 항목을 모두 선택해 주세요.\"\n");
+        sb.append("  이 두 문장으로 끝내세요. 다른 도구 결과에 '답하는 방법' 문단이 있으면 그 문단들을 먼저 말하고,\n");
+        sb.append("  이 두 문장은 마지막 문단으로 붙이세요.\n");
         sb.append("- 제출하겠다는 답을 듣기 전에는 submitPreferentialConditions 를 부르지 마세요.\n");
         sb.append("이미 고르고 제출하겠다고 말했으면('... 를 선택할게요' 도 그렇습니다):\n");
         sb.append("- 이 목록은 그 대답을 코드로 옮기려고 가져온 것입니다.\n");
