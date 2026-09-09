@@ -1,5 +1,6 @@
 package com.foten.product.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.goal.domain.Goal;
@@ -78,6 +79,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
     private final RateConditionMapper rateConditionMapper;
     private final GoalMapper goalMapper; // 교차 도메인, 읽기 전용 (target_baseline_amount 절대 안 씀)
     private final RoadmapCalculationService roadmapCalculationService;
+    private final DemoClock demoClock;
 
     @Override
     public RoadmapStatus getStatus(long memberId) {
@@ -97,7 +99,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
 
         // 오늘이 이 구간의 만기일(end_date)을 지났으면 "새 운용구간 시작 월" — 아직 다음 구간이
         // INSERT되지 않은, 만기는 지났지만 전환 처리는 안 된 상태를 뜻한다.
-        LocalDate today = LocalDate.now();
+        LocalDate today = demoClock.today(memberId);
         boolean pendingSegmentTransition = today.isAfter(segment.getEndDate());
 
         // STEP 3. 목표기준액은 goal 도메인이 이미 고정해둔 값을 읽기만 한다 (설계 원칙 7 — 여기서
@@ -591,7 +593,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
 
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
-        LocalDate thisMonth = YearMonth.now().atDay(1);
+        LocalDate thisMonth = demoClock.thisMonth(memberId).atDay(1);
         MonthlySavingPlanVO currentPlan = monthlySavingPlanMapper
                 .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
                 .orElseThrow(() -> new RoadmapStateConflictException(
@@ -627,7 +629,7 @@ public class RoadmapQueryServiceImpl implements RoadmapQueryService {
         // 새 계산 없음 — 4-4/4-6에서 이미 확정해둔 값을 그대로 보여주기만 한다 (§4-9).
         SavingsRoadmapVO roadmap = savingsRoadmapMapper.selectByMemberId(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("로드맵이 없습니다."));
-        LocalDate thisMonth = YearMonth.now().atDay(1);
+        LocalDate thisMonth = demoClock.thisMonth(memberId).atDay(1);
         MonthlySavingPlanVO plan = monthlySavingPlanMapper
                 .selectByRoadmapAndMonth(roadmap.getSavingsRoadmapId(), thisMonth)
                 .orElseThrow(() -> new RoadmapStateConflictException(

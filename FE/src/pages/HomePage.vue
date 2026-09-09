@@ -6,6 +6,7 @@ import { useDashboardStore } from '../stores/dashboard'
 import { useChatStore } from '../stores/chat'
 import { useLocaleStore } from '../stores/locale'
 import { comma, dday, dotMonth } from '../utils/format'
+import { today as clockToday, serverToday } from '../utils/clock'
 import LangSwitch from '../components/ui/LangSwitch.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
 import PotenAvatar from '../components/ui/PotenAvatar.vue'
@@ -72,8 +73,9 @@ const hasRoadmap = computed(() => dash.roadmapStatus?.roadmapExists === true)
 const graph = computed(() => dash.roadmapGraph)
 
 // 제목은 보는 달, 부제는 로드맵이 끝나는 달(예상 귀국일 − 1개월) · 총 개월 · 구간 수
-const today = new Date()
-const roadmapTitle = computed(() => t('home.roadmap_title', { y: today.getFullYear(), m: today.getMonth() + 1 }))
+// 서버 "오늘"(시연 계정은 미래 날짜)을 따른다. serverToday 를 읽어 값이 바뀌면 다시 계산된다.
+const today = computed(() => (serverToday.value, clockToday()))
+const roadmapTitle = computed(() => t('home.roadmap_title', { y: today.value.getFullYear(), m: today.value.getMonth() + 1 }))
 const roadmapEnd = computed(() => {
   const iso = me.value?.residence?.expectedReturnDate
   if (!iso) return null

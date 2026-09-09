@@ -16,9 +16,9 @@
     <insert id="insert" parameterType="com.foten.ai.domain.ChatMessageVO"
             useGeneratedKeys="true" keyProperty="chatMessageId">
         INSERT INTO chat_message (member_id, message_role, content_ko, content_local, language_code,
-                                  card_type, card_payload)
+                                  card_type, card_payload, created_at)
         VALUES (#{memberId}, #{messageRole}, #{contentKo}, #{contentLocal}, #{languageCode},
-                #{cardType}, #{cardPayload})
+                #{cardType}, #{cardPayload}, COALESCE(#{createdAt}, CURRENT_TIMESTAMP))
     </insert>
 
     <delete id="deleteByMemberId">

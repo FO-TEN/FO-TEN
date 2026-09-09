@@ -1,5 +1,6 @@
 package com.foten.spending.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.spending.domain.CategoryTotal;
 import com.foten.spending.domain.MonthlySpending;
 import com.foten.spending.domain.SpendingCategory;
@@ -23,24 +24,25 @@ public class SpendingQueryServiceImpl implements SpendingQueryService{
     private static final String FIXED = "FIXED";
     private static final String VARIABLE = "VARIABLE";
     private final SpendingSummaryMapper spendingSummaryMapper;
+    private final DemoClock demoClock;
 
     @Override
     public MonthlySpending getMonthlySpending(long memberId, int monthsAgo) {
         List<SpendingLine> lines = spendingSummaryMapper.findByMonth(memberId, monthsAgo);
-        YearMonth month = YearMonth.now().minusMonths(monthsAgo);
+        LocalDate today = demoClock.today(memberId);
+        YearMonth month = YearMonth.from(today).minusMonths(monthsAgo);
 
         Map<String, BigDecimal> fixed = byCategory(lines, FIXED);
         Map<String, BigDecimal> variable = byCategory(lines, VARIABLE);
         List<CategoryTotal> categoryTotals = categoryTotals(lines);
 
         return new MonthlySpending(
-                month, daysCovered(month), sum(fixed), fixed, sum(variable), variable, categoryTotals);
+                month, daysCovered(month, today), sum(fixed), fixed, sum(variable), variable, categoryTotals);
     }
 
     // 이번 달은 오늘까지만 조회됨
     // 지난 달은 한 달 전체
-    private int daysCovered(YearMonth month) {
-        LocalDate today = LocalDate.now();
+    private int daysCovered(YearMonth month, LocalDate today) {
         return month.equals(YearMonth.from(today)) ? today.getDayOfMonth() : month.lengthOfMonth();
     }
 

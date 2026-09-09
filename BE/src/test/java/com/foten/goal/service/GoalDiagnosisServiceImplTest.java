@@ -1,5 +1,7 @@
 package com.foten.goal.service;
 
+import com.foten.common.clock.DemoClock;
+import com.foten.common.mapper.DemoClockMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -37,6 +39,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class GoalDiagnosisServiceImplTest {
 
+    // demo_clock 행이 없으면(기본 Optional.empty) 실제 오늘을 쓴다 — 기존 테스트 전제 그대로.
+    @Mock private DemoClockMapper demoClockMapper;
+
     private static final long MEMBER_ID = 1L;
 
     @Mock
@@ -55,7 +60,8 @@ class GoalDiagnosisServiceImplTest {
     @BeforeEach
     void setUp() {
         service = new GoalDiagnosisServiceImpl(
-                goalMapper, financialInfoMapper, spendingMapper, transactionSummaryMapper, savingCalculationService);
+                goalMapper, financialInfoMapper, spendingMapper, transactionSummaryMapper, savingCalculationService,
+                new DemoClock(demoClockMapper));
     }
 
     // 매달 1일 기준으로 만들어야 minusMonths 계산이 달 끝 날짜(31일 등) 문제 없이 항상 정확히 3개월 전이 된다.

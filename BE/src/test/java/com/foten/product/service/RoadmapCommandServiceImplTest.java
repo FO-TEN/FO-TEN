@@ -1,5 +1,7 @@
 package com.foten.product.service;
 
+import com.foten.common.clock.DemoClock;
+import com.foten.common.mapper.DemoClockMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -45,6 +47,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class RoadmapCommandServiceImplTest {
 
+    // demo_clock 행이 없으면(기본 Optional.empty) 실제 오늘을 쓴다 — 기존 테스트 전제 그대로.
+    @Mock private DemoClockMapper demoClockMapper;
+
     private static final long MEMBER_ID = 1L;
 
     @Mock private SavingsRoadmapMapper savingsRoadmapMapper;
@@ -71,7 +76,7 @@ class RoadmapCommandServiceImplTest {
                 productMapper, productPreferentialRateMapper, productSubscriptionMapper,
                 monthlySavingPlanMapper, monthlySavingAllocationMapper, assetSnapshotMapper,
                 transactionHistoryMapper, goalMapper, stayInfoMapper,
-                roadmapQueryService, roadmapCalculationService);
+                roadmapQueryService, roadmapCalculationService, new DemoClock(demoClockMapper));
     }
 
     private static Goal 목표(BigDecimal baselineAmount) {

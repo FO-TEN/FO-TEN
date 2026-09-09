@@ -1,5 +1,7 @@
 package com.foten.spending.service;
 
+import com.foten.common.clock.DemoClock;
+import com.foten.common.mapper.DemoClockMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -18,13 +20,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class SpendingQueryServiceImplTest {
 
+    // demo_clock 행이 없으면(기본 Optional.empty) 실제 오늘을 쓴다 — 기존 테스트 전제 그대로.
+    @Mock private DemoClockMapper demoClockMapper;
+
     private static final long MEMBER_ID = 1L;
 
     @Mock
     private SpendingSummaryMapper spendingSummaryMapper;
 
     private SpendingQueryServiceImpl service() {
-        return new SpendingQueryServiceImpl(spendingSummaryMapper);
+        return new SpendingQueryServiceImpl(spendingSummaryMapper, new DemoClock(demoClockMapper));
     }
 
     private static SpendingLine 지출(String category, String expenseType, long amount) {

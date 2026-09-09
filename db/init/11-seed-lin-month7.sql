@@ -18,8 +18,8 @@
 --
 -- ============================================================
 -- 인물·재무 조건 — lin01 과 동일 (10-seed-lin-onboarding.sql 주석 참고)
---   이름 팜 린 / VIETNAM / vi / E-9. 입국일 = 로드맵 시작일 = 오늘 − 6개월, 귀국 예정일 =
---   입국일 + 58개월. 월 소득 2,700,000 / 생활비 400,000 / 송금 730,000 / 현재 저축 0.
+--   이름 팜 린 / VIETNAM / vi / E-9. 입국일 = 로드맵 시작일 = 2026-09-09(lin01 이 온보딩하는 날),
+--   시연 "오늘" = 2027-03-09(입국 7개월째, cycle 7 — demo_clock 으로 고정), 귀국 예정일 = 입국일 + 58개월. 월 소득 2,700,000 / 생활비 400,000 / 송금 730,000 / 현재 저축 0.
 --   목표 15억 VND, 목표기준액 1,361,427원 — lin01 이 2026-09-09 고시값(19.329562 VND/KRW)으로
 --   실제로 받은 값을 그대로 고정한다(6개월치 계획·배분·납입이 전부 이 숫자로 쌓여야 하므로
 --   환율에 따라 흔들리면 안 된다). 저축 가능액 = 2,700,000 − 400,000 − 730,000 = 1,570,000.
@@ -34,7 +34,7 @@
 --     product 6  KB나만의 적금       3.00% (2.00 + 0.50×2)  한도 1,000,000 → 매달 861,427
 --   (product 5 는 2.70% 라 두 상품으로 기준액이 다 차서 뽑히지 않았다 — lin01 실제와 동일.)
 --
--- 손계산 (오늘 CURDATE() 기준, RoadmapQueryServiceImpl.getStatus())
+-- 손계산 (오늘 @lin02_today 기준, RoadmapQueryServiceImpl.getStatus())
 --   cycleNo = YearMonth 차이 6 + 1 = 7. 완료 회차 6.
 --   납입: cycle 1~5 완납(1,361,427), cycle 6 은 product 6 에 300,000 덜 냄(861,427 → 561,427).
 --     누적 납입 = 6 × 1,361,427 − 300,000 = 7,868,562, 현금성 저축 0
@@ -85,8 +85,8 @@
 --     (c) 이번 달: 1일 + CEIL(경과일 × d / 28) − 1 — 오늘까지. 경과일 = 오늘 날짜로 잡는 이유는
 --         목표진단(GoalDiagnosisServiceImpl)이 elapsedDays 를 오늘 날짜로 세기 때문이다 — 어제까지만
 --         넣으면 하루 평균이 페이스보다 낮아져 판정이 "여유있음"으로 뒤집힌다. 금액도
---         경과일/그 달 일수 비율로 줄여 "하루 평균"이 페이스 그대로 유지되게 했다(재적용 날짜가
---         언제든 진단 결과가 같게).
+--         경과일/그 달 일수 비율로 줄여 "하루 평균"이 페이스 그대로 유지되게 했다(시연 오늘이
+--         며칠이든 진단 결과가 같게).
 --   개별 거래를 보여주는 화면·API 는 없고(GET /api/spending 은 집계만) 전부 합산으로만 쓰인다.
 --
 -- 급여/송금/납입 — 통장 흐름
@@ -107,13 +107,18 @@
 -- 대화 이력(chat_message)은 넣지 않는다 — 7개월 차 대화가 시연 자체다.
 -- 항목 표는 임시 테이블(tmp_lin02_*)로 한 번만 정의한다 — 같은 UNION ALL 을 블록마다 세 번
 -- 반복하던 07/08 방식보다 짧고, 세션이 끝나면 저절로 사라진다.
--- 날짜는 전부 CURDATE() 기준 상대값이라 언제 재적용해도 "오늘이 cycle 7" 그대로 재현된다.
+-- 날짜는 전부 시연 "오늘"(@lin02_today = 2027-03-09) 기준의 고정값이다. 서버가 이 계정의 오늘을
+-- demo_clock 에서 읽으므로 실제 재적용/시연 날짜와 무관하게 항상 "2027년 3월, cycle 7" 이 재현된다.
 
 SET NAMES utf8mb4;
 
 -- ============================================================
 -- lin02 에 남아있던 데이터 전부 삭제 — FK 자식부터. member 행은 지우지 않고 덮어쓴다.
 -- ============================================================
+DELETE dc FROM demo_clock dc
+JOIN member m ON m.member_id = dc.member_id
+WHERE m.login_id = 'lin02';
+
 DELETE th FROM transaction_history th
 JOIN member m ON m.member_id = th.member_id
 WHERE m.login_id = 'lin02';
@@ -170,7 +175,8 @@ WHERE m.login_id = 'lin02';
 -- ============================================================
 -- 기준 날짜·금액
 -- ============================================================
-SET @lin02_start := DATE_SUB(CURDATE(), INTERVAL 6 MONTH);   -- 입국일 = 로드맵 시작일
+SET @lin02_today := DATE('2027-03-09');   -- 이 계정의 "오늘"(demo_clock) — 아래 모든 날짜 계산의 기준. 입국 7개월째(cycle 7)
+SET @lin02_start := DATE('2026-09-09');   -- 입국일 = 로드맵 시작일 = lin01 이 온보딩하는 날(고정)
 SET @lin02_baseline := 1361427;                               -- 목표기준액 (lin01 실제값)
 SET @lin02_target_krw := 77601342;                            -- 목표금액 KRW 환산 스냅샷 = 15억 / 19.329562 (lin01 실제값, 달성률 분모)
 SET @lin02_alloc_p3 := 500000;                                -- product 3 매달 배분 (한도)
@@ -190,6 +196,10 @@ ON DUPLICATE KEY UPDATE
     nationality   = newrow.nationality,
     language_code = newrow.language_code,
     created_at    = newrow.created_at;
+
+-- 시연용 "오늘" — 이 계정으로 로그인하면 서버·화면이 이 날짜를 오늘로 본다(DemoClock).
+INSERT INTO demo_clock (member_id, today)
+SELECT member_id, @lin02_today FROM member WHERE login_id = 'lin02';
 
 INSERT INTO stay_info (member_id, visa_type, entry_date, expected_return_date)
 SELECT member_id, 'E-9', @lin02_start, DATE_ADD(@lin02_start, INTERVAL 58 MONTH)
@@ -312,7 +322,7 @@ WHERE m.login_id = 'lin02';
 -- 급여(25일) / 송금(26일) — 1~6개월 전. 이번 달은 아직 넣지 않는다.
 -- ============================================================
 INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
-SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-25'), INTERVAL mo.months_ago MONTH), INTERVAL 9 HOUR),
+SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(@lin02_today, '%Y-%m-25'), INTERVAL mo.months_ago MONTH), INTERVAL 9 HOUR),
        'SALARY', 'IN', 2700000, 0, '급여'
 FROM member m
 JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
@@ -320,7 +330,7 @@ JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
 WHERE m.login_id = 'lin02';
 
 INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
-SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-26'), INTERVAL mo.months_ago MONTH), INTERVAL 9 HOUR),
+SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(@lin02_today, '%Y-%m-26'), INTERVAL mo.months_ago MONTH), INTERVAL 9 HOUR),
        'REMITTANCE', 'OUT', 730000, 0, '본국 송금'
 FROM member m
 JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
@@ -394,7 +404,7 @@ INSERT INTO tmp_lin02_var_month VALUES
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL vm.months_ago MONTH), '%Y-%m-01'), INTERVAL t.d - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(DATE_SUB(@lin02_today, INTERVAL vm.months_ago MONTH), '%Y-%m-01'), INTERVAL t.d - 1 DAY),
                 INTERVAL t.hr HOUR),
        'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight, -2), 100), 0, t.category, 'VARIABLE', t.item_name
 FROM member m
@@ -405,7 +415,7 @@ WHERE m.login_id = 'lin02';
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(DATE_SUB(CURDATE(), INTERVAL mo.months_ago MONTH), '%Y-%m-01'), INTERVAL f.d - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(DATE_SUB(@lin02_today, INTERVAL mo.months_ago MONTH), '%Y-%m-01'), INTERVAL f.d - 1 DAY),
                 INTERVAL f.hr HOUR),
        'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
 FROM member m
@@ -453,13 +463,13 @@ WHERE m.login_id = 'lin02';
 -- ------------------------------------------------------------
 -- (c) 이번 달 — 오늘까지. 금액은 경과일(오늘 날짜)/그 달 일수 비율로 줄인다.
 -- ------------------------------------------------------------
-SET @lin02_elapsed := DAY(CURDATE());
-SET @lin02_frac := @lin02_elapsed / DAY(LAST_DAY(CURDATE()));
+SET @lin02_elapsed := DAY(@lin02_today);
+SET @lin02_frac := @lin02_elapsed / DAY(LAST_DAY(@lin02_today));
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * t.d / 28) - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(@lin02_today, '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * t.d / 28) - 1 DAY),
                 INTERVAL t.hr HOUR),
        'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight * @lin02_frac, -2), 100), 0, t.category, 'VARIABLE', t.item_name
 FROM member m
@@ -470,7 +480,7 @@ WHERE m.login_id = 'lin02';
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * f.d / 28) - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(@lin02_today, '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * f.d / 28) - 1 DAY),
                 INTERVAL f.hr HOUR),
        'EXPENSE', 'OUT', GREATEST(ROUND(f.amount * @lin02_frac, -2), 100), 0, f.category, 'FIXED', f.item_name
 FROM member m

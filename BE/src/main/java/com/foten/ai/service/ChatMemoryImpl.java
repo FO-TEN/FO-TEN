@@ -1,5 +1,6 @@
 package com.foten.ai.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.ai.domain.ChatMessageVO;
 import com.foten.ai.dto.ChatCard;
 import com.foten.ai.mapper.ChatMessageMapper;
@@ -16,6 +17,7 @@ public class ChatMemoryImpl implements ChatMemory{
     public static final String ROLE_USER = "USER";
     public static final String ROLE_ASSISTANT="ASSISTANT";
     private final ChatMessageMapper chatMessageMapper;
+    private final DemoClock demoClock;
 
     @Override
     public List<ChatMessageVO> get(long memberId, int lastN) {
@@ -42,6 +44,7 @@ public class ChatMemoryImpl implements ChatMemory{
                     .contentKo(contentKo)
                     .contentLocal(contentLocal)
                     .languageCode(languageCode)
+                    .createdAt(demoClock.now(memberId))
                     .build());
     }
 
@@ -56,6 +59,7 @@ public class ChatMemoryImpl implements ChatMemory{
                 .languageCode(languageCode)
                 .cardType(card == null ? null : card.type())
                 .cardPayload(card == null ? null : card.payload())
+                .createdAt(demoClock.now(memberId))
                 .build());
     }
 

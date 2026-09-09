@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { goalApi, memberApi, spendingApi, exchangeApi, roadmapApi } from '../api'
+import { setServerToday } from '../utils/clock'
 import { nationalityOf } from '../i18n'
 import { errorKey } from '../api/http'
 
@@ -56,6 +57,7 @@ export const useDashboardStore = defineStore('dashboard', {
     async loadMe(force = false) {
       if (this.me && !force) return this.me
       this.me = await memberApi.me()
+      setServerToday(this.me?.today)
       return this.me
     },
 

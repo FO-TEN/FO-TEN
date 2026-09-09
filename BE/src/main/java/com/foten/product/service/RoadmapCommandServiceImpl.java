@@ -1,5 +1,6 @@
 package com.foten.product.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.common.InvalidRequestException;
 import com.foten.common.ResourceNotFoundException;
 import com.foten.common.RoadmapStateConflictException;
@@ -84,6 +85,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
     private final StayInfoMapper stayInfoMapper; // 교차 도메인, 읽기 전용
     private final RoadmapQueryService roadmapQueryService;
     private final RoadmapCalculationService roadmapCalculationService;
+    private final DemoClock demoClock;
 
     @Override
     @Transactional
@@ -106,7 +108,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
                         "GOAL_NOT_READY", "체류 정보가 아직 확정되지 않았습니다."));
 
         // STEP 3. 로드맵 기간 계산 (로직 v3 §3-1) — 오늘부터 "예상 귀국일 - 1개월"까지.
-        LocalDate startDate = LocalDate.now();
+        LocalDate startDate = demoClock.today(memberId);
         LocalDate endDate = expectedReturnDate.minusMonths(1);
         int totalMonths = roadmapCalculationService.calculateRemainingMonths(startDate, endDate);
 
@@ -350,7 +352,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         // planMonth: NEW_SEGMENT는 cycleNo 자체가 "오늘" 기준(calculateCycleNo)이라 오늘 달을 쓰고,
         // ONBOARDING은 cycleNo=1이 "구간 시작월" 기준이라 로드맵 생성일과 응답 제출일이 다른 달에
         // 걸쳐도 어긋나지 않게 구간 시작일 기준을 쓴다.
-        LocalDate planMonthBasis = isNewSegment ? LocalDate.now() : targetSegment.getStartDate();
+        LocalDate planMonthBasis = isNewSegment ? demoClock.today(memberId) : targetSegment.getStartDate();
         MonthlySavingPlanVO monthlySavingPlan = MonthlySavingPlanVO.builder()
                 .savingsRoadmapId(roadmap.getSavingsRoadmapId())
                 .segmentId(targetSegment.getSegmentId())
@@ -426,7 +428,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
         RoadmapSegmentVO segment = roadmapSegmentMapper.selectActiveByRoadmapId(roadmap.getSavingsRoadmapId())
                 .orElseThrow(() -> new IllegalStateException(
                         "진행 중인 구간이 없습니다. savingsRoadmapId=" + roadmap.getSavingsRoadmapId()));
-        LocalDate thisMonth = YearMonth.now().atDay(1);
+        LocalDate thisMonth = demoClock.thisMonth(memberId).atDay(1);
 
         // STEP 3. 멱등성 — 이번 달이 이미 커밋됐으면 재계산·재커밋 없이 그 값을 그대로 돌려준다.
         // 기준액은 그 행에 얼려둔 deficit_choice로 그때와 똑같이 재구성한다.
@@ -545,7 +547,7 @@ public class RoadmapCommandServiceImpl implements RoadmapCommandService {
     // 이 중간값을 노출하지 않아서 이 트랜잭션에 얼려 저장할 값이 필요한 여기서 한 번 더 구한다.
     private BigDecimal calculateCumulativeSavingPerformanceNow(long memberId, SavingsRoadmapVO roadmap) {
         LocalDateTime roadmapStart = roadmap.getStartDate().atStartOfDay();
-        LocalDateTime thisMonthStart = YearMonth.now().atDay(1).atStartOfDay();
+        LocalDateTime thisMonthStart = demoClock.thisMonth(memberId).atDay(1).atStartOfDay();
         BigDecimal savingsPaymentSum = transactionHistoryMapper.sumSavingsPaymentBetween(memberId, roadmapStart, thisMonthStart);
         BigDecimal cashSavingBalance = assetSnapshotMapper.selectLatest(roadmap.getSavingsRoadmapId())
                 .map(AssetSnapshotVO::getCashSavingBalance)

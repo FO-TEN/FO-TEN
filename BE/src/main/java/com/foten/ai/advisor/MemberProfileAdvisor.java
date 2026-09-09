@@ -1,5 +1,6 @@
 package com.foten.ai.advisor;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.ai.domain.MemberProfile;
 import com.foten.ai.llm.LlmMessage;
 import com.foten.ai.mapper.MemberProfileMapper;
@@ -22,6 +23,7 @@ public class MemberProfileAdvisor implements Advisor {
 
     private final MemberProfileMapper memberProfileMapper;
     private final RoadmapQueryService roadmapQueryService;
+    private final DemoClock demoClock;
 
     @Override
     public String around(ChatContext ctx, AdvisorChain chain) {
@@ -36,7 +38,7 @@ public class MemberProfileAdvisor implements Advisor {
         sb.append("이름: ").append(profile.getName()).append("\n");
         sb.append("국적: ").append(profile.getNationality()).append("\n");
 
-        appendReturnDate(sb, profile.getExpectedReturnDate());
+        appendReturnDate(sb, profile.getExpectedReturnDate(), demoClock.today(memberId));
 
         if (profile.getTargetCurrency() != null) {
             sb.append("목표 통화: ").append(profile.getTargetCurrency()).append("\n");
@@ -49,13 +51,12 @@ public class MemberProfileAdvisor implements Advisor {
     }
 
     // 온보딩 전이면 체류정보가 없다. 남은 기간은 서버가 센다 - 모델이 날짜를 빼면 월말·윤년에서 틀린다.
-    private void appendReturnDate(StringBuilder sb, LocalDate returnDate) {
+    private void appendReturnDate(StringBuilder sb, LocalDate returnDate, LocalDate today) {
         if (returnDate == null) {
             sb.append("귀국 예정일: 아직 등록하지 않음\n");
             return;
         }
 
-        LocalDate today = LocalDate.now();
         long monthsLeft = ChronoUnit.MONTHS.between(today, returnDate);
         long daysLeft = ChronoUnit.DAYS.between(today, returnDate);
         sb.append("귀국 예정일: ").append(returnDate)

@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { onboardingApi, exchangeApi } from '../api'
 import { nationalityOf } from '../i18n'
 import { useAuthStore } from './auth'
+import { todayIso } from '../utils/clock'
 
 /*
  * 온보딩 3화면(체류 → 재무 → 목표)의 입력을 여기 들고 가다가
@@ -141,6 +142,3 @@ export const useOnboardingStore = defineStore('onboarding', {
   },
 })
 
-function todayIso() {
-  return new Date().toISOString().slice(0, 10)
-}

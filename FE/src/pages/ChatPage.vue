@@ -18,6 +18,7 @@ import SpendingCard from '../components/ui/SpendingCard.vue'
 import { messages as dict } from '../i18n'
 import { ROADMAP_EXAMPLE } from '../data/roadmapExample'
 import { won } from '../utils/format'
+import { today as clockToday } from '../utils/clock'
 
 /*
  * Figma 05_대화 · 홈(217:2463).
@@ -166,7 +167,7 @@ function guidedThisMonth() {
   const last = [...chat.messages].reverse().find((m) => m.role !== 'USER' && m.card?.type === 'SEGMENT_DETAIL')
   if (!last?.createdAt) return false
   const at = new Date(last.createdAt)
-  const now = new Date()
+  const now = clockToday()
   return at.getFullYear() === now.getFullYear() && at.getMonth() === now.getMonth()
 }
 

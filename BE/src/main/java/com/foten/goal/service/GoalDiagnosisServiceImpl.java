@@ -1,5 +1,6 @@
 package com.foten.goal.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.common.ResourceNotFoundException;
 import com.foten.goal.domain.CategoryMonthlySpending;
 import com.foten.goal.domain.CategorySpendingInput;
@@ -37,6 +38,7 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     private final SpendingMapper spendingMapper;
     private final TransactionSummaryMapper transactionSummaryMapper;
     private final SavingCalculationService savingCalculationService;
+    private final DemoClock demoClock;
 
     @Override
     public GoalDiagnosisResponse diagnose(Long memberId) {
@@ -44,8 +46,9 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
                 .orElseThrow(() -> new ResourceNotFoundException("목표 정보가 없습니다."));
         FinancialInfo financialInfo = financialInfoMapper.selectByMemberId(memberId)
                 .orElseThrow(() -> new ResourceNotFoundException("재무 정보가 없습니다."));
+        LocalDate today = demoClock.today(memberId);
 
-        List<CategorySpendingInput> categories = buildCategorySpendingInputs(memberId);
+        List<CategorySpendingInput> categories = buildCategorySpendingInputs(memberId, today);
         int currentTotalSpent = spendingMapper.findCurrentTotalSpent(memberId).intValue();
 
         SavingCalculationOutput result = savingCalculationService.diagnose(
@@ -56,10 +59,10 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
                 financialInfo.getMonthlyLivingCost().intValue(),
                 currentTotalSpent);
 
-        int elapsedMonths = calcElapsedMonths(goal.getCreatedAt());
+        int elapsedMonths = calcElapsedMonths(goal.getCreatedAt(), today);
         BigDecimal cumulativeTarget = goal.getTargetBaselineAmount().multiply(BigDecimal.valueOf(elapsedMonths));
         BigDecimal actualCumulativeSavings =
-                calcActualCumulativeSavings(memberId, goal.getCreatedAt()).setScale(0, RoundingMode.HALF_UP);
+                calcActualCumulativeSavings(memberId, goal.getCreatedAt(), today).setScale(0, RoundingMode.HALF_UP);
         // KRW는 소수점 없는 정수 단위(스키마 전체가 DECIMAL(n,0))인데, 평균 계산 과정에서
         // SQL 나눗셈으로 늘어난 스케일이 그대로 남아있어 명시적으로 0자리로 맞춘다.
         BigDecimal cumulativeShortfall =
@@ -86,8 +89,8 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     }
 
     // goal 생성 시점(목표기준액 스냅샷 시점)부터 오늘까지 경과한 개월 수. 최소 1개월.
-    private int calcElapsedMonths(LocalDateTime goalCreatedAt) {
-        Period period = Period.between(goalCreatedAt.toLocalDate(), LocalDate.now());
+    private int calcElapsedMonths(LocalDateTime goalCreatedAt, LocalDate today) {
+        Period period = Period.between(goalCreatedAt.toLocalDate(), today);
         int totalMonths = period.getYears() * 12 + period.getMonths();
         return Math.max(totalMonths, 1);
     }
@@ -95,11 +98,11 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     // 누적저축실적(PDF 최종안) = 적금 실제 납입액 누계 + 현금성 저축 순증분(직전월말 잔액 -
     // goal 생성 시점 잔액). goal 생성 이전부터 있던 돈이 섞여 들어가지 않도록 생성 시점
     // 잔액을 기준선으로 뺀다.
-    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt) {
+    private BigDecimal calcActualCumulativeSavings(Long memberId, LocalDateTime goalCreatedAt, LocalDate today) {
         BigDecimal cumulativeSavingsPayment =
                 transactionSummaryMapper.findCumulativeSavingsPayment(memberId, goalCreatedAt);
 
-        YearMonth currentMonth = YearMonth.now();
+        YearMonth currentMonth = YearMonth.from(today);
         LocalDateTime endOfPreviousMonth = currentMonth.minusMonths(1).atEndOfMonth().atTime(LocalTime.MAX);
         BigDecimal balanceAsOfLastMonth =
                 transactionSummaryMapper.findBalanceAsOf(memberId, endOfPreviousMonth).orElse(BigDecimal.ZERO);
@@ -125,12 +128,12 @@ public class GoalDiagnosisServiceImpl implements GoalDiagnosisService {
     }
 
     // transaction_history 집계 로우(카테고리 x 월)를 카테고리별 CategorySpendingInput 으로 조립
-    private List<CategorySpendingInput> buildCategorySpendingInputs(Long memberId) {
+    private List<CategorySpendingInput> buildCategorySpendingInputs(Long memberId, LocalDate today) {
         List<CategoryMonthlySpending> rows =
                 spendingMapper.findCategoryMonthlySpending(memberId, HISTORY_MONTHS + 1);
 
-        YearMonth currentYearMonth = YearMonth.now();
-        int elapsedDays = LocalDate.now().getDayOfMonth();
+        YearMonth currentYearMonth = YearMonth.from(today);
+        int elapsedDays = today.getDayOfMonth();
         int totalDays = currentYearMonth.lengthOfMonth();
 
         Map<String, Map<String, BigDecimal>> spendingByCategory = rows.stream()

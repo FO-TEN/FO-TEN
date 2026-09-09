@@ -1,5 +1,6 @@
 package com.foten.member.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.common.ConflictException;
 import com.foten.common.InvalidRequestException;
 import com.foten.common.ResourceNotFoundException;
@@ -27,6 +28,7 @@ public class MemberServiceImpl implements MemberService{
     private final StayInfoMapper stayInfoMapper;
     private final FinancialInfoMapper financialInfoMapper;
     private final GoalMapper goalMapper;
+    private final DemoClock demoClock;
 
     private static final int MAX_LOGIN_ID = 50;
     private static final int MAX_NAME = 50;
@@ -84,7 +86,8 @@ public class MemberServiceImpl implements MemberService{
                 member,
                 stayInfoMapper.selectByMemberId(memberId).orElse(null),
                 financialInfoMapper.selectByMemberId(memberId).orElse(null),
-                goalMapper.selectByMemberId(memberId).orElse(null)
+                goalMapper.selectByMemberId(memberId).orElse(null),
+                demoClock.today(memberId)
         );
     }
 

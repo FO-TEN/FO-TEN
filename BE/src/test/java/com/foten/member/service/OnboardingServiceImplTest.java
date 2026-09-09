@@ -1,5 +1,7 @@
 package com.foten.member.service;
 
+import com.foten.common.clock.DemoClock;
+import com.foten.common.mapper.DemoClockMapper;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +37,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class OnboardingServiceImplTest {
 
+    // demo_clock 행이 없으면(기본 Optional.empty) 실제 오늘을 쓴다 — 기존 테스트 전제 그대로.
+    @Mock private DemoClockMapper demoClockMapper;
+
     private static final long MEMBER_ID = 1L;
 
     @Mock
@@ -56,7 +61,7 @@ class OnboardingServiceImplTest {
     void setUp() {
         service = new OnboardingServiceImpl(
                 stayInfoMapper, financialInfoMapper, goalMapper, exchangeRateService, goalCalculationService,
-                savingsRoadmapMapper);
+                savingsRoadmapMapper, new DemoClock(demoClockMapper));
     }
 
     private static OnboardingRequest 온보딩요청() {

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { authApi, onboardingApi } from '../api'
+import { setServerToday } from '../utils/clock'
 import { useDashboardStore } from './dashboard'
 import { useChatStore } from './chat'
 import { useOnboardingStore } from './onboarding'
@@ -78,6 +79,7 @@ export const useAuthStore = defineStore('auth', {
 
     async refreshOnboarding() {
       this.onboarding = await onboardingApi.status()
+      setServerToday(this.onboarding?.today)
       return this.onboarding
     },
 
@@ -93,6 +95,7 @@ export const useAuthStore = defineStore('auth', {
 
     // 로그아웃과 401(세션 만료) 이 둘 다 지나는 길이다. 여기서 다른 스토어까지 함께 비운다.
     clear() {
+      setServerToday(null)
       this.member = null
       this.onboarding = null
       this.checked = false

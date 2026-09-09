@@ -11,11 +11,11 @@
         FROM transaction_history
         WHERE member_id = #{memberId}
           AND transaction_type = 'EXPENSE'
-          AND transaction_at &gt;= DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH)
+          AND transaction_at &gt;= DATE_SUB(DATE_FORMAT(COALESCE((SELECT dc.today FROM demo_clock dc WHERE dc.member_id = #{memberId}), CURDATE()), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH)
           AND transaction_at &lt; DATE_ADD(
-                DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH),
+                DATE_SUB(DATE_FORMAT(COALESCE((SELECT dc.today FROM demo_clock dc WHERE dc.member_id = #{memberId}), CURDATE()), '%Y-%m-01'), INTERVAL #{monthsAgo} MONTH),
                 INTERVAL 1 MONTH)
-          AND transaction_at &lt; DATE_ADD(CURDATE(), INTERVAL 1 DAY)
+          AND transaction_at &lt; DATE_ADD(COALESCE((SELECT dc.today FROM demo_clock dc WHERE dc.member_id = #{memberId}), CURDATE()), INTERVAL 1 DAY)
         GROUP BY category, expense_type
     </select>
 

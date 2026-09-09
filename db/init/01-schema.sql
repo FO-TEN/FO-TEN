@@ -19,7 +19,7 @@ DROP TABLE IF EXISTS
     asset_snapshot, monthly_saving_allocation, monthly_saving_plan,
     transaction_history, product_subscription, roadmap_segment, savings_roadmap,
     member_rate_condition_response, product_preferential_rate, rate_condition, product_rate,
-    chat_message, product, exchange_rate, goal, financial_info, stay_info, member;
+    chat_message, product, exchange_rate, goal, financial_info, stay_info, demo_clock, member;
 
 -- ============================================================
 -- member — 회원 (시드 계정 3개, 회원가입 없음)
@@ -34,6 +34,21 @@ CREATE TABLE member (
     created_at      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (member_id),
     UNIQUE KEY uk_member_login_id (login_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ============================================================
+-- demo_clock — 시연용 "오늘" 고정 (회원당 0~1건)
+-- 행이 있는 회원은 회차·부족액·이번 달 소비 같은 "오늘" 기준 계산을 전부 이 날짜로 한다
+-- (DemoClock 컴포넌트와 매퍼의 COALESCE(demo_clock.today, CURDATE())). 행이 없으면 실제 오늘 —
+-- 운영 로직에는 영향이 없다. 시연 영상용으로 "가입 7개월 뒤·1년 뒤" 화면을 미래 날짜 그대로
+-- 보여주기 위해 만들었다(11·12 시드가 lin02·lin03 에 넣는다). 환율 배치는 실제 시각을 쓴다.
+-- ============================================================
+CREATE TABLE demo_clock (
+    member_id   BIGINT NOT NULL,
+    today       DATE   NOT NULL,                        -- 이 회원에게 "오늘"로 보일 날짜
+    PRIMARY KEY (member_id),
+    CONSTRAINT fk_demo_clock_member FOREIGN KEY (member_id)
+        REFERENCES member (member_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ============================================================

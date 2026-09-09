@@ -1,3 +1,5 @@
+import { today as clockToday } from './clock'
+
 /*
  * 표기 규칙 — 디자인 시안 기준
  *  - 원화: 12,236,000 (숫자만, '원'은 옆에 따로) 또는 ₩12,236,000 (소비내역·내 정보)
@@ -37,7 +39,7 @@ export function dotMonth(iso) {
 export function daysUntil(iso) {
   if (!iso) return null
   const target = new Date(iso + 'T00:00:00')
-  const today = new Date()
+  const today = clockToday()
   today.setHours(0, 0, 0, 0)
   return Math.round((target - today) / 86_400_000)
 }
@@ -55,12 +57,12 @@ export function ym(text) {
 }
 
 export function todayMonthDay() {
-  const t = new Date()
+  const t = clockToday()
   return { month: t.getMonth() + 1, day: t.getDate() }
 }
 
 export function daysLeftInMonth() {
-  const t = new Date()
+  const t = clockToday()
   const last = new Date(t.getFullYear(), t.getMonth() + 1, 0).getDate()
   return last - t.getDate()
 }

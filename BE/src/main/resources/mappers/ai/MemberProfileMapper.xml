@@ -16,7 +16,7 @@
                                 JOIN savings_roadmap r
                                      ON r.savings_roadmap_id = p.savings_roadmap_id
                        WHERE r.member_id = m.member_id
-                         AND p.plan_month = DATE_FORMAT(CURDATE(), '%Y-%m-01')) AS monthly_saving_confirmed
+                         AND p.plan_month = DATE_FORMAT(COALESCE((SELECT dc.today FROM demo_clock dc WHERE dc.member_id = m.member_id), CURDATE()), '%Y-%m-01')) AS monthly_saving_confirmed
         FROM member m
                  LEFT JOIN stay_info s ON s.member_id = m.member_id
                  LEFT JOIN goal g ON g.member_id = m.member_id

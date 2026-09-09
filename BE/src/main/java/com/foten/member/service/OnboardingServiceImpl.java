@@ -1,5 +1,6 @@
 package com.foten.member.service;
 
+import com.foten.common.clock.DemoClock;
 import com.foten.common.InvalidRequestException;
 import com.foten.common.RoadmapStateConflictException;
 import com.foten.exchange.dto.KrwConversionResponse;
@@ -32,11 +33,13 @@ public class OnboardingServiceImpl implements OnboardingService{
     private final ExchangeRateService exchangeRateService;
     private final GoalCalculationService goalCalculationService;
     private final SavingsRoadmapMapper savingsRoadmapMapper;
+    private final DemoClock demoClock;
 
     @Override
     @Transactional
     public OnboardingResponse register(long memberId, OnboardingRequest request) {
-        validate(request);
+        LocalDate today = demoClock.today(memberId);
+        validate(request, today);
 
         // 로드맵이 이미 시작된 회원은 목표기준액을 다시 바꿀 수 없다 — product 도메인이
         // 이 값을 스냅샷 없이 매번 goal 테이블에서 실시간으로 읽어가므로, 여기서 바뀌면
@@ -57,7 +60,7 @@ public class OnboardingServiceImpl implements OnboardingService{
         GoalCalculationOutput calculated = goalCalculationService.calculate(new GoalCalculationInput(
                 converted.krwAmount(),
                 request.currentSavings(),
-                LocalDate.now(),
+                today,
                 request.expectedReturnDate()
         ));
 
@@ -102,12 +105,12 @@ public class OnboardingServiceImpl implements OnboardingService{
         return OnboardingStatusResponse.of(
                 stayInfoMapper.selectByMemberId(memberId).isPresent(),
                 financialInfoMapper.selectByMemberId(memberId).isPresent(),
-                goalMapper.selectByMemberId(memberId).isPresent()
+                goalMapper.selectByMemberId(memberId).isPresent(),
+                demoClock.today(memberId)
         );
     }
 
-    private void validate(OnboardingRequest request) {
-        LocalDate today = LocalDate.now();
+    private void validate(OnboardingRequest request, LocalDate today) {
 
         if (request.entryDate() == null || request.expectedReturnDate() == null) {
             throw new InvalidRequestException("입국일과 귀국 예정일이 모두 필요합니다.");

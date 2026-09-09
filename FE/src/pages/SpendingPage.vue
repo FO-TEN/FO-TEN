@@ -3,6 +3,7 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { useDashboardStore } from '../stores/dashboard'
 import { useLocaleStore } from '../stores/locale'
 import { won, ym } from '../utils/format'
+import { today as clockToday, serverToday } from '../utils/clock'
 import { errorKey } from '../api/http'
 import AppHeader from '../components/layout/AppHeader.vue'
 import LangSwitch from '../components/ui/LangSwitch.vue'
@@ -33,13 +34,18 @@ const data = computed(() => dash.spending[monthsAgo.value])
 const dx = computed(() => (monthsAgo.value === 0 ? dash.diagnosis : null))
 
 // 최근 6개월 선택지 (시드가 6개월치라 그 범위)
-const months = Array.from({ length: 6 }, (_, i) => {
-  const d = new Date()
-  d.setDate(1)
-  d.setMonth(d.getMonth() - i)
-  return { monthsAgo: i, label: `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` }
-})
-const current = computed(() => months[monthsAgo.value])
+// 서버 "오늘" 기준(시연 계정은 미래 날짜). serverToday 가 바뀌면 라벨도 다시 계산된다.
+const months = computed(() =>
+  Array.from({ length: 6 }, (_, i) => {
+    void serverToday.value
+    const d = clockToday()
+    d.setDate(1)
+    d.setMonth(d.getMonth() - i)
+    return { monthsAgo: i, label: `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}` }
+  }),
+)
+const current = computed(() => months.value[monthsAgo.value])
+
 const monthNo = computed(() => (data.value ? ym(data.value.month).month : current.value.label.split('.')[1] * 1))
 
 async function load() {
