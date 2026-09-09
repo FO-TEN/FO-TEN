@@ -13,9 +13,11 @@ import ConditionChecklist from '../components/ui/ConditionChecklist.vue'
 import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
 import RoadmapStepsCard from '../components/ui/RoadmapStepsCard.vue'
 import SegmentDetailCard from '../components/ui/SegmentDetailCard.vue'
+import SegmentEndCard from '../components/ui/SegmentEndCard.vue'
 import SpendingCard from '../components/ui/SpendingCard.vue'
 import { messages as dict } from '../i18n'
 import { ROADMAP_EXAMPLE } from '../data/roadmapExample'
+import { won } from '../utils/format'
 
 /*
  * Figma 05_대화 · 홈(217:2463).
@@ -113,6 +115,11 @@ function text(m) {
 }
 function chipLabel(s) {
   return locale.isKorean ? s.labelKo : s.labelLocal || s.labelKo
+}
+// 봇 답은 빈 줄마다 말풍선을 따로 그린다. 서버가 한 턴에 말풍선 여러 개를 줄 방법이 없어 문단으로 나눈다.
+function paragraphs(m) {
+  const parts = text(m).split(/\n[ \t]*\n/).map((p) => p.trim()).filter(Boolean)
+  return parts.length ? parts : [text(m)]
 }
 
 // 구간 상세 카드가 "지난달 실적"(ACTUAL)이 목표기준액보다 낮다고 보여주는 바로 그 메시지만
@@ -227,7 +234,9 @@ const conditionChips = computed(() =>
           <PotenAvatar :size="44" mood="profile" />
           <div class="wrap">
             <div v-if="m.pending" class="bubble bot-b typing"><span /><span /><span /></div>
-            <div v-else class="bubble bot-b">{{ text(m) }}</div>
+            <template v-else>
+              <div v-for="(p, i) in paragraphs(m)" :key="i" class="bubble bot-b">{{ p }}</div>
+            </template>
             <RecommendationCard v-if="m.card && m.card.type === 'RECOMMENDATION'" :payload="m.card.payload" />
             <RoadmapGraphCard v-else-if="m.card && m.card.type === 'ROADMAP'" :payload="m.card.payload" />
             <RoadmapGraphCard
@@ -237,8 +246,13 @@ const conditionChips = computed(() =>
               compact
             />
             <SegmentDetailCard v-else-if="m.card && m.card.type === 'SEGMENT_DETAIL'" :payload="m.card.payload" />
+            <SegmentEndCard v-else-if="m.card && m.card.type === 'SEGMENT_END'" :payload="m.card.payload" />
             <SpendingCard v-else-if="m.card && m.card.type === 'SPENDING'" :payload="m.card.payload" />
             <RoadmapStepsCard v-if="m.steps" />
+            <!-- 구간 마무리 카드 뒤에 채울 방식을 묻는 말풍선. 칩이 바로 밑에 붙는다 -->
+            <div v-if="m.card && m.card.type === 'SEGMENT_END' && m.card.payload.askChoice" class="bubble bot-b after">
+              {{ t('card.segment_end_question', { v: won(m.card.payload.shortfallAmount) }) }}
+            </div>
           </div>
         </div>
       </template>
@@ -372,6 +386,12 @@ const conditionChips = computed(() =>
   left: -14px;
   background: var(--chat-bg);
   border-top-right-radius: 8px;
+}
+.bot-b + .bot-b {
+  margin-top: 8px;
+}
+.bot-b.after {
+  margin-top: 8px;
 }
 .user {
   display: flex;
