@@ -38,9 +38,17 @@ public interface RoadmapCalculationService {
     // 당월저축액 공식(§5-2, cycleNo 그대로 곱함)과는 보는 시점이 다르다.
     BigDecimal calculateShortfall(BigDecimal baselineAmount, int completedCycles, BigDecimal cumulativeSavingPerformance);
 
-    // 최초 구간(1번째 구간) 분해 (§3-2). 총 개월수 12 이하면 그 값 그대로 단일(=마지막) 구간,
+    // 최초 구간(1번째 구간) 전용 분해 (§3-2). 총 개월수 12 이하면 그 값 그대로 단일(=마지막) 구간,
     // 초과하면 잔여와 상관없이 무조건 12개월로 시작한다("첫 12개월 구간을 생성한 뒤").
+    // 2번째 구간부터는 기준이 다르므로(잔여 24개월) calculateNextSegment 를 쓴다 — 이 메서드를
+    // 재사용하면 안 된다(FO-TEN 마지막 구간 21개월이 12+9로 잘못 쪼개지는 버그의 원인이었다).
     FirstSegmentPlan calculateFirstSegment(int totalMonths);
+
+    // 2번째 구간부터의 분해 (§3-2). "잔여 개월이 24개월 이상인 동안 12개월 구간을 추가하고,
+    // 잔여가 24개월 미만이 되면 그 전부를 마지막 구간으로 지정" — calculateFirstSegment 와
+    // 임계값이 다르다(12가 아니라 24). 예: 57개월 로드맵의 2구간 계산 시 잔여21 → 21<24라
+    // 더 쪼개지 않고 21 전체가 마지막 구간(12+12+12+21).
+    FirstSegmentPlan calculateNextSegment(int remainingMonths);
 
     // 구간 종료일. 마지막 구간이면 total_months 어림 계산으로 생긴 며칠 오차를 없애기 위해
     // roadmapEndDate 를 그대로 쓰고, 아니면 시작일 + 계획개월수로 계산한다.

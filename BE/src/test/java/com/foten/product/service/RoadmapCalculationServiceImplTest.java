@@ -95,6 +95,40 @@ class RoadmapCalculationServiceImplTest {
     }
 
     @Test
+    void calculateNextSegment_잔여가_24개월_이상이면_12개월을_더_떼어낸다() {
+        // 로직 v3 §3-2 예시: 57개월 로드맵의 2·3구간 — 첫 12 떼고 남은 45, 다시 뗀 뒤 남은 33
+        FirstSegmentPlan afterFirst = service.calculateNextSegment(45);
+        FirstSegmentPlan afterSecond = service.calculateNextSegment(33);
+        // 경계값: 정확히 24개월 남았으면 "24개월 이상"이라 계속 12로 끊는다(36개월 예시의 마지막 12)
+        FirstSegmentPlan boundary = service.calculateNextSegment(24);
+
+        assertEquals(12, afterFirst.plannedMonths());
+        assertFalse(afterFirst.isLastSegment());
+        assertEquals(12, afterSecond.plannedMonths());
+        assertFalse(afterSecond.isLastSegment());
+        assertEquals(12, boundary.plannedMonths());
+        assertFalse(boundary.isLastSegment());
+    }
+
+    @Test
+    void calculateNextSegment_잔여가_24개월_미만이면_전부_마지막_구간이다() {
+        // 로직 v3 §3-2 예시: 57개월 로드맵의 4구간 — 12+12+12를 떼고 남은 21 <24 → 21 전체가 마지막
+        // (12+9로 더 쪼개면 안 된다 — 이게 calculateFirstSegment 를 잘못 재사용했을 때 나던 버그다)
+        FirstSegmentPlan fiftySeven = service.calculateNextSegment(21);
+        // 22개월 예시(12+10)의 2구간
+        FirstSegmentPlan twentyTwo = service.calculateNextSegment(10);
+        // 경계값: 23개월은 24 미만이라 쪼개지 않는다
+        FirstSegmentPlan boundary = service.calculateNextSegment(23);
+
+        assertEquals(21, fiftySeven.plannedMonths());
+        assertTrue(fiftySeven.isLastSegment());
+        assertEquals(10, twentyTwo.plannedMonths());
+        assertTrue(twentyTwo.isLastSegment());
+        assertEquals(23, boundary.plannedMonths());
+        assertTrue(boundary.isLastSegment());
+    }
+
+    @Test
     void calculateSegmentEndDate_마지막_구간이면_어림개월수_대신_로드맵_종료일을_그대로_쓴다() {
         LocalDate roadmapEndDate = LocalDate.of(2027, 9, 5); // 어림 계산이면 startDate+12개월(2027-09-06)과 하루 어긋남
         LocalDate result = service.calculateSegmentEndDate(

@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 public class RoadmapCalculationServiceImpl implements RoadmapCalculationService {
 
     private static final int GENERAL_SEGMENT_MONTHS = 12;
+    // 2번째 구간부터: 잔여가 이 값 이상이면 12개월을 더 떼어내고, 미만이면 잔여 전체를 마지막
+    // 구간으로 지정한다(§3-2). calculateFirstSegment 의 임계값(12)과 다르다.
+    private static final int NEXT_SEGMENT_CONTINUE_THRESHOLD_MONTHS = 24;
     private static final BigDecimal MONTHS_PER_YEAR_TIMES_PERCENT = BigDecimal.valueOf(1200); // rate(%) × 개월/12 를 나눗셈 한 번으로
     private static final BigDecimal INTEREST_TAX_RATE = new BigDecimal("0.154"); // 이자소득세 14% + 지방소득세 1.4% (이자_계산식_결정.md)
 
@@ -69,6 +72,14 @@ public class RoadmapCalculationServiceImpl implements RoadmapCalculationService 
             return new FirstSegmentPlan(totalMonths, true);
         }
         return new FirstSegmentPlan(GENERAL_SEGMENT_MONTHS, false);
+    }
+
+    @Override
+    public FirstSegmentPlan calculateNextSegment(int remainingMonths) {
+        if (remainingMonths >= NEXT_SEGMENT_CONTINUE_THRESHOLD_MONTHS) {
+            return new FirstSegmentPlan(GENERAL_SEGMENT_MONTHS, false);
+        }
+        return new FirstSegmentPlan(remainingMonths, true);
     }
 
     @Override
