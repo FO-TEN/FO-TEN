@@ -18,6 +18,8 @@ export const useChatStore = defineStore('chat', {
     sending: false,
     error: '',
     pendingQuestion: '', // 대시보드 CTA 등에서 넘어올 때 자동 전송할 질문
+    // 홈 "로드맵 생성하기" 로 넘어올 때 소개 턴을 띄운다. 소개는 이력에 저장되지 않는다
+    pendingIntro: '', // 'roadmap' | ''
     scrollTop: null, // 다른 화면에 갔다 돌아오믄 되돌릴 대화 스크롤 위치. 없으믄 맨 아래
   }),
 
@@ -96,6 +98,21 @@ export const useChatStore = defineStore('chat', {
 
     queue(question) {
       this.pendingQuestion = question
+    },
+
+    queueIntro(kind) {
+      this.pendingIntro = kind
+    },
+
+    // 화면에서만 만든 말풍선. 이력을 다시 불러오면 사라진다
+    pushLocal(msg) {
+      this.messages.push({
+        id: `local-${Date.now()}-${this.messages.length}`,
+        role: 'ASSISTANT',
+        local: true,
+        createdAt: new Date().toISOString(),
+        ...msg,
+      })
     },
   },
 })

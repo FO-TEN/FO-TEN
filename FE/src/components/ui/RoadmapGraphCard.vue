@@ -8,12 +8,19 @@ import { comma } from '../../utils/format'
 // 지난 구간은 실제 값, 앞으로의 구간은 지금 조건이 이어진다고 본 값이다.
 const props = defineProps({
   payload: { type: Object, required: true },
+  // 홈(#121)은 "2026년 9월 로드맵 / 2031년 5월까지 · 57개월 · 4구간". 비우면 대화 카드 문구
+  title: { type: String, default: '' },
+  subtitle: { type: String, default: '' },
+  // 대화 카드에만 있는 설명 한 줄
+  showNote: { type: Boolean, default: true },
+  // 소개 예시용. 부제·설명·합계를 빼고 차트를 낮춘다
+  compact: { type: Boolean, default: false },
 })
 const locale = useLocaleStore()
 const t = (k, v) => locale.t(k, v)
 
-// 시안 치수 (375 프레임 기준). 막대 영역 높이와 가장 높은 막대의 높이.
-const CHART_H = 160
+// 시안 치수 (375 프레임 기준). 압축 모드는 낮춘다
+const CHART_H = computed(() => (props.compact ? 104 : 160))
 const TOP_LABEL_H = 21 // total label above the last bar
 const BADGE_H = 32 // in-progress badge above the active bar
 const BASE_RESERVE = 24 // Figma: 160 - 136
@@ -21,8 +28,19 @@ const THIN = 4 // 값이 있는데 너무 얇으면 보이게 하는 최소 두�
 const LABEL_MIN_H = 18 // 이보다 낮은 층에는 글자를 넣지 않는다
 
 const n = (v) => (v === null || v === undefined ? 0 : Number(v))
-// 만 단위로 줄인다. 막대 폭이 좁아 원 단위는 들어가지 않는다.
-const man = (v) => t('card.man', { n: comma(Math.round(n(v) / 10000)) })
+// 막대 안: 한국어 "1,311만", 그 밖은 백만 축약 "13.1M" (단위 말은 사전)
+// 하단 합계: 한국어는 만 단위 한 줄, 그 밖은 원 단위 전체 숫자 두 줄
+const isKo = computed(() => locale.ui === 'ko')
+const man = (v) => {
+  if (isKo.value) return t('card.man', { n: comma(Math.round(n(v) / 10000)) })
+  const m = n(v) / 1_000_000
+  return t('card.man', { n: m >= 10 ? Math.round(m) : Math.round(m * 10) / 10 })
+}
+const footAmount = computed(() =>
+  isKo.value ? comma(Math.round(n(props.payload.finalAmount) / 10000)) : comma(Math.round(n(props.payload.finalAmount))),
+)
+const footInterestMan = computed(() => comma(Math.round(n(props.payload.expectedInterestTotal) / 10000)))
+const footText = computed(() => t('card.roadmap_total_full', { i: comma(Math.round(n(props.payload.expectedInterestTotal))) }))
 
 const segments = computed(() => props.payload.segments || [])
 const totalMonths = computed(() => n(props.payload.totalMonths))
@@ -44,7 +62,7 @@ function label(s, i) {
 const bars = computed(() =>
   segments.value.map((s, i) => {
     const total = n(s.savingsAmount) + n(s.depositAmount) + n(s.cashAmount) + n(s.interestAmount)
-    const scale = (CHART_H - reserve.value) / tallest.value
+    const scale = (CHART_H.value - reserve.value) / tallest.value
     const h = (v) => (n(v) > 0 ? Math.max(THIN, Math.round(n(v) * scale)) : 0)
     return {
       key: s.segmentNo,
@@ -78,19 +96,22 @@ const reserve = computed(() => {
   return Math.max(BASE_RESERVE, (last ? TOP_LABEL_H : 0) + (active ? BADGE_H : 0))
 })
 
-const subtitle = computed(() =>
-  t('card.roadmap_sub', { n: totalMonths.value, segs: segments.value.map((s) => s.months).join(' + ') }),
+const subtitle = computed(
+  () =>
+    props.subtitle ||
+    t('card.roadmap_sub', { n: totalMonths.value, segs: segments.value.map((s) => s.months).join(' + ') }),
 )
+const title = computed(() => props.title || t('card.roadmap_title'))
 </script>
 
 <template>
-  <section class="rg">
+  <section class="rg" :class="{ 'compact-card': compact, ko: isKo }">
     <div class="head">
-      <p class="rt">{{ t('card.roadmap_title') }}</p>
-      <p class="rs">{{ subtitle }}</p>
+      <p class="rt">{{ title }}</p>
+      <p v-if="!compact" class="rs">{{ subtitle }}</p>
     </div>
 
-    <div class="chart" :style="{ height: CHART_H + 'px' }">
+    <div class="chart" :style="{ height: CHART_H + 'px' }" :class="{ compact }">
       <div v-for="b in bars" :key="b.key" class="col" :style="{ flexGrow: b.grow }">
         <span v-if="b.active" class="badge" :class="{ stacked: b.last }">{{ t('card.in_progress') }}</span>
         <p v-if="b.last" class="top num">{{ t('card.about', { v: man(b.total) }) }}</p>
@@ -118,15 +139,19 @@ const subtitle = computed(() =>
       <span class="pill"><i class="dot interest" />{{ t('card.legend_interest') }}</span>
     </div>
 
-    <p class="note">{{ t('card.roadmap_note') }}</p>
+    <p v-if="showNote && !compact" class="note">{{ t('card.roadmap_note') }}</p>
 
-    <div class="foot">
+    <div v-if="!compact" class="foot">
       <span class="fl">{{ t('card.roadmap_after', { n: totalMonths }) }}</span>
-      <span class="fr">
-        <b class="num">{{ comma(Math.round(n(payload.finalAmount) / 10000)) }}</b>
+      <span v-if="isKo" class="fr">
+        <b class="num">{{ footAmount }}</b>
         <span>{{ t('card.roadmap_total_mid') }}</span>
-        <b class="num">{{ comma(Math.round(n(payload.expectedInterestTotal) / 10000)) }}</b>
+        <b class="num">{{ footInterestMan }}</b>
         <span>{{ t('card.roadmap_total_suffix') }}</span>
+      </span>
+      <span v-else class="fr two">
+        <span class="fr-line"><b class="num">{{ footAmount }}</b><span>{{ t('common.won') }}</span></span>
+        <span class="fr-line">{{ footText }}</span>
       </span>
     </div>
   </section>
@@ -134,6 +159,17 @@ const subtitle = computed(() =>
 
 <style scoped>
 /* 차트 전용 색. 토큰에 없는 값이라 여기서만 쓴다. */
+.rg.compact-card {
+  gap: 8px;
+  padding: 14px 16px 12px;
+}
+.rg.compact-card .legend {
+  gap: 4px 6px;
+}
+.rg.compact-card .pill {
+  padding: 2px 8px 2px 6px;
+  font-size: 11px;
+}
 .rg {
   --c-savings: #ffb4b4;
   --c-savings-text: #7a2e2e;
@@ -208,13 +244,22 @@ const subtitle = computed(() =>
 }
 .savings .lt { color: var(--c-savings-text); }
 .deposit .lt { color: var(--c-deposit-text); }
+/* 마지막 막대 위 총액. 막대 가운데 정렬, 카드 밖으로는 안 나가게 */
 .top {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translateX(-50%);
+  max-width: calc(100% + 24px);
   margin-bottom: 1px;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.3;
   color: var(--gray-850);
   white-space: nowrap;
+}
+.col:has(.top) {
+  position: relative;
 }
 .badge {
   margin: 0 0 10px;
@@ -279,6 +324,10 @@ const subtitle = computed(() =>
   line-height: 1.4;
   color: var(--gray-500);
 }
+/* 외국어는 길어서 조금 줄인다 */
+.rg:not(.ko) .note {
+  font-size: 11px;
+}
 .foot {
   display: flex;
   flex-direction: column;
@@ -288,15 +337,20 @@ const subtitle = computed(() =>
   border-top: 1px solid var(--switch-bg);
 }
 .fl {
+  flex: 0 0 auto;
   font-size: 13px;
   line-height: 1.4;
   color: var(--gray-700);
+  white-space: nowrap;
 }
 .fr {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 4px;
+  min-width: 0;
   font-size: 13px;
+  line-height: 1.4;
   color: var(--gray-700);
 }
 .fr b {
@@ -304,5 +358,17 @@ const subtitle = computed(() =>
   font-weight: 700;
   line-height: 1.3;
   color: var(--gray-850);
+}
+/* 한국어 외: 금액 한 줄, 이자 한 줄 */
+.fr.two {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.fr-line {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
 }
 </style>
