@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Төлөвлөгөөний дагуу хуримтлууллаа",
   "card.segment_end_question": "Өнгөрсөн сарын дутуу {v}: энэ сард бүгдийг нөхөх үү, үлдсэн саруудад хуваах уу?",
   "card.roadmap_title": "Таны мөнгө ингэж хуримтлагдана",
-  "card.roadmap_sub": "{n} сар = {segs} сарын үе",
+  "card.roadmap_sub": "{n}(сар) = {segs}(сар)",
   "card.man": "{n} сая",
   "card.about": "≈{v}",
   "card.in_progress": "Явагдаж буй",

@@ -162,7 +162,7 @@
   "card.segment_end_ok": "План боюнча топтолду",
   "card.segment_end_question": "Өткөн айдын {v} жетишпегени: ушул айда баарын толтурабызбы, же калган айларга бөлөбүзбү?",
   "card.roadmap_title": "Акчаңыз ушинтип топтолот",
-  "card.roadmap_sub": "{n} ай = {segs} айлык мезгилдер",
+  "card.roadmap_sub": "{n}(ай) = {segs}(ай)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "Учурда",

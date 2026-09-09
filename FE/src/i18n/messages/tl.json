@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Nakaipon ayon sa plano",
   "card.segment_end_question": "Kulang na {v} noong nakaraang buwan: punan lahat ngayong buwan, o hatiin sa natitirang buwan?",
   "card.roadmap_title": "Ganito lalago ang pera mo",
-  "card.roadmap_sub": "{n} buwan = {segs}-buwang yugto",
+  "card.roadmap_sub": "{n}(buwan) = {segs}(buwan)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "Kasalukuyan",

@@ -162,7 +162,7 @@
   "card.segment_end_ok": "សន្សំបានតាមផែនការ",
   "card.segment_end_question": "ចំនួនខ្វះ {v} ពីខែមុន៖ បំពេញទាំងអស់ក្នុងខែនេះ ឬបែងចែកទៅខែដែលនៅសល់?",
   "card.roadmap_title": "លុយរបស់អ្នកកើនបែបនេះ",
-  "card.roadmap_sub": "{n} ខែ = ដំណាក់កាល {segs} ខែ",
+  "card.roadmap_sub": "{n}(ខែ) = {segs}(ខែ)",
   "card.man": "{n} លាន",
   "card.about": "≈{v}",
   "card.in_progress": "កំពុងដំណើរការ",

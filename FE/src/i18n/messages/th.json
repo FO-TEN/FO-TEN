@@ -162,7 +162,7 @@
   "card.segment_end_ok": "ออมได้ตามแผน",
   "card.segment_end_question": "ยอดขาด {v} ของเดือนก่อน: ชดเชยทั้งหมดในเดือนนี้ หรือกระจายในเดือนที่เหลือ?",
   "card.roadmap_title": "เงินของคุณจะสะสมแบบนี้",
-  "card.roadmap_sub": "{n} เดือน = ช่วงละ {segs} เดือน",
+  "card.roadmap_sub": "{n}(เดือน) = {segs}(เดือน)",
   "card.man": "{n} ล้าน",
   "card.about": "≈{v}",
   "card.in_progress": "กำลังดำเนิน",

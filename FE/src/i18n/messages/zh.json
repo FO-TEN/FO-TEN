@@ -162,7 +162,7 @@
   "card.segment_end_ok": "按计划存了",
   "card.segment_end_question": "上月不足的 {v}：这个月全部补上，还是分摊到剩余月份？",
   "card.roadmap_title": "钱会这样积累起来",
-  "card.roadmap_sub": "{n}个月 = {segs}个月区间",
+  "card.roadmap_sub": "{n}(个月) = {segs}(个月)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "进行中",

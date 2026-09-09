@@ -44,12 +44,8 @@ const footText = computed(() => t('card.roadmap_total_full', { i: comma(Math.rou
 
 const segments = computed(() => props.payload.segments || [])
 const totalMonths = computed(() => n(props.payload.totalMonths))
-const tallest = computed(() =>
-  Math.max(
-    1,
-    ...segments.value.map((s) => n(s.savingsAmount) + n(s.depositAmount) + n(s.cashAmount) + n(s.interestAmount)),
-  ),
-)
+const segmentTotal = (s) => n(s.savingsAmount) + n(s.depositAmount) + n(s.cashAmount) + n(s.interestAmount)
+const tallest = computed(() => Math.max(1, ...segments.value.map(segmentTotal)))
 
 // 12개월 구간은 "N년차", 나머지는 "N개월". 마지막이면 "마지막 N개월".
 function label(s, i) {
@@ -61,12 +57,12 @@ function label(s, i) {
 
 const bars = computed(() =>
   segments.value.map((s, i) => {
-    const total = n(s.savingsAmount) + n(s.depositAmount) + n(s.cashAmount) + n(s.interestAmount)
+    const total = segmentTotal(s)
     const scale = (CHART_H.value - reserve.value) / tallest.value
     const h = (v) => (n(v) > 0 ? Math.max(THIN, Math.round(n(v) * scale)) : 0)
     return {
       key: s.segmentNo,
-      grow: s.months || 1,
+      grow: 1, // 구간 기간과 상관없이 막대 폭은 전부 동일하다
       active: s.status === 'ACTIVE',
       last: i === segments.value.length - 1,
       label: label(s, i),
@@ -85,10 +81,7 @@ const bars = computed(() =>
 // so reserve room for both or the bar overflows into the subtitle.
 const reserve = computed(() => {
   const segs = segments.value
-  const tallestIdx = segs.reduce((best, s, i, arr) => {
-    const tot = (x) => n(x.savingsAmount) + n(x.depositAmount) + n(x.cashAmount) + n(x.interestAmount)
-    return tot(s) > tot(arr[best]) ? i : best
-  }, 0)
+  const tallestIdx = segs.reduce((best, s, i, arr) => (segmentTotal(s) > segmentTotal(arr[best]) ? i : best), 0)
   const s = segs[tallestIdx]
   if (!s) return BASE_RESERVE
   const last = tallestIdx === segs.length - 1
@@ -265,10 +258,11 @@ const title = computed(() => props.title || t('card.roadmap_title'))
   margin: 0 0 10px;
   padding: 2px 7px;
   border-radius: var(--r-pill);
-  background: var(--gray-850);
+  background: var(--chip-border-dark); /* 대화창 칩 테두리보다 살짝 어둡게 */
+  border: 1px solid var(--chip-border-dark);
   color: #fff;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 500;
   line-height: 1.4;
   white-space: nowrap;
 }
@@ -289,6 +283,7 @@ const title = computed(() => props.title || t('card.roadmap_title'))
   font-weight: 500;
   line-height: 1.4;
   color: var(--gray-500);
+  white-space: pre-line; /* card.last_months 의 "마지막\n{n}개월" 줄바꿈을 살린다 */
   overflow-wrap: anywhere;
 }
 

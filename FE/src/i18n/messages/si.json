@@ -162,7 +162,7 @@
   "card.segment_end_ok": "සැලසුම් පරිදි ඉතුරු කළා",
   "card.segment_end_question": "පසුගිය මාසයේ හිඟය {v}: මේ මාසයේම සියල්ල පුරවන්නද, ඉතිරි මාසවලට බෙදන්නද?",
   "card.roadmap_title": "ඔබේ මුදල් මෙසේ එකතු වේ",
-  "card.roadmap_sub": "මාස {n} = මාස {segs} කාල සීමා",
+  "card.roadmap_sub": "{n}(මාස) = {segs}(මාස)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "ක්‍රියාත්මක",

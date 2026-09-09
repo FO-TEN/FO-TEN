@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Saved as planned",
   "card.segment_end_question": "Last month's shortfall of {v}: make it all up this month, or spread it over the remaining months?",
   "card.roadmap_title": "How your money grows",
-  "card.roadmap_sub": "{n} months = {segs}-month periods",
+  "card.roadmap_sub": "{n}(months) = {segs}(months)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "Now",

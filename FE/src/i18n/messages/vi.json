@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Đã tiết kiệm đúng kế hoạch",
   "card.segment_end_question": "Khoản thiếu {v} của tháng trước: bù hết trong tháng này, hay chia ra các tháng còn lại?",
   "card.roadmap_title": "Tiền của bạn tích lũy thế này",
-  "card.roadmap_sub": "{n} tháng = các giai đoạn {segs} tháng",
+  "card.roadmap_sub": "{n}(tháng) = {segs}(tháng)",
   "card.man": "{n} triệu",
   "card.about": "≈{v}",
   "card.in_progress": "Hiện tại",
