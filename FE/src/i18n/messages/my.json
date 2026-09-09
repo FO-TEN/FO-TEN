@@ -162,7 +162,7 @@
   "card.segment_end_ok": "အစီအစဉ်အတိုင်း စုဆောင်းပြီး",
   "card.segment_end_question": "ယခင်လ လိုငွေ {v}: ဤလတွင် အားလုံးဖြည့်မလား၊ ကျန်လများသို့ ခွဲမလား?",
   "card.roadmap_title": "သင့်ငွေ ဒီလိုစုမိလာမယ်",
-  "card.roadmap_sub": "{n} လ = {segs} လ အပိုင်းများ",
+  "card.roadmap_sub": "{n}(လ) = {segs}(လ)",
   "card.man": "{n} သန်း",
   "card.about": "≈{v}",
   "card.in_progress": "လက်ရှိ",

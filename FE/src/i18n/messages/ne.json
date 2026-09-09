@@ -162,7 +162,7 @@
   "card.segment_end_ok": "योजना अनुसार बचत भयो",
   "card.segment_end_question": "गत महिनाको अपुग {v}: यही महिनामा सबै पूरा गर्ने, कि बाँकी महिनामा बाँड्ने?",
   "card.roadmap_title": "तपाईंको पैसा यसरी जम्मा हुन्छ",
-  "card.roadmap_sub": "{n} महिना = {segs} महिनाका अवधि",
+  "card.roadmap_sub": "{n}(महिना) = {segs}(महिना)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "चलिरहेको",

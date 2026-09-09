@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Тибқи нақша ҷамъ шуд",
   "card.segment_end_question": "Камбуди {v}-и моҳи гузашта: ҳамаашро дар ҳамин моҳ пур кунем, ё ба моҳҳои боқимонда тақсим кунем?",
   "card.roadmap_title": "Пули шумо ҳамин тавр ҷамъ мешавад",
-  "card.roadmap_sub": "{n} моҳ = давраҳои {segs} моҳа",
+  "card.roadmap_sub": "{n}(моҳ) = {segs}(моҳ)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "Ҷорӣ",

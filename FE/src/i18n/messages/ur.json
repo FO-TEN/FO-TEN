@@ -162,7 +162,7 @@
   "card.segment_end_ok": "منصوبے کے مطابق بچت ہوئی",
   "card.segment_end_question": "پچھلے مہینے کی کمی {v}: اسی مہینے سب پورا کریں، یا باقی مہینوں میں بانٹیں؟",
   "card.roadmap_title": "آپ کا پیسہ ایسے جمع ہوگا",
-  "card.roadmap_sub": "{n} ماہ = {segs} ماہ کے مراحل",
+  "card.roadmap_sub": "{n}(ماہ) = {segs}(ماہ)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "جاری",

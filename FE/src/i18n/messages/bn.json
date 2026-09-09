@@ -162,7 +162,7 @@
   "card.segment_end_ok": "পরিকল্পনামতো সঞ্চয় হয়েছে",
   "card.segment_end_question": "গত মাসের ঘাটতি {v}: এই মাসেই সব পূরণ করবেন, নাকি বাকি মাসে ভাগ করবেন?",
   "card.roadmap_title": "আপনার টাকা এভাবে জমবে",
-  "card.roadmap_sub": "{n} মাস = {segs} মাসের ধাপ",
+  "card.roadmap_sub": "{n}(মাস) = {segs}(মাস)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "চলমান",

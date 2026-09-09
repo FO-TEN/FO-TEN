@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Menabung sesuai rencana",
   "card.segment_end_question": "Kekurangan {v} bulan lalu: tutupi semua bulan ini, atau bagi ke bulan-bulan tersisa?",
   "card.roadmap_title": "Begini uangmu bertambah",
-  "card.roadmap_sub": "{n} bulan = periode {segs} bulan",
+  "card.roadmap_sub": "{n}(bulan) = {segs}(bulan)",
   "card.man": "{n} jt",
   "card.about": "≈{v}",
   "card.in_progress": "Berjalan",

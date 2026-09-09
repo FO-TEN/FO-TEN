@@ -8,6 +8,7 @@
   --on-primary: #60584c;           /* 옐로 위 브라운 글자 */
   --chip-bg: #faf0e2;              /* 대화 칩 배경 */
   --chip-border: #e5b97b;          /* 대화 칩 테두리 */
+  --chip-border-dark: #c39d69;     /* chip-border를 살짝 어둡게 — 로드맵 그래프 "진행 중" 배지 배경 */
   --yellow-50: #fff8e1;            /* 안내 박스, 선택된 메뉴 */
   --yellow-100: #fff0b3;           /* 대시보드 히어로 카드, CTA */
   --yellow-link: #b38300;          /* "수정" 텍스트 링크 */

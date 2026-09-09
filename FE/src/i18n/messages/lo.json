@@ -162,7 +162,7 @@
   "card.segment_end_ok": "ອອມໄດ້ຕາມແຜນ",
   "card.segment_end_question": "ຍອດຂາດ {v} ຂອງເດືອນກ່ອນ: ຊົດເຊີຍທັງໝົດໃນເດືອນນີ້ ຫຼື ແບ່ງໄປເດືອນທີ່ເຫຼືອ?",
   "card.roadmap_title": "ເງິນຂອງທ່ານຈະສະສົມແບບນີ້",
-  "card.roadmap_sub": "{n} ເດືອນ = ໄລຍະ {segs} ເດືອນ",
+  "card.roadmap_sub": "{n}(ເດືອນ) = {segs}(ເດືອນ)",
   "card.man": "{n} ລ້ານ",
   "card.about": "≈{v}",
   "card.in_progress": "ກຳລັງດຳເນີນ",

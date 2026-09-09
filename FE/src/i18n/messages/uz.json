@@ -162,7 +162,7 @@
   "card.segment_end_ok": "Reja bo‘yicha jamg‘arildi",
   "card.segment_end_question": "O‘tgan oyning {v} kamomadi: shu oyda hammasini to‘ldiramizmi, yoki qolgan oylarga bo‘lamizmi?",
   "card.roadmap_title": "Pulingiz shunday yigʻiladi",
-  "card.roadmap_sub": "{n} oy = {segs} oylik davrlar",
+  "card.roadmap_sub": "{n}(oy) = {segs}(oy)",
   "card.man": "{n}M",
   "card.about": "≈{v}",
   "card.in_progress": "Davom etmoqda",
