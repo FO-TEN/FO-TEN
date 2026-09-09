@@ -107,7 +107,7 @@
   "detail.bar_actual": "Өнгөрсөн сар",
   "detail.bar_plan": "Энэ сар",
   "detail.bar_future": "Дараа сараас",
-  "detail.sub": "Өнгөрсөн сар · энэ сар · дараа сараас",
+  "detail.sub": "Өнгөрсөн сарын хуримтлалтай харьцуулж, цаашдын төлөвлөгөөг харуулна",
   "detail.now": "Одоо",
   "detail.plan": "Төлөвлөгөө",
   "detail.baseline": "Зорилт {v}",

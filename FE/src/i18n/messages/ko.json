@@ -107,7 +107,7 @@
   "detail.bar_actual": "지난달",
   "detail.bar_plan": "이번 달",
   "detail.bar_future": "다음 달부터",
-  "detail.sub": "지난달 실제 · 이번 달 · 이후 계획",
+  "detail.sub": "지난달 저축과 비교해 향후 계획을 알려드려요",
   "detail.now": "현재",
   "detail.plan": "계획",
   "detail.baseline": "목표기준액 {v}",

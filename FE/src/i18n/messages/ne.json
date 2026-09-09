@@ -107,7 +107,7 @@
   "detail.bar_actual": "गत महिना",
   "detail.bar_plan": "यो महिना",
   "detail.bar_future": "अर्को महिनादेखि",
-  "detail.sub": "गत महिना · यो महिना · अर्को महिनादेखि",
+  "detail.sub": "गत महिनाको बचतसँग तुलना गरी अबको योजना देखाउँछौं",
   "detail.now": "अहिले",
   "detail.plan": "योजना",
   "detail.baseline": "लक्ष्य {v}",

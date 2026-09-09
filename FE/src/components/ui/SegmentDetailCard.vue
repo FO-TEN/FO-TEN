@@ -129,24 +129,13 @@ function diffText(v) {
     <div class="alloc">
       <p class="al-t">{{ t('detail.alloc_title', { v: man(payload.monthlySavingAmount) }) }}</p>
       <div v-for="a in allocations" :key="a.productName" class="al-r">
-        <span class="al-n">{{ a.productName }} · {{ a.appliedRate }}%</span>
-        <span class="al-v">
-          <b class="num">{{ man(a.allocatedAmount) }}</b>
-          <span class="al-lim">{{ t('detail.limit', { v: man(a.monthlyLimit) }) }}</span>
-        </span>
+        <span class="al-n">{{ a.productName }}</span>
+        <span class="al-v"><b class="num">{{ man(a.allocatedAmount) }}</b></span>
       </div>
       <div v-if="has(payload.recommendedCashSaving)" class="al-r">
         <span class="al-n">{{ t('card.cash') }}</span>
-        <span class="al-v">
-          <b class="num">{{ man(payload.recommendedCashSaving) }}</b>
-          <span class="al-lim">{{ t('detail.over_limit') }}</span>
-        </span>
+        <span class="al-v"><b class="num">{{ man(payload.recommendedCashSaving) }}</b></span>
       </div>
-    </div>
-
-    <div class="legend">
-      <span class="lg"><i class="dot actual" />{{ t('detail.legend_actual') }}</span>
-      <span class="lg"><i class="dot plan" />{{ t('detail.legend_plan') }}</span>
     </div>
   </section>
 </template>
@@ -168,7 +157,7 @@ function diffText(v) {
 .head {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 6px;
 }
 .ht {
   display: flex;
@@ -385,39 +374,5 @@ function diffText(v) {
   font-weight: 700;
   line-height: 1.3;
   color: var(--gray-850);
-}
-.al-lim {
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--gray-400);
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 8px;
-}
-.lg {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px 4px 8px;
-  border-radius: var(--r-pill);
-  background: var(--gray-100);
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.4;
-  color: var(--gray-700);
-}
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-.dot.actual {
-  background: var(--c-actual);
-}
-.dot.plan {
-  background: var(--c-plan);
 }
 </style>

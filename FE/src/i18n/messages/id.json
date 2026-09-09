@@ -107,7 +107,7 @@
   "detail.bar_actual": "Bulan lalu",
   "detail.bar_plan": "Bulan ini",
   "detail.bar_future": "Mulai bulan depan",
-  "detail.sub": "Bulan lalu · bulan ini · mulai bulan depan",
+  "detail.sub": "Membandingkan dengan tabungan bulan lalu, ini rencana ke depan",
   "detail.now": "Sekarang",
   "detail.plan": "Rencana",
   "detail.baseline": "Target {v}",

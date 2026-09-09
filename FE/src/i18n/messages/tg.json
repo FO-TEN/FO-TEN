@@ -107,7 +107,7 @@
   "detail.bar_actual": "Моҳи гузашта",
   "detail.bar_plan": "Ин моҳ",
   "detail.bar_future": "Аз моҳи оянда",
-  "detail.sub": "Моҳи гузашта · ин моҳ · аз моҳи оянда",
+  "detail.sub": "Бо муқоиса бо пасандози моҳи гузашта, нақшаи оянда нишон дода мешавад",
   "detail.now": "Ҳозир",
   "detail.plan": "Нақша",
   "detail.baseline": "Ҳадаф {v}",
