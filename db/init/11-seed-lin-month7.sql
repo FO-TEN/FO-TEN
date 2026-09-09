@@ -1,6 +1,6 @@
--- FO:TEN "7개월 차 월 로드맵 갱신 + 지난달 부족액" 시연용 계정 — natty02
+-- FO:TEN "7개월 차 월 로드맵 갱신 + 지난달 부족액" 시연용 계정 — lin02
 --
--- natty01(db/init/10-seed-lin-onboarding.sql)과 같은 사람(팜 린)이 그 온보딩 결과로
+-- lin01(db/init/10-seed-lin-onboarding.sql)과 같은 사람(팜 린)이 그 온보딩 결과로
 -- 받은 로드맵을 6개월 동안 그대로 굴린 뒤, 7개월 차(cycle 7) 첫 대화에 들어오는 시점을
 -- 재현한다. 시연 흐름 —
 --   지난달(cycle 6) 저축 결과(300,000원 부족) → 당월 저축 방식 선택("남은 기간 나눠 납부",
@@ -8,31 +8,31 @@
 -- 이 흐름을 처음부터 끝까지 밟으려면 (1) 6개월치 납입·계획·스냅샷 이력, (2) 지난달 부족액,
 -- (3) 카테고리별 소비내역이 전부 있어야 해서 이 파일이 한꺼번에 채운다.
 --
--- natty02 는 원래 db/init/ 시드에 없는 수동 생성 계정이라 환경마다 값이 달랐다. 이 파일은
--- 그 계정에 남아있던 데이터를 전부 지우고(아래 DELETE) 여기 적힌 값으로 다시 채운다 —
+-- lin02 는 이 파일에서만 만드는 계정이다. 다시 적용할 때는 이 계정에 남아있던 데이터(시연 중에
+-- 확정한 cycle 7 계획·대화 포함)를 전부 지우고(아래 DELETE) 여기 적힌 값으로 다시 채운다 —
 -- 다른 계정과 product / exchange_rate 등 마스터 데이터에는 손대지 않는다.
 --
 -- 파일 번호가 09-fix-transaction-balance.sql("가장 마지막에 실행")보다 뒤라서 09 가 이 계정의
--- 거래를 볼 수 없다 — 그래서 이 파일 끝에서 natty02 의 balance_after 를 같은 산식으로 다시
+-- 거래를 볼 수 없다 — 그래서 이 파일 끝에서 lin02 의 balance_after 를 같은 산식으로 다시
 -- 계산한다(맨 아래 UPDATE). 거래내역을 넣는 시드가 09 뒤 번호를 쓸 때는 반드시 이렇게 한다.
 --
 -- ============================================================
--- 인물·재무 조건 — natty01 과 동일 (10-seed-lin-onboarding.sql 주석 참고)
+-- 인물·재무 조건 — lin01 과 동일 (10-seed-lin-onboarding.sql 주석 참고)
 --   이름 팜 린 / VIETNAM / vi / E-9. 입국일 = 로드맵 시작일 = 오늘 − 6개월, 귀국 예정일 =
 --   입국일 + 58개월. 월 소득 2,700,000 / 생활비 400,000 / 송금 730,000 / 현재 저축 0.
---   목표 15억 VND, 목표기준액 1,361,427원 — natty01 이 2026-09-09 고시값(19.329562 VND/KRW)으로
+--   목표 15억 VND, 목표기준액 1,361,427원 — lin01 이 2026-09-09 고시값(19.329562 VND/KRW)으로
 --   실제로 받은 값을 그대로 고정한다(6개월치 계획·배분·납입이 전부 이 숫자로 쌓여야 하므로
 --   환율에 따라 흔들리면 안 된다). 저축 가능액 = 2,700,000 − 400,000 − 730,000 = 1,570,000.
 --   member.created_at / goal.created_at 도 로드맵 시작일로 맞춘다 — 목표진단이 goal.created_at
 --   부터 경과 개월수를 세기 때문에(기본값 NOW 면 "1개월째"로 나온다).
 --
--- 로드맵 — natty01 이 실제 온보딩에서 받은 구성 그대로
+-- 로드맵 — lin01 이 실제 온보딩에서 받은 구성 그대로
 --   총 57개월, 구간1 = 12개월(ACTIVE, 만기는 6개월 뒤 미래) → flowType=REGULAR_MONTH.
---   우대조건 응답: 급여이체·카드결제·해외송금 TRUE, 나머지 3개 FALSE (natty01 실제 응답).
+--   우대조건 응답: 급여이체·카드결제·해외송금 TRUE, 나머지 3개 FALSE (lin01 실제 응답).
 --   적금 2개(예상적용금리 내림차순으로 목표기준액을 채운 결과, 현금성 저축 0):
 --     product 3  KB Global Star 적금  5.00% (2.00 + 1.00×3)  한도 500,000 → 매달 500,000
 --     product 6  KB나만의 적금       3.00% (2.00 + 0.50×2)  한도 1,000,000 → 매달 861,427
---   (product 5 는 2.70% 라 두 상품으로 기준액이 다 차서 뽑히지 않았다 — natty01 실제와 동일.)
+--   (product 5 는 2.70% 라 두 상품으로 기준액이 다 차서 뽑히지 않았다 — lin01 실제와 동일.)
 --
 -- 손계산 (오늘 CURDATE() 기준, RoadmapQueryServiceImpl.getStatus())
 --   cycleNo = YearMonth 차이 6 + 1 = 7. 완료 회차 6.
@@ -59,7 +59,7 @@
 --   변동비(VARIABLE)는 식비/교통/쇼핑 세 카테고리만이고, 목표진단(SavingCalculationServiceImpl)
 --   이 절감 여력을 계산하는 입력은 이 변동비뿐이다.
 --
---   변동비 월 총액(식비/교통/쇼핑, 단위 원) — 아래 tmp_natty02_var_month
+--   변동비 월 총액(식비/교통/쇼핑, 단위 원) — 아래 tmp_lin02_var_month
 --     6개월 전(입국월, 부분월)  60,000 /  15,000 /   8,000
 --     5개월 전                 130,000 /  27,000 /  12,000
 --     4개월 전                 140,000 /  29,000 /  40,000
@@ -105,85 +105,85 @@
 --   balance_after 를 직접 보여주는 화면은 없다.
 --
 -- 대화 이력(chat_message)은 넣지 않는다 — 7개월 차 대화가 시연 자체다.
--- 항목 표는 임시 테이블(tmp_natty02_*)로 한 번만 정의한다 — 같은 UNION ALL 을 블록마다 세 번
+-- 항목 표는 임시 테이블(tmp_lin02_*)로 한 번만 정의한다 — 같은 UNION ALL 을 블록마다 세 번
 -- 반복하던 07/08 방식보다 짧고, 세션이 끝나면 저절로 사라진다.
 -- 날짜는 전부 CURDATE() 기준 상대값이라 언제 재적용해도 "오늘이 cycle 7" 그대로 재현된다.
 
 SET NAMES utf8mb4;
 
 -- ============================================================
--- natty02 에 남아있던 데이터 전부 삭제 — FK 자식부터. member 행은 지우지 않고 덮어쓴다.
+-- lin02 에 남아있던 데이터 전부 삭제 — FK 자식부터. member 행은 지우지 않고 덮어쓴다.
 -- ============================================================
 DELETE th FROM transaction_history th
 JOIN member m ON m.member_id = th.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE msa FROM monthly_saving_allocation msa
 JOIN monthly_saving_plan msp ON msp.monthly_saving_plan_id = msa.monthly_saving_plan_id
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE msp FROM monthly_saving_plan msp
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE ps FROM product_subscription ps
 JOIN member m ON m.member_id = ps.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE ans FROM asset_snapshot ans
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = ans.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE rs FROM roadmap_segment rs
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = rs.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE sr FROM savings_roadmap sr
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE r FROM member_rate_condition_response r
 JOIN member m ON m.member_id = r.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE c FROM chat_message c
 JOIN member m ON m.member_id = c.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE g FROM goal g
 JOIN member m ON m.member_id = g.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE f FROM financial_info f
 JOIN member m ON m.member_id = f.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 DELETE s FROM stay_info s
 JOIN member m ON m.member_id = s.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- ============================================================
 -- 기준 날짜·금액
 -- ============================================================
-SET @natty02_start := DATE_SUB(CURDATE(), INTERVAL 6 MONTH);   -- 입국일 = 로드맵 시작일
-SET @natty02_baseline := 1361427;                               -- 목표기준액 (natty01 실제값)
-SET @natty02_target_krw := 77601342;                            -- 목표금액 KRW 환산 스냅샷 = 15억 / 19.329562 (natty01 실제값, 달성률 분모)
-SET @natty02_alloc_p3 := 500000;                                -- product 3 매달 배분 (한도)
-SET @natty02_alloc_p6 := 861427;                                -- product 6 매달 배분
-SET @natty02_shortfall := 300000;                               -- cycle 6 에 덜 낸 금액
-SET @natty02_projected_interest := 5289795;                     -- natty01 로드맵 생성 시 전체 예상 이자
+SET @lin02_start := DATE_SUB(CURDATE(), INTERVAL 6 MONTH);   -- 입국일 = 로드맵 시작일
+SET @lin02_baseline := 1361427;                               -- 목표기준액 (lin01 실제값)
+SET @lin02_target_krw := 77601342;                            -- 목표금액 KRW 환산 스냅샷 = 15억 / 19.329562 (lin01 실제값, 달성률 분모)
+SET @lin02_alloc_p3 := 500000;                                -- product 3 매달 배분 (한도)
+SET @lin02_alloc_p6 := 861427;                                -- product 6 매달 배분
+SET @lin02_shortfall := 300000;                               -- cycle 6 에 덜 낸 금액
+SET @lin02_projected_interest := 5289795;                     -- lin01 로드맵 생성 시 전체 예상 이자
 
 -- ============================================================
 -- member / stay_info / financial_info / goal / 우대조건 응답
 -- ============================================================
 INSERT INTO member (login_id, password, name, nationality, language_code, created_at) VALUES
-    ('natty02', '$2b$10$n29e29y3iQykR13fevsGX.0WxzbNMKsG24pxZWsbbOX0NG4rKwaB2', '팜 린', 'VIETNAM', 'vi',
-     @natty02_start) AS newrow
+    ('lin02', '$2b$10$n29e29y3iQykR13fevsGX.0WxzbNMKsG24pxZWsbbOX0NG4rKwaB2', '팜 린', 'VIETNAM', 'vi',
+     @lin02_start) AS newrow
 ON DUPLICATE KEY UPDATE
     password      = newrow.password,
     name          = newrow.name,
@@ -192,20 +192,20 @@ ON DUPLICATE KEY UPDATE
     created_at    = newrow.created_at;
 
 INSERT INTO stay_info (member_id, visa_type, entry_date, expected_return_date)
-SELECT member_id, 'E-9', @natty02_start, DATE_ADD(@natty02_start, INTERVAL 58 MONTH)
-FROM member WHERE login_id = 'natty02';
+SELECT member_id, 'E-9', @lin02_start, DATE_ADD(@lin02_start, INTERVAL 58 MONTH)
+FROM member WHERE login_id = 'lin02';
 
 INSERT INTO financial_info (member_id, monthly_income, monthly_living_cost, monthly_remittance, current_savings)
 SELECT member_id, 2700000, 400000, 730000, 0
-FROM member WHERE login_id = 'natty02';
+FROM member WHERE login_id = 'lin02';
 
 -- 필요저축액 = 마지막으로 확정된 회차(cycle 6)의 값 = 목표기준액. cycle 7 확정 시 API 가 갱신한다.
 INSERT INTO goal (member_id, target_amount, target_currency, target_baseline_amount, target_amount_krw, monthly_required_saving, created_at)
-SELECT member_id, 1500000000, 'VND', @natty02_baseline, @natty02_target_krw, @natty02_baseline, @natty02_start
-FROM member WHERE login_id = 'natty02';
+SELECT member_id, 1500000000, 'VND', @lin02_baseline, @lin02_target_krw, @lin02_baseline, @lin02_start
+FROM member WHERE login_id = 'lin02';
 
 INSERT INTO member_rate_condition_response (member_id, condition_code, will_meet, responded_at)
-SELECT m.member_id, c.condition_code, c.will_meet, @natty02_start
+SELECT m.member_id, c.condition_code, c.will_meet, @lin02_start
 FROM member m
 JOIN (SELECT 'SALARY_TRANSFER' AS condition_code, TRUE AS will_meet UNION ALL
       SELECT 'CARD_PAYMENT', TRUE UNION ALL
@@ -213,20 +213,20 @@ JOIN (SELECT 'SALARY_TRANSFER' AS condition_code, TRUE AS will_meet UNION ALL
       SELECT 'AUTO_TRANSFER', FALSE UNION ALL
       SELECT 'STARBANKING_TRANSFER', FALSE UNION ALL
       SELECT 'SPECIAL_DAY', FALSE) c ON TRUE
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- ============================================================
 -- 로드맵 / 구간 / 상품 가입
 -- ============================================================
 INSERT INTO savings_roadmap (member_id, start_date, end_date, total_months)
-SELECT member_id, @natty02_start, DATE_ADD(@natty02_start, INTERVAL 57 MONTH), 57
-FROM member WHERE login_id = 'natty02';
+SELECT member_id, @lin02_start, DATE_ADD(@lin02_start, INTERVAL 57 MONTH), 57
+FROM member WHERE login_id = 'lin02';
 
 INSERT INTO roadmap_segment (savings_roadmap_id, segment_no, planned_months, start_date, end_date, is_last_segment, status, created_at)
 SELECT sr.savings_roadmap_id, 1, 12, sr.start_date, DATE_ADD(sr.start_date, INTERVAL 12 MONTH), FALSE, 'ACTIVE', sr.start_date
 FROM savings_roadmap sr
 JOIN member m ON m.member_id = sr.member_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 INSERT INTO product_subscription
     (member_id, product_id, segment_id, subscription_role, term_months, start_date, maturity_date,
@@ -238,7 +238,7 @@ JOIN savings_roadmap sr ON sr.savings_roadmap_id = rs.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
 JOIN (SELECT 3 AS product_id, 5.00 AS rate, 500000 AS limit_amount UNION ALL
       SELECT 6, 3.00, 1000000) p ON TRUE
-WHERE m.login_id = 'natty02' AND rs.segment_no = 1;
+WHERE m.login_id = 'lin02' AND rs.segment_no = 1;
 
 -- ============================================================
 -- 회차별 계획(cycle 1~6) / 배분 / 마감 스냅샷 / 적금 납입
@@ -250,39 +250,39 @@ INSERT INTO monthly_saving_plan
      baseline_snapshot, required_snapshot, projected_total_interest, created_at)
 SELECT sr.savings_roadmap_id, rs.segment_id,
        DATE_FORMAT(DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH), '%Y-%m-01'),
-       c.cycle_no, 'NONE', @natty02_baseline, 0,
-       @natty02_baseline * (c.cycle_no - 1), @natty02_baseline * (c.cycle_no - 1),
-       @natty02_baseline, @natty02_baseline, @natty02_projected_interest,
+       c.cycle_no, 'NONE', @lin02_baseline, 0,
+       @lin02_baseline * (c.cycle_no - 1), @lin02_baseline * (c.cycle_no - 1),
+       @lin02_baseline, @lin02_baseline, @lin02_projected_interest,
        DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH)
 FROM savings_roadmap sr
 JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.segment_no = 1
 JOIN member m ON m.member_id = sr.member_id
 JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) c ON TRUE
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 INSERT INTO monthly_saving_allocation (monthly_saving_plan_id, product_subscription_id, allocated_amount, allocation_order)
 SELECT msp.monthly_saving_plan_id, ps.product_subscription_id,
-       CASE ps.product_id WHEN 3 THEN @natty02_alloc_p3 ELSE @natty02_alloc_p6 END,
+       CASE ps.product_id WHEN 3 THEN @lin02_alloc_p3 ELSE @lin02_alloc_p6 END,
        CASE ps.product_id WHEN 3 THEN 1 ELSE 2 END
 FROM monthly_saving_plan msp
 JOIN savings_roadmap sr ON sr.savings_roadmap_id = msp.savings_roadmap_id
 JOIN member m ON m.member_id = sr.member_id
 JOIN product_subscription ps ON ps.segment_id = msp.segment_id
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- 마감 스냅샷 — 그 달 실제 납입 합계. cycle 6 만 300,000 부족. 현금성 저축은 0.
 INSERT INTO asset_snapshot (savings_roadmap_id, segment_id, snapshot_month, monthly_payment, cash_saving_balance, created_at)
 SELECT sr.savings_roadmap_id, rs.segment_id,
        DATE_FORMAT(DATE_ADD(sr.start_date, INTERVAL c.cycle_no - 1 MONTH), '%Y-%m-01'),
-       CASE WHEN c.cycle_no = 6 THEN @natty02_baseline - @natty02_shortfall ELSE @natty02_baseline END, 0,
+       CASE WHEN c.cycle_no = 6 THEN @lin02_baseline - @lin02_shortfall ELSE @lin02_baseline END, 0,
        DATE_ADD(sr.start_date, INTERVAL c.cycle_no MONTH)
 FROM savings_roadmap sr
 JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.segment_no = 1
 JOIN member m ON m.member_id = sr.member_id
 JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) c ON TRUE
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- 적금 납입 — 매달 27일(입국일이 27일보다 뒤인 달은 입국일). cycle 6 은 product 6 만 300,000 덜 냄.
 -- balance_after 는 파일 끝에서 다시 계산하므로 0으로 둔다.
@@ -294,9 +294,9 @@ SELECT m.member_id,
                 INTERVAL 10 HOUR),
        'SAVINGS_PAYMENT', 'OUT',
        CASE
-           WHEN ps.product_id = 3 THEN @natty02_alloc_p3
-           WHEN c.cycle_no = 6   THEN @natty02_alloc_p6 - @natty02_shortfall
-           ELSE @natty02_alloc_p6
+           WHEN ps.product_id = 3 THEN @lin02_alloc_p3
+           WHEN c.cycle_no = 6   THEN @lin02_alloc_p6 - @lin02_shortfall
+           ELSE @lin02_alloc_p6
        END,
        0, ps.product_subscription_id,
        CASE ps.product_id WHEN 3 THEN 'KB Global Star 적금 납입' ELSE 'KB나만의 적금 납입' END
@@ -306,7 +306,7 @@ JOIN roadmap_segment rs ON rs.savings_roadmap_id = sr.savings_roadmap_id AND rs.
 JOIN product_subscription ps ON ps.segment_id = rs.segment_id
 JOIN (SELECT 1 AS cycle_no UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) c ON TRUE
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- ============================================================
 -- 급여(25일) / 송금(26일) — 1~6개월 전. 이번 달은 아직 넣지 않는다.
@@ -317,7 +317,7 @@ SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-25'), INTERV
 FROM member m
 JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) mo
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 INSERT INTO transaction_history (member_id, transaction_at, transaction_type, direction, amount, balance_after, memo)
 SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-26'), INTERVAL mo.months_ago MONTH), INTERVAL 9 HOUR),
@@ -325,18 +325,18 @@ SELECT m.member_id, DATE_ADD(DATE_SUB(DATE_FORMAT(CURDATE(), '%Y-%m-26'), INTERV
 FROM member m
 JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL
       SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6) mo
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- ============================================================
 -- 소비내역(EXPENSE) — 항목 표
 -- ============================================================
-DROP TEMPORARY TABLE IF EXISTS tmp_natty02_var, tmp_natty02_fixed, tmp_natty02_var_month;
+DROP TEMPORARY TABLE IF EXISTS tmp_lin02_var, tmp_lin02_fixed, tmp_lin02_var_month;
 
 -- 변동비 항목: weight 는 카테고리 월 총액 대비 비중(카테고리별 합 1.00), d 는 그 달 며칠째(1~28), hr 는 시각.
-CREATE TEMPORARY TABLE tmp_natty02_var (
+CREATE TEMPORARY TABLE tmp_lin02_var (
     category VARCHAR(10), item_order INT, weight DECIMAL(4,2), item_name VARCHAR(30), d INT, hr INT
 ) CHARACTER SET utf8mb4;
-INSERT INTO tmp_natty02_var VALUES
+INSERT INTO tmp_lin02_var VALUES
     ('식비',  1, 0.12, '마트 장보기',      2, 18), ('식비',  2, 0.03, '편의점',           3, 21),
     ('식비',  3, 0.08, '베트남 식당 외식', 4, 19), ('식비',  4, 0.03, '편의점',           5,  7),
     ('식비',  5, 0.07, '배달음식',         6, 20), ('식비',  6, 0.10, '마트 장보기',      8, 18),
@@ -358,10 +358,10 @@ INSERT INTO tmp_natty02_var VALUES
 
 -- 고정비 항목: amount 는 매달 같은 절대 금액. 합계 400,000 = monthly_living_cost.
 -- 급여일(25일) 공제 항목은 급여(09시) 뒤인 10시에 둔다.
-CREATE TEMPORARY TABLE tmp_natty02_fixed (
+CREATE TEMPORARY TABLE tmp_lin02_fixed (
     category VARCHAR(10), item_order INT, amount INT, item_name VARCHAR(30), d INT, hr INT
 ) CHARACTER SET utf8mb4;
-INSERT INTO tmp_natty02_fixed VALUES
+INSERT INTO tmp_lin02_fixed VALUES
     ('식비', 1, 100000, '구내식당 식대 공제', 25, 10), ('식비', 2, 20000, '기숙사 아침식비',   25, 10),
     ('식비', 3,  10000, '생수 정기배송',       5, 10), ('식비', 4, 15000, '쌀·기본 식재료',     7, 18),
     ('식비', 5,   5000, '공동 식비 회비',     15, 12),
@@ -376,10 +376,10 @@ INSERT INTO tmp_natty02_fixed VALUES
     ('기타', 5,  10000, '회비',               21, 12), ('기타', 6,  5000, '잡비',             27, 17);
 
 -- 변동비 월 총액. months_ago 6 = 입국월(부분월), 0 = 이번 달 페이스(경과일 비율로 줄여 넣는다).
-CREATE TEMPORARY TABLE tmp_natty02_var_month (
+CREATE TEMPORARY TABLE tmp_lin02_var_month (
     months_ago INT, category VARCHAR(10), total INT
 ) CHARACTER SET utf8mb4;
-INSERT INTO tmp_natty02_var_month VALUES
+INSERT INTO tmp_lin02_var_month VALUES
     (6, '식비',  60000), (6, '교통', 15000), (6, '쇼핑',   8000),
     (5, '식비', 130000), (5, '교통', 27000), (5, '쇼핑',  12000),
     (4, '식비', 140000), (4, '교통', 29000), (4, '쇼핑',  40000),
@@ -398,9 +398,9 @@ SELECT m.member_id,
                 INTERVAL t.hr HOUR),
        'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight, -2), 100), 0, t.category, 'VARIABLE', t.item_name
 FROM member m
-JOIN tmp_natty02_var_month vm ON vm.months_ago BETWEEN 1 AND 5
-JOIN tmp_natty02_var t ON t.category = vm.category
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_var_month vm ON vm.months_ago BETWEEN 1 AND 5
+JOIN tmp_lin02_var t ON t.category = vm.category
+WHERE m.login_id = 'lin02';
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
@@ -410,77 +410,77 @@ SELECT m.member_id,
        'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
 FROM member m
 JOIN (SELECT 1 AS months_ago UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) mo
-JOIN tmp_natty02_fixed f
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_fixed f
+WHERE m.login_id = 'lin02';
 
 -- ------------------------------------------------------------
 -- (b) 6개월 전 — 입국월(부분월). 입국일 + FLOOR(그 달 남은 일수 × d / 28).
 -- ------------------------------------------------------------
-SET @natty02_first_month_left := DAY(LAST_DAY(@natty02_start)) - DAY(@natty02_start);
+SET @lin02_first_month_left := DAY(LAST_DAY(@lin02_start)) - DAY(@lin02_start);
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(@natty02_start, INTERVAL FLOOR(@natty02_first_month_left * t.d / 28) DAY), INTERVAL t.hr HOUR),
+       DATE_ADD(DATE_ADD(@lin02_start, INTERVAL FLOOR(@lin02_first_month_left * t.d / 28) DAY), INTERVAL t.hr HOUR),
        'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight, -2), 100), 0, t.category, 'VARIABLE', t.item_name
 FROM member m
-JOIN tmp_natty02_var_month vm ON vm.months_ago = 6
-JOIN tmp_natty02_var t ON t.category = vm.category
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_var_month vm ON vm.months_ago = 6
+JOIN tmp_lin02_var t ON t.category = vm.category
+WHERE m.login_id = 'lin02';
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(@natty02_start, INTERVAL FLOOR(@natty02_first_month_left * f.d / 28) DAY), INTERVAL f.hr HOUR),
+       DATE_ADD(DATE_ADD(@lin02_start, INTERVAL FLOOR(@lin02_first_month_left * f.d / 28) DAY), INTERVAL f.hr HOUR),
        'EXPENSE', 'OUT', f.amount, 0, f.category, 'FIXED', f.item_name
 FROM member m
-JOIN tmp_natty02_fixed f
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_fixed f
+WHERE m.login_id = 'lin02';
 
 -- 입국 정착 비용 — 입국 첫 이틀에 한 번만 나가는 지출 320,000. 줄일 수 있는 소비가 아니라
 -- FIXED 로 분류해 목표진단의 변동비 이력에 섞이지 않게 한다(위 "통장 흐름" 주석 참고).
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
-SELECT m.member_id, DATE_ADD(DATE_ADD(@natty02_start, INTERVAL s.day_offset DAY), INTERVAL s.hr HOUR),
+SELECT m.member_id, DATE_ADD(DATE_ADD(@lin02_start, INTERVAL s.day_offset DAY), INTERVAL s.hr HOUR),
        'EXPENSE', 'OUT', s.amount, 0, s.category, 'FIXED', s.item_name
 FROM member m
 JOIN (SELECT '쇼핑' AS category, 200000 AS amount, '입국 정착 생활용품(이불·조리도구)' AS item_name, 0 AS day_offset, 16 AS hr UNION ALL
       SELECT '통신',  60000, '휴대폰·유심 개통',        0, 14 UNION ALL
       SELECT '기타',  30000, '외국인등록증 발급 수수료', 1, 11 UNION ALL
       SELECT '교통',  30000, '교통카드 구매·충전',       1,  9) s ON TRUE
-WHERE m.login_id = 'natty02';
+WHERE m.login_id = 'lin02';
 
 -- ------------------------------------------------------------
 -- (c) 이번 달 — 오늘까지. 금액은 경과일(오늘 날짜)/그 달 일수 비율로 줄인다.
 -- ------------------------------------------------------------
-SET @natty02_elapsed := DAY(CURDATE());
-SET @natty02_frac := @natty02_elapsed / DAY(LAST_DAY(CURDATE()));
+SET @lin02_elapsed := DAY(CURDATE());
+SET @lin02_frac := @lin02_elapsed / DAY(LAST_DAY(CURDATE()));
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@natty02_elapsed * t.d / 28) - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * t.d / 28) - 1 DAY),
                 INTERVAL t.hr HOUR),
-       'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight * @natty02_frac, -2), 100), 0, t.category, 'VARIABLE', t.item_name
+       'EXPENSE', 'OUT', GREATEST(ROUND(vm.total * t.weight * @lin02_frac, -2), 100), 0, t.category, 'VARIABLE', t.item_name
 FROM member m
-JOIN tmp_natty02_var_month vm ON vm.months_ago = 0
-JOIN tmp_natty02_var t ON t.category = vm.category
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_var_month vm ON vm.months_ago = 0
+JOIN tmp_lin02_var t ON t.category = vm.category
+WHERE m.login_id = 'lin02';
 
 INSERT INTO transaction_history
     (member_id, transaction_at, transaction_type, direction, amount, balance_after, category, expense_type, memo)
 SELECT m.member_id,
-       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@natty02_elapsed * f.d / 28) - 1 DAY),
+       DATE_ADD(DATE_ADD(DATE_FORMAT(CURDATE(), '%Y-%m-01'), INTERVAL CEIL(@lin02_elapsed * f.d / 28) - 1 DAY),
                 INTERVAL f.hr HOUR),
-       'EXPENSE', 'OUT', GREATEST(ROUND(f.amount * @natty02_frac, -2), 100), 0, f.category, 'FIXED', f.item_name
+       'EXPENSE', 'OUT', GREATEST(ROUND(f.amount * @lin02_frac, -2), 100), 0, f.category, 'FIXED', f.item_name
 FROM member m
-JOIN tmp_natty02_fixed f
-WHERE m.login_id = 'natty02';
+JOIN tmp_lin02_fixed f
+WHERE m.login_id = 'lin02';
 
-DROP TEMPORARY TABLE IF EXISTS tmp_natty02_var, tmp_natty02_fixed, tmp_natty02_var_month;
+DROP TEMPORARY TABLE IF EXISTS tmp_lin02_var, tmp_lin02_fixed, tmp_lin02_var_month;
 
 -- ============================================================
--- balance_after 재계산 — 09-fix-transaction-balance.sql 과 같은 산식, natty02 만.
+-- balance_after 재계산 — 09-fix-transaction-balance.sql 과 같은 산식, lin02 만.
 -- 시작 잔액 = financial_info.current_savings(0), 이후 시간순 누적합.
 -- ============================================================
 UPDATE transaction_history th
@@ -492,6 +492,6 @@ JOIN (
     FROM transaction_history th2
     JOIN financial_info fi ON fi.member_id = th2.member_id
     JOIN member m ON m.member_id = th2.member_id
-    WHERE m.login_id = 'natty02'
+    WHERE m.login_id = 'lin02'
 ) calc ON calc.transaction_id = th.transaction_id
 SET th.balance_after = calc.running_balance;
