@@ -11,9 +11,12 @@ import PotenAvatar from '../components/ui/PotenAvatar.vue'
 import RecommendationCard from '../components/ui/RecommendationCard.vue'
 import ConditionChecklist from '../components/ui/ConditionChecklist.vue'
 import RoadmapGraphCard from '../components/ui/RoadmapGraphCard.vue'
+import RoadmapStepsCard from '../components/ui/RoadmapStepsCard.vue'
 import SegmentDetailCard from '../components/ui/SegmentDetailCard.vue'
 import SpendingCard from '../components/ui/SpendingCard.vue'
 import sendIcon from '../assets/icons/send.svg'
+import { messages as dict } from '../i18n'
+import { ROADMAP_EXAMPLE } from '../data/roadmapExample'
 
 /*
  * Figma 05_대화 · 홈(217:2463).
@@ -41,12 +44,42 @@ onMounted(async () => {
   }
   await loadOpener()
   await restoreOrBottom()
+  if (chat.pendingIntro === 'roadmap') {
+    chat.pendingIntro = ''
+    showRoadmapIntro()
+  }
   if (chat.pendingQuestion) {
     const q = chat.pendingQuestion
     chat.pendingQuestion = ''
     await ask(q)
   }
 })
+
+// 로드맵 소개 턴 (UI 흐름 v5). 서버 없이 화면이 그린다: 말풍선 → 예시 카드 → 3단계 → "내 로드맵 만들기" 칩
+const introChips = ref([])
+// contentLocal 은 화면 언어가 아니라 회원 모국어
+function localText(key) {
+  const mine = dict[locale.myLang] || {}
+  return { contentKo: dict.ko[key], contentLocal: mine[key] ?? dict.en[key] ?? dict.ko[key] }
+}
+// 입력 중(…) 말풍선을 잠깐 보여준 뒤 내용으로 바꾼다
+const INTRO_TYPING_MS = 900
+function showRoadmapIntro() {
+  opener.value = null
+  chat.suggestions = []
+  chat.pushLocal({ pending: true })
+  const m = chat.messages[chat.messages.length - 1]
+  setTimeout(() => {
+    Object.assign(m, {
+      pending: false,
+      ...localText('chat.intro_roadmap_1'),
+      card: { type: 'ROADMAP_EXAMPLE', payload: ROADMAP_EXAMPLE },
+      steps: true,
+    })
+    introChips.value = [{ key: 'chat.chip_roadmap_make', message: '내 로드맵 만들기' }]
+    scrollBottom()
+  }, INTRO_TYPING_MS)
+}
 
 // 카드를 눌러 다른 화면에 갔다 돌아오면 있던 자리로. 매번 맨 아래로 내려가버리면 보던 곳을 잃는다.
 onBeforeUnmount(() => {
@@ -96,15 +129,8 @@ function moodFor(m) {
 
 const showGreeting = computed(() => !chat.hasHistory)
 
-/*
- * 첫 화면 칩. 로드맵은 화면 이동이 아니라 대화로 만든다.
- *
- * 첫 칩은 opener 가 정한다 — 로드맵이 있는 사람에게 "로드맵 만들기" 를 권하면 안 된다.
- * 대화 이력이 없다고 처음 온 사람인 것은 아니다. 앱을 쓰다가 챗 탭에 처음 들어온 사람도
- * 이력이 비어 있고, 시드 계정도 전부 그렇다.
- *
- * 로드맵 상태를 못 읽었으면 첫 칩을 아예 빼고 나머지 둘만 낸다. 잘못 짚느니 없는 편이 낫다.
- */
+// 첫 화면 칩. 첫 칩은 opener 가 정한다: 로드맵 없음 → "로드맵 만들기", 있음 → "로드맵 업데이트하기"
+// 상태를 못 읽었으면 첫 칩은 빼고 나머지 둘만 낸다
 const staticChips = computed(() => {
   const chips = []
   if (opener.value) {
@@ -140,6 +166,7 @@ async function loadOpener() {
  */
 async function ask(message) {
   opener.value = null
+  introChips.value = []
   await chat.send(message)
 }
 
@@ -192,8 +219,15 @@ const conditionChips = computed(() =>
             <div v-else class="bubble bot-b">{{ text(m) }}</div>
             <RecommendationCard v-if="m.card && m.card.type === 'RECOMMENDATION'" :payload="m.card.payload" />
             <RoadmapGraphCard v-else-if="m.card && m.card.type === 'ROADMAP'" :payload="m.card.payload" />
+            <RoadmapGraphCard
+              v-else-if="m.card && m.card.type === 'ROADMAP_EXAMPLE'"
+              :payload="m.card.payload"
+              :title="t('chat.example_roadmap_title')"
+              compact
+            />
             <SegmentDetailCard v-else-if="m.card && m.card.type === 'SEGMENT_DETAIL'" :payload="m.card.payload" />
             <SpendingCard v-else-if="m.card && m.card.type === 'SPENDING'" :payload="m.card.payload" />
+            <RoadmapStepsCard v-if="m.steps" />
           </div>
         </div>
       </template>
@@ -207,6 +241,9 @@ const conditionChips = computed(() =>
       />
       <div v-else-if="chat.suggestions.length" class="chips">
         <button v-for="(s, i) in chat.suggestions" :key="i" type="button" class="chip" @click="pickChip(s)">{{ chipLabel(s) }}</button>
+      </div>
+      <div v-else-if="introChips.length" class="chips">
+        <button v-for="c in introChips" :key="c.key" type="button" class="chip" @click="ask(c.message)">{{ t(c.key) }}</button>
       </div>
       <div v-else-if="showGreeting" class="chips">
         <button v-for="c in staticChips" :key="c.key" type="button" class="chip" @click="c.go()">{{ c.label }}</button>
