@@ -129,8 +129,6 @@
   "detail.over_limit": "সীমার বেশি",
   "detail.legend_actual": "প্রকৃত জমা",
   "detail.legend_plan": "পরিকল্পনা (প্রয়োজনীয় সঞ্চয়)",
-  "detail.spread": "বাকি সময়ে ভাগ",
-  "detail.full_recovery": "এই মাসেই পূরণ",
   "card.detail": "পণ্যের বিস্তারিত দেখুন",
   "products.title": "প্রস্তাবিত সমন্বয়",
   "products.receive_on": "{ym}-এ প্রাপ্য টাকা",

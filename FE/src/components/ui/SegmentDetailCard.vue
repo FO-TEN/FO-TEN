@@ -27,14 +27,6 @@ const baseline = computed(() => n(props.payload.baselineAmount))
 const bars = computed(() => props.payload.bars || [])
 const allocations = computed(() => props.payload.allocations || [])
 
-// 밀린 금액을 어떻게 채우기로 했는지. NONE 이면 배지를 달지 않는다.
-const choiceLabel = computed(() => {
-  const c = props.payload.deficitChoice
-  if (c === 'SPREAD') return t('detail.spread')
-  if (c === 'FULL_RECOVERY') return t('detail.full_recovery')
-  return ''
-})
-
 const tallest = computed(() => Math.max(baseline.value, ...bars.value.map((b) => n(b.amount)), 1))
 const scale = computed(() => MAX_BAR_H / tallest.value)
 
@@ -91,7 +83,6 @@ function diffText(v) {
     <div class="head">
       <div class="ht">
         <p class="st">{{ t('detail.title', { n: payload.segmentNo }) }}</p>
-        <span v-if="choiceLabel" class="tag">{{ choiceLabel }}</span>
       </div>
       <p class="ss">{{ t('detail.sub') }}</p>
     </div>
@@ -170,16 +161,6 @@ function diffText(v) {
   font-weight: 700;
   line-height: 1.4;
   color: var(--gray-850);
-}
-.tag {
-  flex: 0 0 auto;
-  padding: 2px 7px;
-  border-radius: var(--r-pill);
-  background: var(--green-bg);
-  color: var(--green);
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1.4;
 }
 .ss {
   font-size: 14px;

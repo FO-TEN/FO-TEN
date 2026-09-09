@@ -129,8 +129,6 @@
   "detail.over_limit": "ເກີນວົງເງິນ",
   "detail.legend_actual": "ຈ່າຍຈິງ",
   "detail.legend_plan": "ແຜນ (ທີ່ຕ້ອງເກັບ)",
-  "detail.spread": "ແບ່ງໄລຍະທີ່ເຫຼືອ",
-  "detail.full_recovery": "ຈ່າຍຄົບເດືອນນີ້",
   "card.detail": "ເບິ່ງລາຍລະອຽດຜະລິດຕະພັນ",
   "products.title": "ຊຸດແນະນຳ",
   "products.receive_on": "ເງິນທີ່ໄດ້ຮັບໃນ {ym}",

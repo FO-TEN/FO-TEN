@@ -129,8 +129,6 @@
   "detail.over_limit": "เกินวงเงิน",
   "detail.legend_actual": "ที่จ่ายจริง",
   "detail.legend_plan": "แผน (ที่ต้องออม)",
-  "detail.spread": "เฉลี่ยช่วงที่เหลือ",
-  "detail.full_recovery": "ชดเชยเดือนนี้",
   "card.detail": "ดูรายละเอียดผลิตภัณฑ์",
   "products.title": "แพ็กเกจแนะนำ",
   "products.receive_on": "เงินที่ได้รับใน {ym}",
