@@ -6,221 +6,252 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 2026 KB IT's Your Life 해커톤 · 세잎클로버
 
+<p align="center">
+  <img src="docs/images/hero-home.jpg" width="240" alt="홈" />
+  <img src="docs/images/hero-chat.jpg" width="240" alt="대화" />
+  <img src="docs/images/hero-products.jpg" width="240" alt="상품 구성" />
+</p>
+
 ## 주요 기능
 
-- **귀국 목표 달성 가능성 진단** — 목표 금액과 예상 귀국 시점으로 월별 필요 저축액을 산정하고 달성 여부를 판정
-- **소비패턴 기반 추가 저축 여력 분석** — 고정비를 제외하고 조정 가능한 지출 항목 제시
-- **지출 의사결정 지원** — 비정기 지출이 목표 달성률에 미치는 영향을 시나리오별로 시뮬레이션
-- **체류기간 기반 예·적금 추천** — 예상 귀국일 이전 만기 상품만 선별해 중도해지 불이익 방지
-- **두 통화 동시 표시** — 원화와 본국 통화를 함께 보여줘 환율 변동에 따른 실질 가치를 즉시 전달
+### 1. AI 상담 (포텐이)
 
-## 프로젝트 구조
+- 저축·소비·환율·목표·로드맵 질문에 답변
+- 답변과 함께 카드 표시 (로드맵 그래프 · 상품 추천 · 구간 상세 · 소비 요약)
+- 말풍선별 한국어 ↔ 모국어 전환
+- 다음 행동을 칩으로 제안
+- E-9 송출국 17개국 언어 + 영어로 답변 번역 (화면 문구는 한국어 포함 19개 언어)
 
-```text
-FO-TEN/
-├─ BE/                      # Spring Framework 5 (Legacy) · Gradle · WAR
-│  ├─ src/main/java/        # controller · service · mapper · domain · dto
-│  ├─ src/main/resources/
-│  │  └─ mappers/           # MyBatis XML 매퍼
-│  └─ Dockerfile            # 멀티스테이지 (JDK 17 빌드 → Tomcat 9 실행)
-├─ FE/                      # Vue 3 · Vite
-│  ├─ src/
-│  │  ├─ api/               # axios 인스턴스와 도메인별 호출 함수
-│  │  ├─ stores/            # Pinia 스토어
-│  │  ├─ components/common/ # 공용 컴포넌트
-│  │  ├─ features/          # 도메인 전용 컴포넌트 (goal · chat · product · exchange)
-│  │  └─ pages/             # 라우트에 1:1 대응하는 화면
-│  ├─ nginx/default.conf    # 정적 파일 서빙 + /api 프록시
-│  └─ Dockerfile            # 멀티스테이지 (Node 20 빌드 → nginx 실행)
-├─ db/init/                 # 스키마·시드 SQL — 팀 전체의 유일한 스키마 출처
-├─ scripts/                 # 커밋 메시지·브랜치명 검증 스크립트
-├─ docker-compose.yml       # MySQL + 백엔드 + 프론트
-└─ lefthook.yml             # Git 훅 (컨벤션 자동 검증)
+<p>
+  <img src="docs/images/chat-ko.jpg" width="220" alt="한국어 답변" />
+  <img src="docs/images/chat-local.jpg" width="220" alt="모국어 답변" />
+</p>
+
+### 2. 귀국 목표 진단
+
+- 온보딩 3단계 입력: 체류 정보 → 수입·지출 → 목표 금액
+- 홈에서 D-day · 모은 돈 · 목표 달성률 표시
+- 원화 / 본국 통화 동시 표시, 입력 칸별 단위 전환
+
+<p>
+  <img src="docs/images/flow-onboarding-1.jpg" width="180" alt="온보딩 1" />
+  <img src="docs/images/flow-onboarding-2.jpg" width="180" alt="온보딩 2" />
+  <img src="docs/images/flow-onboarding-3.jpg" width="180" alt="온보딩 3" />
+  <img src="docs/images/home-empty.jpg" width="180" alt="홈" />
+</p>
+
+### 3. 저축 로드맵
+
+- 귀국 1개월 전까지를 12개월 단위 구간으로 분할
+- 매달 모을 돈: 적금 · 현금성 저축으로 배분
+- 2구간부터: 직전 구간 만기금을 목돈으로 예금 가입
+- 우대조건 체크 결과로 적용금리 계산 후 상품 선택
+- 구간 기간을 지원하는 상품만 선택해 중도해지 방지
+
+<p>
+  <img src="docs/images/flow-chat-intro.jpg" width="220" alt="로드맵 소개" />
+  <img src="docs/images/chat-condition.jpg" width="220" alt="우대조건 체크" />
+  <img src="docs/images/home-roadmap.jpg" width="220" alt="로드맵 그래프" />
+</p>
+
+### 4. 월별 실적 점검
+
+- 지난달 실적과 목표기준액 비교
+- 이번 달 저축액 확정
+- 부족액 발생 시 만회 방식 선택: 다음 달 한 번에 / 남은 기간에 나눠서
+- 구간 종료 시 목돈을 다음 구간 예금으로 이월, 새 구간 상품 재선택
+
+<p>
+  <img src="docs/images/chat-monthly.jpg" width="220" alt="구간 상세" />
+  <img src="docs/images/chat-segment-end.jpg" width="220" alt="구간 마무리" />
+</p>
+
+### 5. 소비 분석 · 상품 · 내 정보
+
+- 최근 6개월 카테고리별 소비 (도넛 + 목록)
+- 이번 달 예상 저축액 비교
+  - 현재 예상 저축액: 지금 소비 속도를 유지할 때
+  - 최대 예상 저축액: 최근 6개월 중 지출이 두 번째로 적은 달만큼 줄일 때
+- 월 목표기준액과 비교해 3단계 판정: 여유있음 / 노력하면 가능 / 불가능
+- "노력하면 가능"이면 절감 여력이 가장 큰 항목 안내
+- 현재 구간 상품 구성 (매달 모을 돈 / 목돈 탭)
+- 체류 · 재무 · 목표 정보 수정 (로드맵 시작 후 목표 변경 불가)
+
+<p>
+  <img src="docs/images/spending.jpg" width="220" alt="소비 내역" />
+  <img src="docs/images/products.jpg" width="220" alt="상품 구성" />
+  <img src="docs/images/me.jpg" width="220" alt="내 정보" />
+</p>
+
+## 아키텍처
+
+```mermaid
+flowchart LR
+    B["Vue 3 SPA"] -->|"/api"| N["nginx"]
+    N --> S["Spring MVC · Tomcat 9"]
+    S --> DB[("MySQL 8.4")]
+    S -->|"Function Calling"| L["LLM API"]
+    S -->|"매일 정오 배치"| FX["ExchangeRate-API"]
+    S -->|"배치 실패 알림"| SL["Slack Webhook"]
 ```
+
+### AI 구조 (Function Calling)
+
+- **계산은 Java, 문장은 LLM**: 금액·금리·날짜는 Java 계산 엔진 결과만 사용, LLM은 도구 선택과 문장 생성만 담당
+- **시스템 프롬프트**: 원칙 12개 (숫자 · 답변 범위 · 안전 · 말투)
+- **Advisor Chain**: 회원 상태와 최근 대화 10개를 맥락으로 주입
+- **Tool Spec**: 도구 15개의 용도와 인자 형식을 JSON Schema로 고정
+- **Tool Loop**: 도구 실행 결과를 LLM에 다시 전달, 왕복 최대 4회
+- **변경 작업은 사용자 동의 후 실행**: 로드맵 생성 · 우대조건 제출 · 월 저축액 확정
+- **카드는 생성 시점 스냅샷으로 저장**: 이력 재조회 시 재계산 없음
+
+### 번역
+
+- 답변은 한국어로만 생성, 다른 문자 체계가 섞이면 재작성 요청 후 남은 글자 제거
+- 숫자를 자리표시자로 바꿔 번역 → 원문에 없는 자리표시자가 생기면 번역 폐기 → 현지 표기로 숫자 복원
+- 번역 과정에서 금액이 바뀌지 않도록 숫자 무결성 보장
+
+### 환율 배치
+
+- 매일 12:00 ExchangeRate-API 수집, 서버 기동 15초 후 1회 추가 수집
+- API 실패 시 5초 간격 최대 3회 재시도 → 실패하면 Slack 알림
+- 일부 통화만 누락되면 나머지는 저장하고 누락 통화만 Slack 알림
+
+<details>
+<summary>대화 처리 흐름</summary>
+
+```mermaid
+sequenceDiagram
+    participant U as 사용자
+    participant C as ChatService
+    participant L as LLM
+    participant T as 도구 (Java)
+    participant TR as Translator
+
+    U->>C: 메시지
+    C->>C: 회원 프로필 · 최근 대화 주입
+    loop 최대 4회
+        C->>L: 메시지 + 도구 목록
+        L-->>C: 도구 호출
+        C->>T: 계산 실행
+        T-->>C: 결과 + 카드
+    end
+    L-->>C: 한국어 답변
+    C->>TR: 모국어 번역
+    C-->>U: 한국어 + 모국어 + 카드 + 칩
+```
+
+</details>
+
+<details>
+<summary>LLM 도구 15개</summary>
+
+| 영역 | 도구 |
+| --- | --- |
+| 목표 | `diagnoseGoal` |
+| 소비 | `getSpendingSummary` `getSpendingBreakdown` |
+| 환율 | `getGoalAmountInKrw` `convertToKrw` `convertToLocalCurrency` |
+| 로드맵 조회 | `getRoadmapStatus` `getSegmentComposition` `getMonthlyPlan` `getSegmentDetail` `getRoadmapGraph` `getPreferentialConditionQuestions` |
+| 로드맵 변경 | `startRoadmap` `submitPreferentialConditions` `confirmMonthlySaving` |
+
+</details>
+
+## 로드맵 계산 규칙
+
+| 항목 | 규칙 |
+| --- | --- |
+| 로드맵 기간 | 생성일 ~ 예상 귀국일 1개월 전 |
+| 월 목표기준액 | (목표 금액 원화 - 온보딩 시 보유액) ÷ 남은 개월 (귀국월 제외, 최소 1개월) |
+| 구간 분할 | 1구간: 전체 12개월 이하면 전체, 초과면 12개월 / 2구간부터: 잔여 24개월 이상이면 12개월, 미만이면 잔여 전체 |
+| 적금 배분 | 구간 기간을 지원하는 자유적립식 적금을 적용금리 높은 순으로 월 납입한도까지 배분, 나머지는 현금성 저축 |
+| 예금 (2구간부터) | 목돈 = 직전 구간 만기금(세후) + 현금성 잔액. 최소가입금액을 충족하는 예금 중 적용금리 최고 상품, 없으면 현금성 이월 |
+| 적용금리 | min(최고금리, 기본금리 + 충족 예정 우대조건 가산금리) |
+| 이자 | 단리 (적금은 회차별 납입액 기준), 이자소득세 15.4% 차감 |
+| 부족액 | 목표기준액 × 지난 회차 - 누적 실적 (적금 납입 합계 + 최근 현금성 잔액) |
+| 부족액 만회 | 한 번에: 목표기준액 + 부족액 / 나눠서: (목표 총액 - 현재 누적 자금) ÷ 남은 개월 |
 
 ## 기술 스택
 
 | 구분 | 기술 |
 | --- | --- |
-| Backend | Java 17, Spring Framework 5 (Legacy), MyBatis, Gradle, WAR, Tomcat 9 |
-| Frontend | Vue 3, Vite, Pinia, Vue Router, axios |
+| Frontend | Vue 3, Vite 5, Pinia, Vue Router, axios, Vitest |
+| Backend | Java 17, Spring MVC 5.3, MyBatis 3.5, HikariCP, Gradle (WAR), Tomcat 9 |
 | Database | MySQL 8.4 |
-| 외부 연동 | 생성형 AI API (Function Calling), 한국수출입은행 환율 Open API |
+| AI | OpenAI GPT-5.6 Luna (Function Calling) |
+| 외부 연동 | ExchangeRate-API (매일 정오 배치), Slack Incoming Webhook |
+| 테스트 | JUnit 5, Mockito, Vitest |
 | 인프라 | Docker Compose, nginx, GitHub Actions |
 
-계산 엔진과 LLM 을 분리한 구조입니다. **LLM 은 금액·금리·상품조건을 직접 계산하거나 생성하지 않고**, Java 시뮬레이션 엔진의 반환값만 문장으로 옮깁니다.
+## 프로젝트 구조
 
-## 시작하기
+```text
+FO-TEN/
+├─ BE/src/main/java/com/foten/
+│  ├─ ai/          # 대화 · LLM · 도구 · 번역
+│  ├─ goal/        # 목표 진단 · 저축 여력
+│  ├─ product/     # 로드맵 · 우대조건 · 상품 배분
+│  ├─ spending/    # 소비 집계
+│  ├─ exchange/    # 환율 배치 · 환산
+│  ├─ member/      # 회원 · 온보딩
+│  └─ common/      # 예외 · 알림
+├─ FE/src/
+│  ├─ pages/       # 화면
+│  ├─ components/  # 카드 · 차트 · 레이아웃
+│  ├─ stores/      # Pinia
+│  ├─ api/         # API 호출
+│  └─ i18n/        # 19개 언어
+├─ db/init/        # 스키마 · 시드 SQL
+└─ docker-compose.yml
+```
+
+## 실행 방법
 
 ```bash
 git clone https://github.com/FO-TEN/FO-TEN.git
 cd FO-TEN
-cp .env.example .env        # LLM_API_KEY 를 채웁니다
-
-npm install && npx lefthook install    # Git 훅 설치 (한 번만)
-
-docker compose up -d        # http://localhost:5173
+cp .env.example .env     # LLM_API_KEY, LLM_MODEL 입력
+docker compose up -d     # http://localhost:5173
 ```
 
-### Docker 를 쓰지 않는다면
+- 필요: Docker Desktop, LLM API 키
+- 3306 포트 사용 중이면 로컬 MySQL 종료 후 실행
+- 스키마 · 시드 변경 후에는 `docker compose down -v && docker compose up -d`
 
-MySQL 8.4 · JDK 17 · Node 20 · **Tomcat 9** 를 직접 설치합니다. (Tomcat 10 이상은 `javax` → `jakarta` 전환 때문에 Spring 5 앱이 뜨지 않습니다)
+### 시연 계정
 
-DB 는 컨테이너와 **같은 값**으로 맞춥니다. 값이 갈리면 "내 PC 에서만 되는" 문제가 생깁니다. 정확한 값은 [`.env.example`](.env.example) 에 있습니다.
+- 최초 실행 시 `db/init` 시드로 로컬 DB에 자동 생성
+- 비밀번호 공통 `foten1234!`
+- 실행일 기준으로 날짜가 맞춰져 언제 실행해도 같은 상황 재현
 
-```sql
-CREATE DATABASE foten DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'foten'@'localhost' IDENTIFIED BY 'foten';
-GRANT ALL PRIVILEGES ON foten.* TO 'foten'@'localhost';
-FLUSH PRIVILEGES;
-SET GLOBAL time_zone = '+09:00';   -- 안 맞추면 D-day 계산이 하루씩 밀립니다
-```
-
-```bash
-mysql -u root -p foten < db/init/01-schema.sql
-cd FE && npm install && npm run dev      # http://localhost:5173
-```
-
-백엔드는 `BE/src/main/resources/application-local.properties.example` 을 같은 이름에서 `.example` 만 뗀 파일로 복사한 뒤(이 파일은 개인별 설정이라 `.gitignore` 대상입니다), IDE 에서 Tomcat 9 를 8080 포트로 띄우고 VM 옵션에 `-Duser.timezone=Asia/Seoul` 을 넣습니다.
-
-```bash
-cp BE/src/main/resources/application-local.properties.example BE/src/main/resources/application-local.properties
-```
-
-> 세팅 상세와 문제 해결은 팀 채널에 공유된 세팅 문서를 보세요.
-
-## Git Convention
-
-`develop` / `main` 2-브랜치 전략을 씁니다. 기능 브랜치는 `develop` 에서 만듭니다.
-
-### 이슈는 필요할 때만
-
-**모든 작업에 이슈를 만들지 않습니다.** 바로 할 수 있는 일은 브랜치를 파고 PR 로 기록합니다. 아래에 해당할 때만 이슈를 만듭니다.
-
-- **버그** — 재현 절차와 원인을 남겨야 하는 것
-- **논의가 필요한 것** — 방식을 정해야 해서 다른 팀원 의견이 필요할 때
-- **순서를 맞춰야 하는 것** — BE·FE 가 함께 움직여야 할 때
-- **DB 스키마 변경** — 다른 두 명이 각자 재적용해야 하므로 미리 알려야 함
-- **미뤄둘 것** — 지금 안 하지만 잊으면 안 되는 일
-
-이슈가 없으므로 **PR 이 그 작업의 유일한 기록**입니다. PR 본문의 "무엇을 왜" 를 파일 변경 요약으로 때우지 마세요.
-
-### 브랜치
-
-```text
-[개발 파트]/접두어/기능명(케밥 케이스)
-```
-
-```text
-be/feat/goal-simulation         # 기본. 이슈 없이 바로 작업
-fe/design/goal-card-spacing
-chore/docker-compose            # 파트 구분이 없는 공통 작업 (설정 · CI · 빌드)
-docs/setup-guide                # 저장소 전체 문서
-
-fe/fix/34-exchange-rate-display # 이슈가 있을 때만 앞에 번호를 붙임
-```
-
-### 커밋 메시지 & PR 제목
-
-커밋 메시지와 PR 제목은 같은 형식을 씁니다. 이슈가 있을 때만 커밋 본문에 `Refs: #34`, PR 본문에 `Closes #34` 를 적습니다.
-
-PR 은 squash merge 하므로 **PR 제목이 그대로 `develop` 의 커밋 메시지가 됩니다.** CI 가 제목을 검증합니다.
-
-```text
-[개발 파트]접두어: 기능명
-```
-
-```text
-[be]feat: 목표 달성률 시뮬레이션 API 추가
-[fe]fix: 환율 표시 소수점 오류 수정
-chore: Docker Compose 구성 추가
-```
-
-### 접두어
-
-| 접두어 | 설명 |
+| 계정 | 상황 |
 | --- | --- |
-| `feat` | 새로운 기능 추가 |
-| `fix` | 버그 수정 |
-| `docs` | 문서 수정 (코드 변경 없음) |
-| `style` | 코드 포맷팅, 세미콜론 등 스타일 변경 (논리 변경 없음) |
-| `refactor` | 리팩토링 (기능 변화 없음) |
-| `test` | 테스트 관련 코드 추가/수정 |
-| `chore` | 빌드, 패키지 매니저 설정 등 기타 작업 |
-| `design` | css 등 사용자 UI 디자인 변경 |
-| `comment` | 필요한 주석 추가 및 변경 |
-| `rename` | 파일 혹은 폴더명을 수정하거나 옮기는 작업만인 경우 |
-| `remove` | 파일을 삭제하는 작업만 수행한 경우 |
-| `hotfix` | 급하게 치명적인 버그를 고쳐야 하는 경우 |
-| `revert` | 이전 변경을 되돌리는 경우 |
+| `lin01` | 신규 가입, 온보딩 → 첫 로드맵 생성 |
+| `lin02` | 7개월 차, 지난달 부족액 |
+| `lin03` | 1구간 종료, 부족액 한 번에 만회 |
+| `natty03` | 일반 월, 지난달 부족액 |
+| `natty04` | 구간 전환 대기 |
+| `natty05` | 구간 전환 대기 + 지난달 부족액 |
 
-`style` 은 포맷팅·세미콜론처럼 **코드의 겉모양**, `design` 은 CSS 처럼 **사용자에게 보이는 화면**을 바꾼 경우입니다. 헷갈리면 "사용자가 눈으로 알아챌 수 있는가"로 가릅니다.
+<details>
+<summary>API 목록</summary>
 
-`git revert` 가 자동으로 만드는 `Revert "..."` 커밋은 형식 검증에서 제외됩니다. 되돌린 이유를 남기고 싶을 때 `[be]revert: ...` 형태로 직접 작성하세요.
-
-### 작업 흐름
-
-```text
-1. git switch develop && git pull origin develop
-2. git switch -c be/feat/goal-simulation        # 이슈 있으면 be/fix/34-...
-3. 작업 → git commit                             # [be]feat: 목표 시뮬레이션 API 추가
-4. git fetch origin develop && git merge origin/develop    # PR 전에 한 번 맞추기
-5. git push -u origin be/feat/goal-simulation
-6. PR 생성 (base: develop) → 리뷰 1명 승인 → squash merge
-```
-
-### 규칙
-
-- 개발 파트는 `fe` 또는 `be` 를 씁니다. 파트를 생략할 수 있는 접두어는 **`chore` 와 `docs` 둘뿐**입니다 — 설정·CI·빌드는 `chore`, 저장소 전체 문서는 `docs`.
-- 기능 PR 은 기능 브랜치에서 `develop` 으로 생성하고 **squash merge** 합니다. PR 하나가 `develop` 의 커밋 하나가 됩니다.
-- 최소 1명의 리뷰어 승인 후 병합합니다.
-- `develop` 에서 `main` 으로 릴리스할 때는 **merge 커밋**으로 병합합니다. 어떤 커밋이 배포에 들어갔는지가 히스토리에 남아야 하기 때문입니다.
-- 두 방식은 ruleset 으로 강제됩니다. PR 화면에는 그 브랜치에서 쓸 수 있는 병합 버튼 하나만 보입니다.
-- 이미 push 한 브랜치는 **rebase 하지 않습니다.** `develop` 을 따라잡을 때는 merge 를 씁니다 (리뷰 코멘트 위치가 어긋나는 것을 막기 위함).
-- **DB 스키마를 바꾸면 `db/init/01-schema.sql` 을 함께 수정**하고, PR 본문에 팀원 재적용 방법을 적습니다.
-
-### 브랜치 보호
-
-`develop` 과 `main` 은 ruleset 으로 보호됩니다. 직접 push · 강제 push · 브랜치 삭제가 모두 막혀 있고, 예외 권한을 가진 사람은 없습니다.
-
-| | `develop` | `main` |
+| 메서드 | 경로 | 설명 |
 | --- | --- | --- |
-| 병합 방식 | squash 만 | merge 커밋만 |
-| 필수 상태 체크 | `backend` `frontend` `convention` | `backend` `frontend` |
-| 리뷰 | 1명 승인 | 1명 승인 + CODEOWNERS 리뷰 |
-| 최신 base 요구 | 없음 | 있음 — 병합 전 `develop` 을 당겨와 CI 를 다시 통과해야 합니다 |
+| POST | `/api/auth/register` `/login` `/logout` | 회원가입 · 로그인 · 로그아웃 |
+| GET · POST | `/api/users/me/onboarding` | 온보딩 상태 · 등록 |
+| GET | `/api/users/me` | 내 정보 |
+| GET | `/api/goals/current/diagnosis` | 목표 진단 |
+| GET | `/api/spending` | 월별 소비 |
+| GET | `/api/exchange-rates/{code}` `/{code}/krw` | 환율 · 원화 환산 |
+| GET · POST | `/api/rate-conditions` `/responses` | 우대조건 목록 · 응답 제출 |
+| GET · POST | `/api/roadmap/status` `/api/roadmap` | 로드맵 상태 · 생성 |
+| GET | `/api/roadmap/graph` | 로드맵 그래프 |
+| GET | `/api/roadmap/segments/current/composition` `/detail` | 현재 구간 구성 · 상세 |
+| GET · POST | `/api/roadmap/monthly-plan/current` `/deficit-choice` | 이번 달 계획 · 부족액 만회 방식 |
+| POST · GET | `/api/chat` `/api/chat/messages` | 대화 · 이력 |
 
-두 브랜치 모두 **승인을 받은 뒤 커밋을 추가로 push 하면 기존 승인이 무효**가 되고, 마지막 push 는 본인이 아닌 다른 사람의 승인이 필요합니다.
+</details>
 
-`schema-guard` 와 `labeler` 는 필수 체크에 넣지 않습니다. 두 잡은 특정 경로가 바뀐 PR 에서만 돌기 때문에, 필수로 지정하면 잡이 실행되지 않은 PR 이 영원히 대기 상태로 남습니다.
+## 팀 세잎클로버
 
-### 자동 검증
-
-`lefthook` 이 커밋·푸시 시점에 검사하고, GitHub Actions 가 PR 에서 한 번 더 확인합니다.
-
-| 시점 | 검사 |
-| --- | --- |
-| `commit-msg` (로컬) | 커밋 메시지 형식 · 자동 생성 서명 포함 여부 |
-| `pre-push` (로컬) | 브랜치명 형식 |
-| `pre-commit` (로컬) | 프론트엔드 prettier · eslint 자동 수정 |
-| `convention` (CI) | 브랜치명 · PR 제목 · 브랜치의 모든 커밋 메시지 |
-| `backend` `frontend` (CI) | Gradle · npm 빌드 |
-| `schema-guard` (CI) | `db/init/*.sql` 이 바뀌면 PR 에 재적용 안내 자동 코멘트 |
-| `labeler` (CI) | 변경 경로로 `BE` `FE` `db` `infra` `docs` 라벨 자동 부착 |
-
-커밋 작성자 검사는 로컬 `pre-push` 와 CI 양쪽에서 돕니다. GitHub 은 커밋의 author · committer · `Co-authored-by:` 트레일러를 모두 읽어 기여자를 집계하므로 세 지점을 함께 봅니다. 확인은 `git shortlog -sne --all` 로 합니다.
-
-훅이 막으면 `--no-verify` 로 넘기지 말고 이름을 고칩니다.
-
-```bash
-git branch -m be/feat/12-goal-simulation    # 브랜치명 수정
-git commit --amend                          # 직전 커밋 메시지 수정
-```
-
-## 팀
-
-| 팀원 | 담당 영역 |
-| --- | --- |
-| 이수민 | 시뮬레이션 엔진 · 기획 |
-| 강민주 | LLM 연동 · 환율 |
-| 강현지 | 상품 추천 · 화면 |
+[@dltnalss](https://github.com/dltnalss) · [@SongMin21](https://github.com/SongMin21) · [@hz00308](https://github.com/hz00308)
