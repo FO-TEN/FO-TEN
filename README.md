@@ -8,9 +8,9 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>스플래시</th>
-    <th>로그인</th>
-    <th>홈</th>
+    <th>스플래시<hr /></th>
+    <th>로그인<hr /></th>
+    <th>홈<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/hero-splash.jpg" width="180" alt="스플래시" /></td>
@@ -31,8 +31,8 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>한국어</th>
-    <th>모국어 (베트남어)</th>
+    <th>한국어<hr /></th>
+    <th>모국어 (베트남어)<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/chat-ko.jpg" width="180" alt="한국어 답변" /></td>
@@ -48,10 +48,10 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>체류 정보</th>
-    <th>수입과 지출</th>
-    <th>목표 설정</th>
-    <th>홈</th>
+    <th>체류 정보<hr /></th>
+    <th>수입과 지출<hr /></th>
+    <th>목표 설정<hr /></th>
+    <th>홈<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/flow-onboarding-1.jpg" width="180" alt="온보딩 1단계" /></td>
@@ -71,10 +71,10 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>로드맵 소개</th>
-    <th>우대조건 선택</th>
-    <th>상품 추천</th>
-    <th>상품 구성 (목돈)</th>
+    <th>로드맵 소개<hr /></th>
+    <th>우대조건 선택<hr /></th>
+    <th>상품 추천<hr /></th>
+    <th>상품 구성 (목돈)<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/flow-chat-intro.jpg" width="180" alt="로드맵 소개" /></td>
@@ -93,8 +93,8 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>부족액 만회 방식 선택</th>
-    <th>구간 마무리</th>
+    <th>부족액 만회 방식 선택<hr /></th>
+    <th>구간 마무리<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/chat-monthly.jpg" width="180" alt="부족액 만회 방식 선택" /></td>
@@ -115,9 +115,9 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 <table align="center">
   <tr>
-    <th>소비 내역</th>
-    <th>상품 구성 (매달 모을 돈)</th>
-    <th>내 정보</th>
+    <th>소비 내역<hr /></th>
+    <th>상품 구성 (매달 모을 돈)<hr /></th>
+    <th>내 정보<hr /></th>
   </tr>
   <tr>
     <td align="center"><img src="docs/images/spending.jpg" width="180" alt="소비 내역" /></td>
