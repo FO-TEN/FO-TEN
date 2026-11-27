@@ -6,9 +6,18 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 
 2026 KB IT's Your Life 해커톤 · 세잎클로버
 
-| 스플래시 | 로그인 | 홈 |
-| :---: | :---: | :---: |
-| <img src="docs/images/hero-splash.jpg" width="180" alt="스플래시" /> | <img src="docs/images/hero-login.jpg" width="180" alt="로그인" /> | <img src="docs/images/home-empty.jpg" width="180" alt="홈" /> |
+<table align="center">
+  <tr>
+    <th>스플래시</th>
+    <th>로그인</th>
+    <th>홈</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/hero-splash.jpg" width="180" alt="스플래시" /></td>
+    <td align="center"><img src="docs/images/hero-login.jpg" width="180" alt="로그인" /></td>
+    <td align="center"><img src="docs/images/home-empty.jpg" width="180" alt="홈" /></td>
+  </tr>
+</table>
 
 ## 주요 기능
 
@@ -20,9 +29,16 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 - 다음 행동을 칩으로 제안
 - E-9 송출국 17개국 언어 + 영어로 답변 번역 (화면 문구는 한국어 포함 19개 언어)
 
-| 한국어 | 모국어 (베트남어) |
-| :---: | :---: |
-| <img src="docs/images/chat-ko.jpg" width="180" alt="한국어 답변" /> | <img src="docs/images/chat-local.jpg" width="180" alt="모국어 답변" /> |
+<table align="center">
+  <tr>
+    <th>한국어</th>
+    <th>모국어 (베트남어)</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/chat-ko.jpg" width="180" alt="한국어 답변" /></td>
+    <td align="center"><img src="docs/images/chat-local.jpg" width="180" alt="모국어 답변" /></td>
+  </tr>
+</table>
 
 ### 2. 귀국 목표 진단
 
@@ -30,9 +46,20 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 - 홈에서 D-day · 모은 돈 · 목표 달성률 표시
 - 원화 / 본국 통화 동시 표시, 입력 칸별 단위 전환
 
-| 체류 정보 | 수입과 지출 | 목표 설정 | 홈 |
-| :---: | :---: | :---: | :---: |
-| <img src="docs/images/flow-onboarding-1.jpg" width="180" alt="온보딩 1단계" /> | <img src="docs/images/flow-onboarding-2.jpg" width="180" alt="온보딩 2단계" /> | <img src="docs/images/flow-onboarding-3.jpg" width="180" alt="온보딩 3단계" /> | <img src="docs/images/home-roadmap.jpg" width="180" alt="홈" /> |
+<table align="center">
+  <tr>
+    <th>체류 정보</th>
+    <th>수입과 지출</th>
+    <th>목표 설정</th>
+    <th>홈</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/flow-onboarding-1.jpg" width="180" alt="온보딩 1단계" /></td>
+    <td align="center"><img src="docs/images/flow-onboarding-2.jpg" width="180" alt="온보딩 2단계" /></td>
+    <td align="center"><img src="docs/images/flow-onboarding-3.jpg" width="180" alt="온보딩 3단계" /></td>
+    <td align="center"><img src="docs/images/home-roadmap.jpg" width="180" alt="홈" /></td>
+  </tr>
+</table>
 
 ### 3. 저축 로드맵
 
@@ -42,9 +69,20 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 - 우대조건 체크 결과로 적용금리 계산 후 상품 선택
 - 구간 기간을 지원하는 상품만 선택해 중도해지 방지
 
-| 로드맵 소개 | 우대조건 선택 | 상품 추천 | 상품 구성 (목돈) |
-| :---: | :---: | :---: | :---: |
-| <img src="docs/images/flow-chat-intro.jpg" width="180" alt="로드맵 소개" /> | <img src="docs/images/chat-condition.jpg" width="180" alt="우대조건 선택" /> | <img src="docs/images/chat-recommendation.jpg" width="180" alt="상품 추천" /> | <img src="docs/images/products-lump.jpg" width="180" alt="상품 구성 목돈" /> |
+<table align="center">
+  <tr>
+    <th>로드맵 소개</th>
+    <th>우대조건 선택</th>
+    <th>상품 추천</th>
+    <th>상품 구성 (목돈)</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/flow-chat-intro.jpg" width="180" alt="로드맵 소개" /></td>
+    <td align="center"><img src="docs/images/chat-condition.jpg" width="180" alt="우대조건 선택" /></td>
+    <td align="center"><img src="docs/images/chat-recommendation.jpg" width="180" alt="상품 추천" /></td>
+    <td align="center"><img src="docs/images/products-lump.jpg" width="180" alt="상품 구성 목돈" /></td>
+  </tr>
+</table>
 
 ### 4. 월별 실적 점검
 
@@ -53,9 +91,16 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 - 부족액 발생 시 만회 방식 선택: 다음 달 한 번에 / 남은 기간에 나눠서
 - 구간 종료 시 목돈을 다음 구간 예금으로 이월, 새 구간 상품 재선택
 
-| 부족액 만회 방식 선택 | 구간 마무리 |
-| :---: | :---: |
-| <img src="docs/images/chat-monthly.jpg" width="180" alt="부족액 만회 방식 선택" /> | <img src="docs/images/chat-segment-end.jpg" width="180" alt="구간 마무리" /> |
+<table align="center">
+  <tr>
+    <th>부족액 만회 방식 선택</th>
+    <th>구간 마무리</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/chat-monthly.jpg" width="180" alt="부족액 만회 방식 선택" /></td>
+    <td align="center"><img src="docs/images/chat-segment-end.jpg" width="180" alt="구간 마무리" /></td>
+  </tr>
+</table>
 
 ### 5. 소비 분석 · 상품 · 내 정보
 
@@ -68,9 +113,18 @@ E-9 이주노동자의 금융 목표와 소비패턴을 분석해, 체류기간 
 - 현재 구간 상품 구성 (매달 모을 돈 / 목돈 탭)
 - 체류 · 재무 · 목표 정보 수정 (로드맵 시작 후 목표 변경 불가)
 
-| 소비 내역 | 상품 구성 (매달 모을 돈) | 내 정보 |
-| :---: | :---: | :---: |
-| <img src="docs/images/spending.jpg" width="180" alt="소비 내역" /> | <img src="docs/images/products.jpg" width="180" alt="상품 구성 매달 모을 돈" /> | <img src="docs/images/me.jpg" width="180" alt="내 정보" /> |
+<table align="center">
+  <tr>
+    <th>소비 내역</th>
+    <th>상품 구성 (매달 모을 돈)</th>
+    <th>내 정보</th>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/images/spending.jpg" width="180" alt="소비 내역" /></td>
+    <td align="center"><img src="docs/images/products.jpg" width="180" alt="상품 구성 매달 모을 돈" /></td>
+    <td align="center"><img src="docs/images/me.jpg" width="180" alt="내 정보" /></td>
+  </tr>
+</table>
 
 ## 아키텍처
 
